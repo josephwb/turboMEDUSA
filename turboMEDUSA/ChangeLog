@@ -1,6 +1,7 @@
 2011-05-24
   * cleaned up utility functions and put into "turboMEDUSA-utilities.R"
 	- added documentation (internal to file only)
+  * uploaded to GitHub
 
 2011-05-23
   * fixed threshold stop criterion
