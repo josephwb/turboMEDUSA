@@ -1,5 +1,6 @@
 2011-05-26
   * fixed bug with threshold criterion (identified by Gavin Thomas)
+	- typo in termination condition
 
 2011-05-24
   * cleaned up utility functions and put into "turboMEDUSA-utilities.R"
