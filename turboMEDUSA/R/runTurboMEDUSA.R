@@ -111,7 +111,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 # Select model with best score according to the specific criterion employed (default aicc)
 			best <- which.min(unlist(lapply(res, "[[", criterion)))
 			
-			if (as.numeric(res[[best]][criterion]) - as.numeric(models[[length(models)]][criterion]) > threshold)
+			if (as.numeric(models[[length(models)]][criterion]) - as.numeric(res[[best]][criterion]) < threshold)
 			{
 				cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n", sep="")
 				done <- TRUE
