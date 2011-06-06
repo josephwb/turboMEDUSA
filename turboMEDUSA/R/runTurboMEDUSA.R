@@ -1,6 +1,7 @@
 runTurboMEDUSA <-
-function(phy, richness=NULL, model.limit=20, stop="model.limit",
-	criterion="aicc", initial.r=0.05, initial.e=0.5, plotFig=FALSE, nexus=FALSE, verbose=TRUE, mc=FALSE, num.cores=NULL, ...)
+function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
+	criterion="aicc", initial.r=0.05, initial.e=0.5, plotFig=FALSE, nexus=FALSE,
+	verbose=TRUE, mc=FALSE, num.cores=NULL, ...)
 {
 	if (nexus) phy <- read.nexus(phy)
 	if (is.null(richness))  # Assume tree represents single species tips and is completely sampled
@@ -15,7 +16,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 	
 ## Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
 ## and flavour of model fitted (i.e. # parameters estimated; at the moment only birth-death considered)
-	model.limit <- get.max.model.limit(richness, model.limit, stop, verbose)
+	model.limit <- get.max.model.limit(richness, model.limit, model, stop, verbose)
 	
 ## Determine correct AICc threshold from tree size (based on simulations)
  ## Should be used for interpreting model-fit
@@ -43,9 +44,9 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 	cat("Optimizing parameters for pendant edges... ")
 	if (mc)
 	{
-		tips <- mclapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, mc.cores=num.cores)
+		tips <- mclapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model, mc.cores=num.cores)
 	} else {
-		tips <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e)
+		tips <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model)
 	}
 	cat("done.\n")
 	
@@ -55,9 +56,9 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 	cat("Pre-calculating parameters for virgin internal nodes... ")
 	if (mc)
 	{
-		virgin.nodes <- mclapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, mc.cores=num.cores)
+		virgin.nodes <- mclapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model, mc.cores=num.cores)
 	} else {
-		virgin.nodes <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e)
+		virgin.nodes <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model)
 	}
 	cat("done.\n\n")
 	
@@ -71,7 +72,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 	}
 	
 ## 'fit' holds current results; useful for initializing subsequent models
-	fit <- medusa.ml.initial(z, initial.r, initial.e)
+	fit <- medusa.ml.initial(z, initial.r, initial.e, model)
 	models <- list(fit)
 	
 	if (stop == "model.limit")
@@ -82,9 +83,9 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 			node.list <- all.nodes[-fit$split.at]
 			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 			{
-				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, mc.cores=num.cores)
+				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, model, mc.cores=num.cores)
 			} else {
-				res <- lapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node)
+				res <- lapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, model)
 			}
 # Select model with best score according to the specific criterion employed (default aicc)
 			best <- which.min(unlist(lapply(res, "[[", criterion)))
@@ -104,9 +105,9 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 			node.list <- all.nodes[-fit$split.at]
 			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 			{
-				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, mc.cores=num.cores)
+				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, model, mc.cores=num.cores)
 			} else {
-				res <- lapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node)
+				res <- lapply(node.list, medusa.ml.update, z, anc, fit, tips, virgin.nodes, num.tips, root.node, model)
 			}
 # Select model with best score according to the specific criterion employed (default aicc)
 			best <- which.min(unlist(lapply(res, "[[", criterion)))

@@ -8,7 +8,7 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 }
 
 \usage{
-runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit",
+runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="bd",
 	criterion = "aicc", initial.r = 0.05, initial.e = 0.5, plotFig = FALSE,
 	nexus = FALSE, verbose = TRUE, mc = FALSE, num.cores = NULL, ...)
 }
@@ -22,6 +22,9 @@ Optional; only required if tree is NOT completely sampled. A dataframe with mini
 }
   \item{model.limit}{
 The number of piecewise models to be fit to the phylogeny. The program may overrule this value and fit fewer models is the tree is small (such that the denominator in the AIC correction factor becomes undefined).
+}
+  \item{model}{
+The flavour of piecewise models to be fit to the phylogeny. Can be birth-death (\code{model="bd"}), the default, or pure-birth (\code{model="yule"}).
 }
   \item{stop}{
 The criterion for when the analysis should be terminated. \code{stop="model.limit"} will terminate after \code{model.limit} piecewise models have been fit the the phylogeny (see above). The alternative criterion is \code{stop="threshold"}. Here \code{threshold} refers to the increase in AIC score that should be considered significant given the number of tips in the phylogeny; analysis will terminate when the addition of a piecewise BD model does not improve AIC score by \code{threshold}.

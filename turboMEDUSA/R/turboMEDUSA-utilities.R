@@ -31,20 +31,35 @@ prune.tree.merge.data <- function (phy, richness, verbose)
 ## Changing to a stop-criterion (stop="model.limit") e.g. when k = n-1 (i.e. when denominator of aicc correction is undefined).
 ## k <- (3*i-1) # when both birth and death are estimated, where i is the number of piecewise models
   ## This occurs when i = n/3
+  ## If Yule, max i = n/2
 ## n <- (2*num.taxa - 1) == (2*length(richness[,1]) - 1) # i.e. total number of nodes in tree (internal + pendant)
 ## Alternatively use aicc itself as a stopping criterion (stop="threshold").
-get.max.model.limit <- function (richness, model.limit, stop, verbose)
+
+
+get.max.model.limit <- function (richness, model.limit, model, stop, verbose)
 {
 	samp.size <- (2*length(richness[,1]) - 1)
 	
-	max.model.limit <- as.integer(samp.size/3) - ((!(samp.size %% 3)) * 1)
+	if (model == "bd")
+	{
+		max.model.limit <- as.integer(samp.size/3) - ((!(samp.size %% 3)) * 1)
+	} else {
+		max.model.limit <- as.integer(samp.size/2) - ((!(samp.size %% 2)) * 1)
+	}
+	
 	if (stop == "model.limit")
 	{
 		if (model.limit > max.model.limit) {model.limit <- max.model.limit}
-		if (verbose) {cat("\nLimiting consideration to ", model.limit, " piecewise BD models\n\n", sep="")}
 	} else if (stop == "threshold") {
 		model.limit <- max.model.limit
-		if (verbose) {cat("\nConsidering a maximum of ", model.limit, " piecewise BD models (or until threshold is not satisfied)\n\n", sep="")}
+	}
+	
+	if (verbose)
+	{
+		cat("\nLimiting consideration to a maximum of ", model.limit, " piecewise", sep="")
+		if (model == "bd") {cat(" BD models")} else {cat(" pure-birth (Yule) models")}
+		if (stop == "threshold") {cat(" (or until threshold is not satisfied)")}
+		cat("\n\n")
 	}
 	
 	return(model.limit)
@@ -155,10 +170,10 @@ get.num.tips <- function (node, phy)
 
 
 ## Only used for base model
-medusa.ml.initial <- function (z, initial.r, initial.e)
+medusa.ml.initial <- function (z, initial.r, initial.e, model)
 {
 	rootnode <- min(z[,"anc"])
-	obj <- medusa.ml.fit.partition(1, z, sp=c(initial.r, initial.e))
+	obj <- medusa.ml.fit.partition(1, z, sp=c(initial.r, initial.e), model)
 	
 	model.fit <- calculate.model.fit(fit=obj, z)
 	
@@ -169,12 +184,12 @@ medusa.ml.initial <- function (z, initial.r, initial.e)
 
 
 ## Pre-fit values for pendant edges; DON'T recalculate later; should account for ~25% of all calculations
-medusa.ml.prefit <- function (node, z, anc, initial.r, initial.e)
+medusa.ml.prefit <- function (node, z, anc, initial.r, initial.e, model)
 {
 	obj <- medusa.split(node, z, anc)
 	z <- obj$z
 # Partition '2' represents the clade/edge of interest
-	fitted <- medusa.ml.fit.partition(2, z, sp=c(initial.r, initial.e))
+	fitted <- medusa.ml.fit.partition(2, z, sp=c(initial.r, initial.e), model)
 	
 	return(fitted)
 }
@@ -183,7 +198,7 @@ medusa.ml.prefit <- function (node, z, anc, initial.r, initial.e)
 
 ## 'fit' contains parameter values from previous model, used to initialize subsequent model.
 ## Pass in pre-fitted values for pendant edges and virgin nodes; DON'T recalculate.
-medusa.ml.update <- function (node, z, anc, fit, tips, virgin.nodes, num.tips, root.node)
+medusa.ml.update <- function (node, z, anc, fit, tips, virgin.nodes, num.tips, root.node, model)
 {
 	obj <- medusa.split(node, z, anc)
 	z <- obj$z
@@ -192,7 +207,7 @@ medusa.ml.update <- function (node, z, anc, fit, tips, virgin.nodes, num.tips, r
 	op <- fit$par
 	sp <- op[aff[1],] # Use previously fit parameter values from clade that is currently being split
 	
-	fit1 <- medusa.ml.fit.partition(aff[1], z, sp)
+	fit1 <- medusa.ml.fit.partition(aff[1], z, sp, model)
 	fit2 <- 0
 	
 ## Check if pendant; calculations already done
@@ -205,7 +220,7 @@ medusa.ml.update <- function (node, z, anc, fit, tips, virgin.nodes, num.tips, r
 		fit2 <- virgin.nodes[[node - root.node]]
 ## Novel arrangement; need to calculate
 	} else {
-		fit2 <- medusa.ml.fit.partition(aff[2], z, sp)
+		fit2 <- medusa.ml.fit.partition(aff[2], z, sp, model)
 	}
 	
 	op[aff[1],] <- fit1$par # Replace parameters with new values for diminished clade
@@ -250,19 +265,27 @@ medusa.split <- function (node, z, anc)
 
 ## sp = initializing values for r & epsilon
 ## Default values should never be used (except for first model), as the values from the previous model are passed in
-medusa.ml.fit.partition <- function (partition, z, sp=c(0.1, 0.05))
+medusa.ml.fit.partition <- function (partition, z, sp=c(0.1, 0.05), model)
 {
 # Construct likelihood function:
-	lik <- make.lik.medusa.part(z[z[,"partition"] == partition,,drop=FALSE])
+	lik <- make.lik.medusa.part(z[z[,"partition"] == partition,,drop=FALSE], model)
 	
-	fit <- optim(fn=lik, par=sp, method="N", control=list(fnscale=-1))
-	list(par=fit$par, lnLik=fit$value)
+	if (model == "bd")
+	{
+		fit <- optim(fn=lik, par=sp, method="N", control=list(fnscale=-1)) # last argument connotes maximization
+		list(par=fit$par, lnLik=fit$value)
+	} else {
+		fit <- optimize(f=lik, interval=c(0, 1), maximum=TRUE)
+		par <- c(fit$maximum, NA)
+		list(par=par, lnLik=fit$objective)
+	}
+#	list(par=fit$par, lnLik=fit$value)
 }
 
 
 
 ## make.lik.medusa.part: generate a likelihood function for a single partition.
-make.lik.medusa.part <- function (partition)
+make.lik.medusa.part <- function (partition, model)
 {
 
 # Handle internal and pendant edges separately
@@ -289,10 +312,20 @@ make.lik.medusa.part <- function (partition)
 # User may pass in epsilon; don't change it, just estimate r
 	f <- function(pars)
 	{
-		r <- pars[1]
-		epsilon <- pars[2]
+		if (model == "bd")
+		{
+			r <- pars[1]
+			epsilon <- pars[2]
 			
-		if (r < 0 | epsilon <= 0 | epsilon >= 1) {return(-Inf)}
+			if (r < 0 | epsilon <= 0 | epsilon >= 1) {return(-Inf)}
+		} else {
+			r <- pars[1]
+			epsilon <- 0
+			
+			if (r < 0) {return(-Inf)}
+		}
+			
+#		if (r < 0 | epsilon <= 0 | epsilon >= 1) {return(-Inf)}
 		
 		if (n.int == 0) {l.int <- 0} else {
 ## Likelihood of internal edges from Rabosky et al. (2007) equation (2.3):
@@ -353,8 +386,12 @@ calculate.model.fit <- function (fit, z)
 	n <- (length(z[,1]) + 1)
 	
  # Includes both formal parameters AND number of breaks. Note: first model does not involve a break.
-## Models where all parameters are estimated:
+## Models where all parameters are estimated (i.e. BD model):
   # 2 parameters for base model (no breakpoint) + 3 parameters (r, eps, breakpoint) for each subsequent model
+  
+  
+# *** Need to update this for Yule models ***
+# Check how many parameter values != NA
 	
 	if (length(fit$par) < 3) # i.e. base model
 	{
@@ -363,7 +400,10 @@ calculate.model.fit <- function (fit, z)
 		num.models <- length(fit$par[,1])
 	}
 	
-	k <- 2 + (3 * (num.models - 1))
+	
+# This assumes BD; update it
+#	k <- 2 + (3 * (num.models - 1))
+	k <- sum(!is.na(fit$par)) + (num.models - 1) # estimated parameters, number of breaks
 	
 	lnLik <- fit$lnLik
 	

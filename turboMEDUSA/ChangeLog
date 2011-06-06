@@ -1,3 +1,7 @@
+2011-06-05
+  * added Yule model as a user choice
+	- eventually allow mixed models (mix of BD and Yule processes)
+
 2011-05-26
   * fixed bug with threshold criterion (identified by Gavin Thomas)
 	- typo in termination condition
