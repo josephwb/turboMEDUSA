@@ -23,12 +23,12 @@ function(results, model=NULL, cutoff="threshold", criterion="aicc", plotTree=TRU
 		model.id <- model
 	} else {   # Find best model using threshold criterion
 		if (cutoff != "threshold") {threshold <- cutoff}
-		else {cat("\nSelecting model based on corrected threshold (decrease in information theoretic score of ", -threshold, " units).\n", sep="")}
+		else {cat("\nSelecting model based on corrected threshold (improvement in information theoretic score of ", threshold, " units).\n", sep="")}
 		model.id <- 1
 		while (1)
 		{
 			if ((model.id + 1) > length(fit)) break;
-			if ((unlist(fit[[model.id]][criterion]) - unlist(fit[[model.id+1]][criterion])) > threshold) break;
+			if ((unlist(fit[[model.id]][criterion]) - unlist(fit[[model.id+1]][criterion])) < threshold) break;
 			model.id <- model.id + 1
 		}
 	}
@@ -62,7 +62,8 @@ function(results, model=NULL, cutoff="threshold", criterion="aicc", plotTree=TRU
 	
 	if (model.id != 1)
 	{
-		cat("\nFor comparison, estimated values for the base (homogeneous-BD) model are:\n\n")
+		if (model.summary$N.Param[1] == 1) {model <- "Yule"} else {model <- "BD"}
+		cat("\nFor comparison, estimated values for the base (homogeneous-", model, ") model are:\n\n", sep="")
 		print.data.frame(base.model, digits=5, row.names=FALSE)
 		cat("\nModel fit summary for base model:\n\n", sep="")
 		cat("\tLog-likelihood = ", as.numeric(results$models[[1]]["lnLik"]), "\n", sep="")
