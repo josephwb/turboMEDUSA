@@ -13,6 +13,8 @@
         - put results in a common list 'prefit'
      - calculate both flavours for all splits, select best one for each
      - perform checks on all downstream functions
+     - update summarize.turboMEDUSA to consider flavour of model when plotting surfaces
+        - at the moment assume only BD models are to be plotted
 
 3. Implement summary function for a results over a distribution of trees
   - just need to find a efficient way to parse the list of lists
