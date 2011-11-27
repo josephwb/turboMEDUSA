@@ -1,4 +1,4 @@
-Package: turboMEDUSA
+Package: turboMEDUSA.Windows
 Type: Package
 Title: MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 Version: 0.24

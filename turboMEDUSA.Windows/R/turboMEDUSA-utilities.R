@@ -113,7 +113,7 @@ get.threshold <- function (x)
 ## In addition, every node's ancestors are also calculated.  The element 'anc' is a list.
 ## $anc[i] contains the indices within $edge, $t.start, etc., of all ancestors of node 'i'
 ## (in ape node numbering format).
-make.cache.medusa <- function (phy, richness, mc, num.cores)
+make.cache.medusa <- function (phy, richness)
 {
 	n.tips <- length(phy$tip.label)
 	n.int <- nrow(phy$edge) - n.tips
@@ -152,12 +152,8 @@ make.cache.medusa <- function (phy, richness, mc, num.cores)
 # Used for identifying ancestral nodes below i.e. tracking breakpoints
 	all.edges <- as.matrix(z[,c("anc","dec")])
 	
-	if (mc)
-	{
-		list(z=z, anc=mclapply(seq_len(max(all.edges)), ancestors.idx, all.edges), mc.cores=num.cores)
-	} else {
-		list(z=z, anc=lapply(seq_len(max(all.edges)), ancestors.idx, all.edges))
-	} # And, we're good to go...
+	list(z=z, anc=lapply(seq_len(max(all.edges)), ancestors.idx, all.edges))
+# And, we're good to go...
 }
 
 

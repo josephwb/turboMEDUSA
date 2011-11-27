@@ -1,3 +1,341 @@
+require(geiger)
+
+# You wil want to source this file:
+# source("turboMEDUSA_0.23.R")
+
+# Three commands will be of interest:
+
+# 1. Run it
+# results <- runTurboMEDUSA (phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
+#	criterion="aicc", initial.r=0.05, initial.e=0.5, plotFig=FALSE, nexus=FALSE,
+#	verbose=TRUE, ...)
+
+# 2. Summarize results
+# treeParameters <- summarizeTurboMEDUSA (results, model=NULL, cutoff="threshold", criterion="aicc", plotTree=TRUE,
+#	time=TRUE, node.labels=TRUE, cex=0.5, plotSurface=FALSE, n.points=100, ...)
+
+# - plotting parameters for optimal tree are stored in treeParameters
+
+# 3. Plot pretty tree
+# plotPrettyTree (treeParameters, time=TRUE, node.labels=FALSE, cex=0.5, ...)
+
+# Please email me if you have any questions: josephwb@uidaho.edu
+
+runTurboMEDUSA <-
+function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
+	criterion="aicc", initial.r=0.05, initial.e=0.5, plotFig=FALSE, nexus=FALSE,
+	verbose=TRUE, ...)
+{
+	if (nexus) phy <- read.nexus(phy)
+	if (is.null(richness))  # Assume tree represents single species tips and is completely sampled
+	{
+		richness <- data.frame(taxon=phy$tip.label, n.taxa=1)
+	} else {
+## Before determining model.limit, prune tree as necessary (from 'taxon' information in 'richness')
+		phyData <- prune.tree.merge.data(phy, richness, verbose)
+		phy <- phyData$phy
+		richness <- phyData$richness
+	}
+	
+## Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
+## and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
+	model.limit <- get.max.model.limit(richness, model.limit, model, stop, verbose)
+	
+## Determine correct AICc threshold from tree size (based on simulations)
+ ## Should be used for interpreting model-fit
+	threshold <- get.threshold(length(phy$tip.label))
+	cat("Appropriate AICc threshold for tree of ", length(phy$tip.label), " tips is: ", threshold, ".\n\n", sep="")
+	
+## Store pertinent information: branch times, richness, ancestors
+	cat("Preparing data for analysis... ")
+	obj <- make.cache.medusa(phy, richness)
+	cat("done.\n")
+	
+## Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
+	pend.nodes <- seq_len(length(phy$tip.label))   # Calculate pendant splits just once, keep track through various models
+	int.nodes <- (length(phy$tip.label)+2):max(phy$edge) # Omit root node
+	root.node <- length(phy$tip.label)+1
+	all.nodes <- c(pend.nodes, root.node, int.nodes)
+	
+	anc <- obj$anc
+	z <- obj$z
+	z.orig <- z # Save for summarizing models later
+	
+## Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
+ ## Will show particular performance gain for edges with many fossil observations
+	cat("Optimizing parameters for pendant edges... ")
+	tips.bd <- list(); tips.yule <- list();
+	
+	if (model == "bd" | model == "mixed")
+	{
+		tips.bd <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
+	}
+	if (model == "yule" | model == "mixed")
+	{
+		tips.yule <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
+	}
+	tips <- list(bd=tips.bd, yule=tips.yule)
+	cat("done.\n")
+	
+## Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
+ ## Remain useful until a spilt is accepted within the clade
+	cat("Pre-calculating parameters for virgin internal nodes... ")
+	virgin.nodes.bd <- list(); virgin.nodes.yule <- list();
+	
+	if (model == "bd" | model == "mixed")
+	{
+		virgin.nodes.bd <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
+	}
+	if (model == "yule" | model == "mixed")
+	{
+		virgin.nodes.yule <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
+	}
+	virgin.nodes <- list(bd=virgin.nodes.bd, yule=virgin.nodes.yule)
+	cat("done.\n\n")
+	
+	prefit <- list(tips=tips, virgin.nodes=virgin.nodes)
+	
+## Needed downstream; don't recalculate
+ ## Gives the number of tips associated with an internal node; determines whether a node is 'virgin' or not
+	num.tips <- list()
+	num.tips <- lapply(all.nodes, get.num.tips, phy)
+	
+## 'fit' holds current results; useful for initializing subsequent models
+	if (model == "mixed")
+	{
+		fit.bd <- medusa.ml.initial(z, initial.r, initial.e, model="bd")
+		fit.yule <- medusa.ml.initial(z, initial.r, initial.e, model="yule")
+		if (fit.bd[[criterion]] < fit.yule[[criterion]]) {
+			fit <- fit.bd
+		} else {
+			fit <- fit.yule
+		}
+	} else {
+		fit <- medusa.ml.initial(z, initial.r, initial.e, model)
+	}
+	
+	models <- list(fit)
+	
+	if (stop == "model.limit")
+	{
+		cat("Step 1 (of ", model.limit, "): best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "\n", sep="")
+		for (i in seq_len(model.limit-1))
+		{
+			node.list <- all.nodes[-fit$split.at]
+			res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
+			
+# Select model with best score according to the specific criterion employed (default aicc)
+			best <- which.min(unlist(lapply(res, "[[", criterion)))
+			models <- c(models, res[best])
+			z <- medusa.split(node.list[best], z, anc)$z
+			fit <- res[[best]]   # keep track of '$split.at' i.e. nodes already considered
+			
+			cat("Step ", i+1, " (of ", model.limit, "): best likelihood = ", models[[i+1]]$lnLik, "; AICc = ", models[[i+1]]$aicc,
+				"; break at node ", models[[i+1]]$split.at[i+1],"\n", sep="")
+		}
+	} else if (stop == "threshold") {
+		i <- 1
+		done <- FALSE
+		cat("Step 1: best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "\n", sep="")
+		while (!done & i < model.limit)
+		{
+			node.list <- all.nodes[-fit$split.at]
+			res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
+			
+# Select model with best score according to the specific criterion employed (default aicc)
+			best <- which.min(unlist(lapply(res, "[[", criterion)))
+	# Compare last accepted model to current best model
+			if (as.numeric(models[[length(models)]][criterion]) - as.numeric(res[[best]][criterion]) < threshold)
+			{
+				cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n", sep="")
+				done <- TRUE
+				break;
+			}
+			models <- c(models, res[best])
+			z <- medusa.split(node.list[best], z, anc)$z
+			fit <- res[[best]]   # keep track of '$split.at' i.e. nodes already considered
+			
+			cat("Step ", i+1, ": best likelihood = ", models[[i+1]]$lnLik, "; AICc = ", models[[i+1]]$aicc,
+				"; break at node ", models[[i+1]]$split.at[i+1],"\n", sep="")
+			i <- i+1
+		}
+	}
+	
+	modelSummary <- calculate.model.fit.summary(models, phy, plotFig=ifelse(length(models) > 1 & plotFig, TRUE, FALSE))
+	if (verbose)
+	{
+		cat("\n", "Model fit summary:", "\n\n", sep="")
+		print(modelSummary)
+	}
+	results <- list(z=z.orig, anc=anc, models=models, phy=phy, threshold=threshold, modelSummary=modelSummary)
+	
+	return(results)
+}
+
+
+
+
+summarizeTurboMEDUSA <-
+function(results, model=NULL, cutoff="threshold", criterion="aicc", plotTree=TRUE, time=TRUE, node.labels=TRUE, cex=0.5,
+	plotSurface=FALSE, n.points=100, ...)
+{
+# Desirables:
+#  1. table listing parameter values of selected model
+#  2. list parameters of base model
+#  3. tree printed with colour-coded edges, node labels to indicate split position(s)
+#  4. plot likelihood surface
+	
+# Extract constituent components from results
+	fit <- results$models
+	phy <- results$phy
+	z <- results$z
+	anc <- results$anc
+	modelSummary <- results$modelSummary
+	threshold <- results$threshold
+	
+	fit; phy; z; anc; modelSummary; threshold;
+	
+# First, determine which model is desired
+	model.id <- 0
+	if (!is.null(model))
+	{
+		model.id <- model
+	} else {   # Find best model using some criterion (threshold or user-defined)
+		if (cutoff != "threshold") {threshold <- cutoff}
+		else {cat("\nSelecting model based on corrected threshold (improvement in information theoretic score of ", threshold, " units).\n", sep="")}
+		model.id <- 1
+		while (1)
+		{
+			if ((model.id + 1) > length(fit)) break;
+			if ((unlist(fit[[model.id]][criterion]) - unlist(fit[[model.id+1]][criterion])) < threshold) break;
+			model.id <- model.id + 1
+		}
+	}
+		
+	break.pts <- fit[[model.id]]$split.at
+	opt.model <- as.data.frame(cbind(Split.node=break.pts, fit[[model.id]]$par, LnLik.part=fit[[model.id]]$lnLik.part))
+	base.model <- as.data.frame(fit[[1]]$par)
+	
+	cat("\nEstimated parameter values for model #", model.id, ":\n\n", sep="")
+	print.data.frame(opt.model, digits=5)
+	opt.weight <- 0
+	opt.fit <- 0
+	base.weight <- 0
+	base.fit <- 0
+	if (criterion == "aicc")
+	{
+		opt.weight <- modelSummary$w.aicc[model.id]
+		opt.fit <- modelSummary$aicc[model.id]
+		base.weight <- modelSummary$w.aicc[1]
+		base.fit <- modelSummary$aicc[1]
+	} else { # aic used
+		opt.weight <- modelSummary$w.aic[model.id]
+		opt.fit <- modelSummary$aic[model.id]
+		base.weight <- modelSummary$w.aic[1]
+		base.fit <- modelSummary$aic[1]
+	}
+	cat("\nModel fit summary for model #", model.id, ":\n\n", sep="")
+	cat("\tLog-likelihood = ", as.numeric(results$models[[model.id]]["lnLik"]), "\n", sep="")
+	cat("\t", criterion, " = ", opt.fit, "\n", sep="")
+	cat("\t", criterion, " weight = ", opt.weight, "\n\n", sep="")
+	
+	if (model.id != 1)
+	{
+		if (modelSummary$N.Param[1] == 1) {model <- "Yule"} else {model <- "BD"}
+		cat("\nFor comparison, estimated values for the base (single homogeneous-", model, ") model are:\n\n", sep="")
+		print.data.frame(base.model, digits=5, row.names=FALSE)
+		cat("\nModel fit summary for base model:\n\n", sep="")
+		cat("\tLog-likelihood = ", as.numeric(results$models[[1]]["lnLik"]), "\n", sep="")
+		cat("\t", criterion, " = ", base.fit, "\n", sep="")
+		cat("\t", criterion, " weight = ", base.weight, "\n\n", sep="")
+	}
+	
+# Get desired tree-model conformation
+	if (length(break.pts) > 1)
+	{
+		for (i in 2:length(break.pts))
+		{
+			tmp <- medusa.split(break.pts[i], z, anc)
+			z <- tmp$z
+		}
+	}
+	mm <- integer();
+# Plot tree with purdy colours and labelled nodes (to better map between tree and table)
+	if (plotTree)
+	{
+		dev.new()
+		margin <- FALSE
+		
+# This need to be changed to reflect new structure
+		mm <- match(phy$edge[,2], z[,"dec"])
+		if (time) {margin=TRUE}
+		plot.phylo(phy, edge.color=z[mm,"partition"], no.margin=!margin, cex=cex, ...)
+		if (time)
+		{
+			axisPhylo(cex.axis=0.75)
+			mtext("Divergence Time (MYA)", at=(max(get("last_plot.phylo", envir = .PlotPhyloEnv)$xx)*0.5), side = 1, line = 2, cex=0.75)
+		}
+		if (node.labels)
+		{
+			for (i in  1:length(break.pts))
+			{
+				nodelabels(i, node= break.pts[i], frame = "c", font = 1, cex=0.5)
+			}
+		}
+	}
+	
+## Due to my current ineptitude in plotting in R, plotting surface is currently [0,1] for
+#  both r and epsilon, even if values of interest are clustered in some subregion.
+
+## *** NEED TO MAKE CHECKS IF CURRENT MODEL IS YULE, AND THEN FIGURE HOW TO PLOT IT ***
+	if (plotSurface)
+	{
+		n.pieces <- length(opt.model[,1])
+		dev.new()
+		
+		if ((sqrt(n.pieces)) == round(sqrt(n.pieces)))  #make square plotting surface
+		{
+			op <- par(mfrow=c(sqrt(n.pieces),sqrt(n.pieces)))
+		} else {
+			layout(matrix(1:n.pieces))
+		}
+		
+		if (n.pieces > 1) {cat("Computing surfaces...\n")} else {cat("Computing surface...\n")}
+		for (k in 1: n.pieces)
+		{
+			partition <- k
+	## *** Need to indiciate model flavour here
+			lik <- make.lik.medusa.part(z[z[,"partition"] == partition,,drop=FALSE], model="bd")
+			
+			lik.vals <- matrix(nrow=n.points, ncol=n.points)
+			r.vals <- seq(from=1e-10, to=1.0, length.out=n.points)
+			eps.vals <- seq(from=1e-10, to=1.0, length.out=n.points)
+			
+			for (i in 1:length(r.vals))
+			{
+				for (j in 1:(length(eps.vals))) {lik.vals[i,j] <- lik(pars=c(r.vals[i], eps.vals[j]))}
+			}
+			if (n.pieces > 1) {cat("Completed computing surface for piecewise model #", k, "\n", sep="")}
+		
+# Contour plot
+			max.lik <- as.numeric(opt.model[partition,"LnLik.part"])  # MLE
+			lines <- c(max.lik-0.5, max.lik-1, max.lik-2, max.lik-3, max.lik-4, max.lik-5, max.lik-10, max.lik-50, max.lik-100)
+			contour(lik.vals, levels=lines, labels=c(0.5, 1, 2, 3, 4, 5, 10, 50, 100), axes=FALSE, xlab="r (b-d)", ylab="epsilon (d/b)")
+			tics<-floor(c(1, n.points/4, n.points/2, n.points*3/4, n.points))
+			axis(1, at=c(0, 0.25, 0.5, 0.75, 1), labels=round(r.vals[tics], 3))
+			axis(2, at=c(0, 0.25, 0.5, 0.75, 1), labels=round(eps.vals[tics], 3))
+			points(x=opt.model[partition,"r"], y=opt.model[partition,"epsilon"], pch=16, col="red") # inferred ML values
+			legend("topright", "ML", pch=16, col="red", inset = .05, cex=0.75, bty="n")
+			if (n.pieces > 1) {title(main=paste("Piecewise model #", k, sep=""))}
+		}
+	}
+	treeParameters <- list(mm=mm, break.pts=break.pts, phy=phy, z=z)
+	return(treeParameters)
+}
+
+
+
+
 ## Function to prune tree using 'richness' information, assumed to have minimally two columns, "taxon" and "n.taxa"
 ##   Perhaps relax on these column names, may cause too many problems
 ## May also include 'exemplar' column; in that case, rename relevant tip.label before pruning.
@@ -113,7 +451,7 @@ get.threshold <- function (x)
 ## In addition, every node's ancestors are also calculated.  The element 'anc' is a list.
 ## $anc[i] contains the indices within $edge, $t.start, etc., of all ancestors of node 'i'
 ## (in ape node numbering format).
-make.cache.medusa <- function (phy, richness, mc, num.cores)
+make.cache.medusa <- function (phy, richness)
 {
 	n.tips <- length(phy$tip.label)
 	n.int <- nrow(phy$edge) - n.tips
@@ -152,12 +490,8 @@ make.cache.medusa <- function (phy, richness, mc, num.cores)
 # Used for identifying ancestral nodes below i.e. tracking breakpoints
 	all.edges <- as.matrix(z[,c("anc","dec")])
 	
-	if (mc)
-	{
-		list(z=z, anc=mclapply(seq_len(max(all.edges)), ancestors.idx, all.edges), mc.cores=num.cores)
-	} else {
-		list(z=z, anc=lapply(seq_len(max(all.edges)), ancestors.idx, all.edges))
-	} # And, we're good to go...
+	list(z=z, anc=lapply(seq_len(max(all.edges)), ancestors.idx, all.edges))
+# And, we're good to go...
 }
 
 

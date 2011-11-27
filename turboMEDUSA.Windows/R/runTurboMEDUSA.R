@@ -1,7 +1,7 @@
 runTurboMEDUSA <-
 function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	criterion="aicc", initial.r=0.05, initial.e=0.5, plotFig=FALSE, nexus=FALSE,
-	verbose=TRUE, mc=FALSE, num.cores=NULL, ...)
+	verbose=TRUE, ...)
 {
 	if (nexus) phy <- read.nexus(phy)
 	if (is.null(richness))  # Assume tree represents single species tips and is completely sampled
@@ -25,7 +25,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	
 ## Store pertinent information: branch times, richness, ancestors
 	cat("Preparing data for analysis... ")
-	obj <- make.cache.medusa(phy, richness, mc, num.cores)
+	obj <- make.cache.medusa(phy, richness)
 	cat("done.\n")
 	
 ## Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
@@ -42,25 +42,14 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
  ## Will show particular performance gain for edges with many fossil observations
 	cat("Optimizing parameters for pendant edges... ")
 	tips.bd <- list(); tips.yule <- list();
-	if (mc)
+	
+	if (model == "bd" | model == "mixed")
 	{
-		if (model == "bd" | model == "mixed")
-		{
-			tips.bd <- mclapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd", mc.cores=num.cores)
-		}
-		if (model == "yule" | model == "mixed")
-		{
-			tips.yule <- mclapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule", mc.cores=num.cores)
-		}
-	} else {
-		if (model == "bd" | model == "mixed")
-		{
-			tips.bd <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
-		}
-		if (model == "yule" | model == "mixed")
-		{
-			tips.yule <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
-		}
+		tips.bd <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
+	}
+	if (model == "yule" | model == "mixed")
+	{
+		tips.yule <- lapply(pend.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
 	}
 	tips <- list(bd=tips.bd, yule=tips.yule)
 	cat("done.\n")
@@ -69,25 +58,14 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
  ## Remain useful until a spilt is accepted within the clade
 	cat("Pre-calculating parameters for virgin internal nodes... ")
 	virgin.nodes.bd <- list(); virgin.nodes.yule <- list();
-	if (mc)
+	
+	if (model == "bd" | model == "mixed")
 	{
-		if (model == "bd" | model == "mixed")
-		{
-			virgin.nodes.bd <- mclapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd", mc.cores=num.cores)
-		}
-		if (model == "yule" | model == "mixed")
-		{
-			virgin.nodes.yule <- mclapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule", mc.cores=num.cores)
-		}
-	} else {
-		if (model == "bd" | model == "mixed")
-		{
-			virgin.nodes.bd <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
-		}
-		if (model == "yule" | model == "mixed")
-		{
-			virgin.nodes.yule <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
-		}
+		virgin.nodes.bd <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="bd")
+	}
+	if (model == "yule" | model == "mixed")
+	{
+		virgin.nodes.yule <- lapply(int.nodes, medusa.ml.prefit, z, anc, initial.r, initial.e, model="yule")
 	}
 	virgin.nodes <- list(bd=virgin.nodes.bd, yule=virgin.nodes.yule)
 	cat("done.\n\n")
@@ -97,12 +75,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 ## Needed downstream; don't recalculate
  ## Gives the number of tips associated with an internal node; determines whether a node is 'virgin' or not
 	num.tips <- list()
-	if (mc)
-	{
-		num.tips <- mclapply(all.nodes, get.num.tips, phy, mc.cores=num.cores)
-	} else {
-		num.tips <- lapply(all.nodes, get.num.tips, phy)
-	}
+	num.tips <- lapply(all.nodes, get.num.tips, phy)
 	
 ## 'fit' holds current results; useful for initializing subsequent models
 	if (model == "mixed")
@@ -126,12 +99,8 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		for (i in seq_len(model.limit-1))
 		{
 			node.list <- all.nodes[-fit$split.at]
-			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
-			{
-				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion, mc.cores=num.cores)
-			} else {
-				res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
-			}
+			res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
+			
 # Select model with best score according to the specific criterion employed (default aicc)
 			best <- which.min(unlist(lapply(res, "[[", criterion)))
 			models <- c(models, res[best])
@@ -148,12 +117,8 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		while (!done & i < model.limit)
 		{
 			node.list <- all.nodes[-fit$split.at]
-			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
-			{
-				res <- mclapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion, mc.cores=num.cores)
-			} else {
-				res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
-			}
+			res <- lapply(node.list, medusa.ml.update, z, anc, fit, prefit, num.tips, root.node, model, criterion)
+			
 # Select model with best score according to the specific criterion employed (default aicc)
 			best <- which.min(unlist(lapply(res, "[[", criterion)))
 	# Compare last accepted model to current best model
@@ -173,7 +138,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		}
 	}
 	
-	modelSummary <- calculate.model.fit.summary(models, phy, plotFig=ifelse(length(models) > 1 & plotFig & !mc, TRUE, FALSE))
+	modelSummary <- calculate.model.fit.summary(models, phy, plotFig=ifelse(length(models) > 1 & plotFig, TRUE, FALSE))
 	if (verbose)
 	{
 		cat("\n", "Model fit summary:", "\n\n", sep="")
@@ -183,4 +148,5 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	
 	return(results)
 }
+
 

@@ -10,10 +10,10 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit",
 		for (i in 1:num.trees)
 		{
 			cat("Processing tree ", i, " (of ", num.trees, ")...\n\n", sep="")
-			foo <- runTurboMEDUSA(phy[i], richness, model.limit, stop, criterion, initial.r, initial.e, plotFig, nexus, verbose, mc, num.cores, ...)
+			res[[i]] <- runTurboMEDUSA(phy=phy[[i]], richness=richness, model.limit=model.limit, stop=stop, criterion=criterion, initial.r=initial.r, initial.e=initial.e, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, num.cores=num.cores, ...)
 		}
 	} else {
-		res <- runTurboMEDUSA(phy, richness, model.limit, stop, criterion, initial.r, initial.e, plotFig, nexus, verbose, mc, num.cores, ...)
+		res <- runTurboMEDUSA(phy, richness=richness, model.limit=model.limit, stop=stop, criterion=criterion, initial.r=initial.r, initial.e=initial.e, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, num.cores=num.cores, ...)
 	}
 	return(res)
 }

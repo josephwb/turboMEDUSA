@@ -10,7 +10,7 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 \usage{
 runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="bd",
 	criterion = "aicc", initial.r = 0.05, initial.e = 0.5, plotFig = FALSE,
-	nexus = FALSE, verbose = TRUE, mc = FALSE, num.cores = NULL, ...)
+	nexus = FALSE, verbose = TRUE, ...)
 }
 
 \arguments{
@@ -46,12 +46,6 @@ Boolean value that indicates whether the tree being passed in is in Nexus format
 }
   \item{verbose}{
 Print out additional information to screen, such as which taxa are pruned from the original tree given richness information. Mostly useful for debugging.
-}
-  \item{mc}{
-Indicate whether multiple cores should be used (\code{mc=TRUE}). Works only on unix-like machines (i.e. not Windows), and only in non-GUI instantiations of R.
-}
-  \item{num.cores}{
-The number of cores to use if \code{mc=TRUE}. By default all cores detected will be used. This option is only useful if one wants to limits the number of cares devoted to a particular R job.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.
