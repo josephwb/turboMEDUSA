@@ -1,7 +1,6 @@
 2011-12-12
   * re-implemented 'mixed' models
-  * added cutAtStem option; TRUE, FALSE, or 'both'
-  * both 'mixed' and 'both' can be used together
+  * added cutAtStem option; TRUE, FALSE, or "both"
 
 2011-10-09
   * fixed bug in runMultiMEDUSA

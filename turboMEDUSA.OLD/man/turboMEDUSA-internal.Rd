@@ -1,8 +1,6 @@
 \name{turboMEDUSA-internal}
-\alias{descendants.cutAtStem}
-\alias{descendants.cutAtStem.idx}
-\alias{descendants.cutAtNode}
-\alias{descendants.cutAtNode.idx}
+\alias{ancestors}
+\alias{ancestors.idx}
 \alias{calculate.model.fit}
 \alias{calculate.model.fit.summary}
 \alias{calculate.model.weights}

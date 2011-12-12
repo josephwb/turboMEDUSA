@@ -9,7 +9,7 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 
 \usage{
 runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="bd",
-	criterion = "aicc", shiftCut = "stem", initialR = 0.05, initialE = 0.5, plotFig = FALSE,
+	criterion = "aicc", cutAtStem = TRUE, initial.r = 0.05, initial.e = 0.5, plotFig = FALSE,
 	nexus = FALSE, verbose = TRUE, mc = FALSE, num.cores = NULL, ...)
 }
 
@@ -32,13 +32,13 @@ The criterion for when the analysis should be terminated. \code{stop="model.limi
   \item{criterion}{
 The statistical criterion used to determine whether larger models fit the data significantly better. Options are \code{criterion="aicc"} (default) or \code{criterion="aic"}. As AIC and AICc will select the same breaks for any given model size, this option is only useful if \code{stop="threshold"}. In this case, the default is strongly advised, as for some trees AIC can continue to improve well after AICc has deteriorated.
 }
-  \item{shiftCut}{
-Determines where rate shifts are placed on the tree. Three options are available. For the default option \code{shiftCut="stem"}, when a subtree is selected for submodel consideration, it is assumed that the shift in diversification occurred in the branch leading to the clade. The second option \code{shiftCut="node"} assumes the shift occurred at the node representing the most recent common ancestor of the clade (that is, omitting the leading branch). The final option \code{shiftCut="both"} considers both possibilities for shift placement, and carries the shift with the higher AICc score forward to piecewise model selection.
+  \item{cutAtStem}{
+Determines where rate shifts are placed on the tree. Three options are available. For the default option \code{cutAtStem=TRUE}, when a subtree is selected for submodel consideration, it is assumed that the shift in diversification occurred in the branch leading to the clade. The second option \code{cutAtStem=FALSE} assumes the shift occurred at the node representing the most recent common ancestor of the clade (that is, omitting the leading branch). The final option \code{cutAtStem="both"} considers both possibilities for shift placement, and carries the shift with the higher AICc score forward to piecewise model selection.
 }
-  \item{initialR}{
+  \item{initial.r}{
 Starting guess for net diversification rate. May need to be decreased for the program to work on large trees.
 }
-  \item{initialE}{
+  \item{initial.e}{
 Starting guess for relative extinction rate.
 }
   \item{plotFig}{

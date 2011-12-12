@@ -80,7 +80,8 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 	{
 		for (i in 2:length(break.pts))
 		{
-			tmp <- medusa.split(node=break.pts[i], z=z, desc=desc, shiftCut=cutAt[i]);
+			if (cutAt[i] == "stem") {cutAtStem = TRUE;} else {cutAtStem = FALSE;}
+			tmp <- medusa.split(node=break.pts[i], z=z, desc=desc, cutAtStem=cutAtStem);
 			z <- tmp$z;
 		}
 	}

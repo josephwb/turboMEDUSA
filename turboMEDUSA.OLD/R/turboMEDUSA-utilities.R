@@ -250,8 +250,8 @@ medusa.ml.initial <- function (z, initialR, initialE, model)
 
 ## Pre-fit values for pendant edges; DON'T recalculate later; should account for ~25% of all calculations
 ## Also cache values for virgin nodes; useful until subsetted.
-## shiftCut can only be "stem" or "node" (not "both"), as both are evaluated separately
-medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut, criterion)
+## cutAtStem can only be T or F (not "both"), as both are evaluated separately
+medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, cutAtStem, criterion)
 {
 	fitted.bd <- NULL;
 	fitted.yule <- NULL;
@@ -259,34 +259,34 @@ medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut
 	
 ## if model is mixed, grab the optimally fitted one, drop the other; it is cutAtStem that matters, as it is the sum of 2 break likelihoods
   ## optimal alone may be different than optimal in tandem
-	if (shiftCut == "stem")
+	if (cutAtStem == TRUE)
 	{
 		if (model == "bd" || model == "mixed")
 		{
-			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="stem");
+			obj <- medusa.split(node=node, z=z, desc=desc, stemCut=TRUE);
 			z.bd.stem <- obj$z;
 			fitted.bd <- medusa.ml.fit.partition(partition=2, z=z.bd.stem, sp=c(initialR, initialE), model="bd");
 			fitted.bd$cut.at <- "stem";
 		}
 		if (model == "yule" || model == "mixed")
 		{
-			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="stem");
+			obj <- medusa.split(node=node, z=z, desc=desc, stemCut=TRUE);
 			z.yule.stem <- obj$z;
 			fitted.yule <- medusa.ml.fit.partition(partition=2, z=z.yule.stem, sp=c(initialR, initialE), model="yule");
 			fitted.yule$cut.at <- "stem";
 		}
-	} else if (shiftCut == "node")
+	} else if (cutAtStem == FALSE)
 	{
 		if (model == "bd" || model == "mixed")
 		{
-			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="node");
+			obj <- medusa.split(node=node, z=z, desc=desc, stemCut=FALSE);
 			z.bd.node <- obj$z;
 			fitted.bd <- medusa.ml.fit.partition(partition=2, z=z.bd.node, sp=c(initialR, initialE), model="bd");
 			fitted.bd$cut.at <- "node";
 		}
 		if (model == "yule" || model == "mixed")
 		{
-			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="node");
+			obj <- medusa.split(node=node, z=z, desc=desc, stemCut=FALSE);
 			z.yule.node <- obj$z;
 			fitted.yule <- medusa.ml.fit.partition(partition=2, z=z.yule.node, sp=c(initialR, initialE), model="yule");
 			fitted.yule$cut.at <- "node";
@@ -340,16 +340,16 @@ medusa.ml.fit.partition <- function (partition, z, sp=c(0.1, 0.05), model)
 ## Returns a list with elements:
 ##   z: new medusa matrix, with the new partition added
 ##   affected: indices of the partitions affected by the split (n == 2).
-## This is where 'shiftCut' matters
-medusa.split <- function (node, z, desc, shiftCut)
+## This is where 'cutAtStem' matters
+medusa.split <- function (node, z, desc, stemCut=TRUE)
 {
 	descendants <- NULL;
-	if (shiftCut == "stem")
+	if (stemCut == TRUE)
 	{
 		descendants <- desc$desc.stem;
-	} else if (shiftCut == "node") {
+	} else if (stemCut == FALSE) {
 		descendants <- desc$desc.node;
-	} else {cat("WTF now?!? shiftCut = ", shiftCut, "\n");}
+	} else {cat("WTF now?!? stemCut = ", stemCut, "\n");}
 	part <- z[,"partition"];
 	base <- min(part[z[,1] == node | z[,2] == node]);
 	tag <- max(part) + 1;
@@ -364,9 +364,9 @@ medusa.split <- function (node, z, desc, shiftCut)
 ## 'fit' contains parameter values from previous model, used to initialize subsequent model.
 ## Pass in pre-fitted values for pendant edges and virgin nodes (in 'prefit'); DON'T recalculate.
 ## Need to consider the possibility of birth-death, yule, or mixed models.
-## Need to consider where shft is placed (shiftCut). Placement affects not only new clade, but
-## also the size of the split clade. Only relevant if shiftCut = "both".
-medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, model, criterion, shiftCut)
+## Need to consider where shft is placed (cutAtStem). Placement affects not only new clade, but
+## also the size of the split clade. Only relevant if cutAtStem = TRUE.
+medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, model, criterion, cutAtStem)
 {
 ## various combinations possible
 	fit1.stem <- NULL;
@@ -378,15 +378,14 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 	sp <- NULL;
 	aff <- NULL;
 	op <- fit$par;
-	cut.at <- NULL;
 	
 	fit1 <- NULL;
 	fit2 <- NULL;
 	
-	if (shiftCut == "stem" || shiftCut == "both")
+	if (cutAtStem == TRUE || cutAtStem == "both")
 	{
 ## First, diminshed clade
-		obj.stem <- medusa.split(node=node, z=z, desc=desc, shiftCut="stem");
+		obj.stem <- medusa.split(node=node, z=z, desc=desc, stemCut=TRUE);
 		z.stem <- obj.stem$z;
 		aff <- obj.stem$affected;
 		sp <- op[aff[1],]; # Use previously fit parameter values from clade that is currently being split
@@ -414,12 +413,12 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			
 			if (model == "yule" || model == "mixed")
 			{
-				fit2.stem.yule <- medusa.ml.fit.partition(aff[2], z.stem, sp=sp, model="yule");
+				fit2.stem.yule <- medusa.ml.fit.partition(aff[2], z.stem, sp, model="yule");
 			}
 			if (model == "bd" || model == "mixed")
 			{
 				if (is.na(sp[2])) {sp[2] <- 0.5;}
-				fit2.stem.bd <- medusa.ml.fit.partition(aff[2], z.stem, sp=sp, model="bd");
+				fit2.stem.bd <- medusa.ml.fit.partition(aff[2], z.stem, sp, model="bd");
 			}
 ## Figure out which model fits best
 			if (is.null(fit2.stem.bd))
@@ -443,10 +442,10 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			}
 		}
 	}
-	if (shiftCut == "node" || shiftCut == "both")
+	if (cutAtStem == FALSE || cutAtStem == "both")
 	{
 ## First, diminshed clade
-		obj.node <- medusa.split(node=node, z=z, desc=desc, shiftCut="node");
+		obj.node <- medusa.split(node=node, z=z, desc=desc, stemCut=FALSE);
 		z.node <- obj.node$z;
 		aff <- obj.node$affected;
 		sp <- op[aff[1],]; # Use previously fit parameter values from clade that is currently being split

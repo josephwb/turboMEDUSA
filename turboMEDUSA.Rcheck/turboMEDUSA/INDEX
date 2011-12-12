@@ -1,0 +1,12 @@
+carnivora               Carnivora Phylogeny
+descendants.cutAtStem   Turbo-MEDUSA Internal Functions
+get.b.d                 Get Per-lineage Birth and Death Rates
+plotPrettyTree          MEDUSA: Modeling Evolutionary Diversification
+                        Using Stepwise AIC
+runTurboMEDUSA          MEDUSA: Modeling Evolutionary Diversification
+                        Using Stepwise AIC
+summarizeTurboMEDUSA    MEDUSA: Modeling Evolutionary Diversification
+                        Using Stepwise AIC
+turboMEDUSA             MEDUSA: Modeling Evolutionary Diversification
+                        Using Stepwise AIC
+whales                  Whale Phylogeny
