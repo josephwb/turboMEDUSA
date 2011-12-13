@@ -244,7 +244,7 @@ medusa.ml.initial <- function (z, initialR, initialE, model)
 	model.fit <- calculate.model.fit(fit=obj, z=z);
 	
 	return(list(par=matrix(obj$par, nrow=1, dimnames=list(NULL,c("r", "epsilon"))), lnLik.part=obj$lnLik, 
-	   lnLik=obj$lnLik, split.at=rootnode, aic=model.fit[1], aicc=model.fit[2], num.par=model.fit[3], cut.at="node"));
+	   lnLik=obj$lnLik, split.at=rootnode, aic=round(model.fit[1], digits=7), aicc=round(model.fit[2], digits=7), num.par=model.fit[3], cut.at="node"));
 }
 
 
@@ -266,6 +266,7 @@ medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut
 			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="stem");
 			z.bd.stem <- obj$z;
 			fitted.bd <- medusa.ml.fit.partition(partition=2, z=z.bd.stem, sp=c(initialR, initialE), model="bd");
+			fitted.bd$model <- "bd";
 			fitted.bd$cut.at <- "stem";
 		}
 		if (model == "yule" || model == "mixed")
@@ -273,6 +274,7 @@ medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut
 			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="stem");
 			z.yule.stem <- obj$z;
 			fitted.yule <- medusa.ml.fit.partition(partition=2, z=z.yule.stem, sp=c(initialR, initialE), model="yule");
+			fitted.yule$model <- "yule";
 			fitted.yule$cut.at <- "stem";
 		}
 	} else if (shiftCut == "node")
@@ -282,6 +284,7 @@ medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut
 			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="node");
 			z.bd.node <- obj$z;
 			fitted.bd <- medusa.ml.fit.partition(partition=2, z=z.bd.node, sp=c(initialR, initialE), model="bd");
+			fitted.bd$model <- "bd";
 			fitted.bd$cut.at <- "node";
 		}
 		if (model == "yule" || model == "mixed")
@@ -289,6 +292,7 @@ medusa.ml.prefit <- function (node, z, desc, initialR, initialE, model, shiftCut
 			obj <- medusa.split(node=node, z=z, desc=desc, shiftCut="node");
 			z.yule.node <- obj$z;
 			fitted.yule <- medusa.ml.fit.partition(partition=2, z=z.yule.node, sp=c(initialR, initialE), model="yule");
+			fitted.yule$model <- "yule";
 			fitted.yule$cut.at <- "node";
 		}
 	}
@@ -366,6 +370,7 @@ medusa.split <- function (node, z, desc, shiftCut)
 ## Need to consider the possibility of birth-death, yule, or mixed models.
 ## Need to consider where shft is placed (shiftCut). Placement affects not only new clade, but
 ## also the size of the split clade. Only relevant if shiftCut = "both".
+## fit1 model is already logged; only need to record fit2 model, and only non-prefitted nodes
 medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, model, criterion, shiftCut)
 {
 ## various combinations possible
@@ -401,6 +406,7 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			}
 		} else {
 			fit1.stem <- medusa.ml.fit.partition(partition=aff[1], z=z.stem, sp=sp, model=model);
+			fit1.stem$model <- model;
 		}
 ## Second, new clade
 		if (node < root.node) # tip, already calculated
@@ -415,11 +421,13 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			if (model == "yule" || model == "mixed")
 			{
 				fit2.stem.yule <- medusa.ml.fit.partition(aff[2], z.stem, sp=sp, model="yule");
+				fit2.stem.yule$model <- "yule";
 			}
 			if (model == "bd" || model == "mixed")
 			{
 				if (is.na(sp[2])) {sp[2] <- 0.5;}
 				fit2.stem.bd <- medusa.ml.fit.partition(aff[2], z.stem, sp=sp, model="bd");
+				fit2.stem.bd$model <- "bd";
 			}
 ## Figure out which model fits best
 			if (is.null(fit2.stem.bd))
@@ -456,11 +464,14 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			if (sum(!is.na(sp)) < 2) # yule
 			{
 				fit1.node <- medusa.ml.fit.partition(partition=aff[1], z=z.node, sp=sp, model="yule");
+				fit1.node$model <- "yule";
 			} else {
 				fit1.node <- medusa.ml.fit.partition(partition=aff[1], z=z.node, sp=sp, model="bd");
+				fit1.node$model <- "bd";
 			}
 		} else {
 			fit1.node <- medusa.ml.fit.partition(partition=aff[1], z=z.node, sp=sp, model=model);
+			fit1.node$model <- model;
 		}
 ## Second, new clade
 		if (node < root.node) # tip, already calculated
@@ -478,11 +489,13 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 			if (model == "yule" || model == "mixed")
 			{
 				fit2.node.yule <- medusa.ml.fit.partition(aff[2], z.node, sp, model="yule");
+				fit2.node.yule$model <- "yule";
 			}
 			if (model == "bd" || model == "mixed")
 			{
 				if (is.na(sp[2])) {sp[2] <- 0.5;}
 				fit2.node.bd <- medusa.ml.fit.partition(aff[2], z.node, sp, model="bd");
+				fit2.node.bd$model <- "bd";
 			}
 ## Figure out which model fits best
 			if (is.null(fit2.node.bd))
@@ -558,6 +571,7 @@ medusa.ml.update <- function (node, z, desc, fit, prefit, num.tips, root.node, m
 	fit$aicc <- model.fit[2];
 	fit$num.par <- model.fit[3];
 	fit$cut.at <- cut.at;
+	fit$model <- fit2$model;
 	
 	return(fit);
 }
@@ -692,8 +706,8 @@ calculate.model.fit <- function (fit, z)
 }
 
 
-## Prints out a table of likelihoods, parameters, aic scores, and aic weights (delta-aics are also available, if desired)
-calculate.model.fit.summary <- function (models, phy, plotFig, fig.title=NULL, ...)
+## Prints out a table of likelihoods, parameters, and aic scores
+calculate.model.fit.summary <- function (models, phy, plotFig, fig.title=NULL, threshold, ...)
 {
 	tmp <- matrix(nrow=(length(models)), ncol=6);
 	colnames(tmp) <- c("N.Models", "Break.Node", "Ln.Lik", "N.Param", "aic", "aicc");
@@ -711,10 +725,14 @@ calculate.model.fit.summary <- function (models, phy, plotFig, fig.title=NULL, .
 	all.res <- as.data.frame(tmp);
 	all.res[1,2] <- NA # root node for base model
 	
-	w.aic <- round(calculate.model.weights(all.res$aic), digits=5);
-	w.aicc <- round(calculate.model.weights(all.res$aicc), digits=5);
-	
-	all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, all.res[,c(3:5)], w.aic=w.aic$w, aicc=all.res$aicc, w.aicc=w.aicc$w);
+	if (threshold == 0)
+	{
+		w.aic <- round(calculate.model.weights(all.res$aic), digits=5);
+		w.aicc <- round(calculate.model.weights(all.res$aicc), digits=5);
+		all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, all.res[,c(3:5)], w.aic=w.aic$w, aicc=all.res$aicc, w.aicc=w.aicc$w);
+	} else {
+		all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, all.res[,c(3:6)]);
+	}
 	
 	if (plotFig)
 	{
@@ -727,6 +745,7 @@ calculate.model.fit.summary <- function (models, phy, plotFig, fig.title=NULL, .
 
 
 ## Self explanatory
+## These are meaningless when using a threshold criterion
 calculate.model.weights <- function (fit)
 {
 	best <- min(fit);
@@ -752,22 +771,27 @@ plotModelFit <- function (all.res)
 	legend("topleft", c("aicc","aic"), pch=21, pt.bg="white", lty=1, col=c("blue", "black"), inset = .05, cex=0.75, bty="n"); # 'bottomright' also works
 }
 
-
-# treeParameters <- list(mm=mm, break.pts=break.pts, phy=phy, z=z)
-plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, cex=0.5, ...)
+## Takes in a summary from summarizeTurboMEDUSA
+## treeParameters <- list(mm=mm, break.pts=break.pts, phy=phy, z=z)
+plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, margin=FALSE, cex=0.5, label.offset=0, font=3, color.tip.label=FALSE, ...)
 {
 	mm <- treeParameters$mm;
 	break.pts <- treeParameters$break.pts;
 	phy <- treeParameters$phy;
 	z <- treeParameters$z;
+	colour <- NULL;
 	
 	dev.new();
-	margin <- FALSE;
 	
-# This need to be changed to reflect new structure
-	mm <- match(phy$edge[,2], z[,"dec"]);
+	if (color.tip.label)
+	{
+		for (i in 1:length(phy$tip.label))
+		{
+			colour[i] <- as.integer(z[which(z[,"dec"] == i),"partition"]);
+		}
+	}
 	if (time) {margin=TRUE;}
-	plot.phylo(phy, edge.color=z[mm,"partition"], no.margin=!margin, cex=cex, ...);
+	plot.phylo(phy, edge.color=z[mm,"partition"], no.margin=!margin, cex=cex, label.offset=label.offset, tip.color=colour, ...);
 	if (time)
 	{
 		axisPhylo(cex.axis=0.75);

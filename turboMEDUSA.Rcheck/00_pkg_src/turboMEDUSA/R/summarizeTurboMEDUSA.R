@@ -93,6 +93,7 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 		
 # This need to be changed to reflect new structure
 		mm <- match(phy$edge[,2], z[,"dec"]);
+		
 		if (time) {margin=TRUE;}
 		plot.phylo(phy, edge.color=z[mm,"partition"], no.margin=!margin, cex=cex, ...);
 		if (time)

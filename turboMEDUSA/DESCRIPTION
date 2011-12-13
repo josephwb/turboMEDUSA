@@ -1,8 +1,8 @@
 Package: turboMEDUSA
 Type: Package
 Title: MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
-Version: 0.9
-Date: 2011-12-12
+Version: 0.92
+Date: 2011-12-13
 Author: Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>
 Description: Piecewise birth-death models fit from a chronogram and complete extant species richness

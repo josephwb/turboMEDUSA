@@ -1,3 +1,8 @@
+2011-12-13
+  * updated plotPrettyTree function.
+  * took out AIC weights, as they are meaningless when using a threshold criterion > 0.
+	- if desired, can still be calculated using function "calculate.model.weights".
+
 2011-12-12
   * re-implemented 'mixed' models
   * added cutAtStem option; TRUE, FALSE, or 'both'

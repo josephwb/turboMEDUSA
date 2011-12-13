@@ -101,19 +101,23 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		fit.yule <- medusa.ml.initial(z=z, initialR=initialR, initialE=initialE, model="yule");
 		if (fit.bd[[criterion]] < fit.yule[[criterion]]) {
 			fit <- fit.bd;
+			fit$model <- "bd";
 		} else {
 			fit <- fit.yule;
+			fit$model <- "yule";
 		}
 	} else if (model == "bd") {
 		fit <- medusa.ml.initial(z=z, initialR=initialR, initialE=initialE, model="bd");
+		fit$model <- "bd";
 	} else if (model == "yule") {
 		fit <- medusa.ml.initial(z=z, initialR=initialR, initialE=initialE, model="yule");
+		fit$model <- "yule";
 	}
 	models <- list(fit);
 	
 	if (stop == "model.limit")
 	{
-		cat("Step 1 (of ", model.limit, "): best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "\n", sep="");
+		cat("Step 1 (of ", model.limit, "): best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "; model = ", models[[1]]$model, "\n", sep="");
 		for (i in seq_len(model.limit-1))
 		{
 			node.list <- all.nodes[-fit$split.at];
@@ -130,8 +134,8 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 			
 			z <- medusa.split(node=node.list[best], z=z, desc=desc, shiftCut=fit$cut.at)$z;
 			
-			cat("Step ", i+1, " (of ", model.limit, "): best likelihood = ", models[[i+1]]$lnLik, "; AICc = ", models[[i+1]]$aicc,
-				"; break at node ", models[[i+1]]$split.at[i+1], "; cut=", models[[i+1]]$cut.at, "\n", sep="");
+			cat("Step ", i+1, " (of ", model.limit, "): best likelihood = ", round(models[[i+1]]$lnLik, digits=7), "; AICc = ", models[[i+1]]$aicc,
+				"; break at node ", models[[i+1]]$split.at[i+1], "; model = ", models[[i+1]]$model, "; cut=", models[[i+1]]$cut.at, "\n", sep="");
 		}
 	} else if (stop == "threshold") {
 		i <- 1;
@@ -166,11 +170,15 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		}
 	}
 	
-	modelSummary <- calculate.model.fit.summary(models=models, phy=phy, plotFig=ifelse(length(models) > 1 & plotFig & !mc, TRUE, FALSE));
+	modelSummary <- calculate.model.fit.summary(models=models, phy=phy, plotFig=ifelse(length(models) > 1 & plotFig & !mc, TRUE, FALSE), threshold=threshold);
 	if (verbose)
 	{
 		cat("\n", "Model fit summary:", "\n\n", sep="");
 		print(modelSummary);
+		if (threshold > 0)
+		{
+			cat("\nAIC weights are not reported, as they are meaningless when using a threshold criterion.\n")
+		}
 	}
 	results <- list(z=z.orig, desc=desc, models=models, phy=phy, threshold=threshold, modelSummary=modelSummary);
 	
