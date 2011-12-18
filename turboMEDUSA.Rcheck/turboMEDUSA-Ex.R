@@ -5,24 +5,6 @@ library('turboMEDUSA')
 
 assign(".oldSearch", search(), pos = 'CheckExEnv')
 cleanEx()
-nameEx("carnivora")
-### * carnivora
-
-flush(stderr()); flush(stdout())
-
-### Name: carnivora
-### Title: Carnivora Phylogeny
-### Aliases: carnivora
-### Keywords: datasets
-
-### ** Examples
-
-data(carnivora)
-str(carnivora)
-
-
-
-cleanEx()
 nameEx("whales")
 ### * whales
 

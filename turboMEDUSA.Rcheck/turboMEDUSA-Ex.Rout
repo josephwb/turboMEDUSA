@@ -1,5 +1,5 @@
 
-R version 2.13.1 (2011-07-08)
+R version 2.14.0 (2011-10-31)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
@@ -33,34 +33,6 @@ Loading required package: multicore
 > 
 > assign(".oldSearch", search(), pos = 'CheckExEnv')
 > cleanEx()
-> nameEx("carnivora")
-> ### * carnivora
-> 
-> flush(stderr()); flush(stdout())
-> 
-> ### Name: carnivora
-> ### Title: Carnivora Phylogeny
-> ### Aliases: carnivora
-> ### Keywords: datasets
-> 
-> ### ** Examples
-> 
-> data(carnivora)
-> str(carnivora)
-List of 2
- $ tree        :List of 4
-  ..$ edge       : int [1:30, 1:2] 17 18 19 20 20 19 21 21 22 23 ...
-  ..$ Nnode      : int 15
-  ..$ tip.label  : chr [1:16] "Prionodontidae" "Felidae" "Viverridae" "Herpestidae" ...
-  ..$ edge.length: num [1:30] 14.7 5.9 5.3 33.3 33.3 1.2 37.4 5.2 6.7 25.5 ...
-  ..- attr(*, "class")= chr "phylo"
- $ ext.richness:'data.frame':	16 obs. of  2 variables:
-  ..$ taxon : Factor w/ 16 levels "Ailuridae","Canidae",..: 1 2 3 4 5 6 7 8 9 10 ...
-  ..$ n.taxa: int [1:16] 1 35 8 40 33 4 12 59 1 1 ...
-> 
-> 
-> 
-> cleanEx()
 > nameEx("whales")
 > ### * whales
 > 
@@ -75,42 +47,24 @@ List of 2
 > 
 > data(whales)
 > str(whales)
-List of 5
- $ whale.tree           :List of 5
+List of 2
+ $ phy     :List of 5
   ..$ edge       : int [1:166, 1:2] 85 86 87 88 88 87 86 89 90 91 ...
   ..$ Nnode      : int 83
   ..$ tip.label  : chr [1:84] "Kogia_breviceps_KBU72040__" "Kogia_simus_AF304072" "Physeter_catodon_X75589" "Platanista_gangetica_AF304070_" ...
   ..$ edge.length: num [1:166] 2.04 9.52 15.54 9.78 9.78 ...
   ..$ root.edge  : num 22.5
   ..- attr(*, "class")= chr "phylo"
- $ whale.richness       :'data.frame':	43 obs. of  5 variables:
-  ..$ taxon    : Factor w/ 43 levels "_Lagenorhynchus_obscurus_AY257161",..: 1 2 3 4 5 6 7 8 9 10 ...
-  ..$ exemplar : Factor w/ 43 levels "_Lagenorhynchus_obscurus_AY257161",..: 1 2 3 4 5 6 7 8 9 10 ...
-  ..$ n.taxa   : int [1:43] 1 11 1 1 1 1 1 1 1 1 ...
-  ..$ n.fossils: int [1:43] NA 42 NA NA NA NA NA NA NA NA ...
-  ..$ f.time   : num [1:43] NA 10.5 NA NA NA NA NA NA NA NA ...
- $ whale.ext.richness   :'data.frame':	43 obs. of  2 variables:
+ $ richness:'data.frame':	43 obs. of  2 variables:
   ..$ taxon : Factor w/ 43 levels "_Lagenorhynchus_obscurus_AY257161",..: 1 2 3 4 5 6 7 8 9 10 ...
   ..$ n.taxa: int [1:43] 1 11 1 1 1 1 1 1 1 1 ...
- $ whale.fossil.richness:'data.frame':	7 obs. of  4 variables:
-  ..$ taxon    : Factor w/ 44 levels "_Lagenorhynchus_obscurus_AY257161",..: 3 12 16 28 29 30 44
-  ..$ exemplar : Factor w/ 44 levels "_Lagenorhynchus_obscurus_AY257161",..: 3 12 16 26 29 30 42
-  ..$ n.fossils: int [1:7] 42 2 4 2 12 6 24
-  ..$ f.time   : num [1:7] 10.5 10.5 10.5 10.5 10.5 10.5 10.5
- $ whale.pruned.tree    :List of 4
-  ..$ edge       : num [1:84, 1:2] 44 45 45 46 47 47 46 48 49 50 ...
-  ..$ Nnode      : int 42
-  ..$ tip.label  : chr [1:43] "Physeter_catodon_X75589" "Platanista_gangetica_AF304070_" "Tasmacetus_shepherdi_AF334484" "Stenella_longirostris_AF084103" ...
-  ..$ edge.length: num [1:84] 2.04 34.84 3.14 2.84 28.86 ...
-  ..- attr(*, "class")= chr "phylo"
-  ..- attr(*, "order")= chr "cladewise"
 > 
 > 
 > 
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.475 0.02 0.514 0.001 0.001 
+Time elapsed:  0.479 0.02 0.598 0.001 0.001 
 > grDevices::dev.off()
 null device 
           1 

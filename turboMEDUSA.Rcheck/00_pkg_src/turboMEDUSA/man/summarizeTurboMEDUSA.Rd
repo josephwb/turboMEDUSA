@@ -8,7 +8,8 @@ Summarize results from a \code{\link{runTurboMEDUSA}} analysis.
 }
 \usage{
 summarizeTurboMEDUSA(results, modelNum = NULL, cutoff = "threshold", criterion = "aicc",
-	plotTree = TRUE, time = TRUE, node.labels = TRUE, cex = 0.5, plotSurface = FALSE, n.points = 100, ...)
+	plotTree = TRUE, time = TRUE, node.labels = TRUE, cex = 0.5, plotSurface = FALSE,
+	printTitle = TRUE, n.points = 100, ...)
 }
 
 \arguments{
@@ -39,6 +40,9 @@ Specifies the font size for printing tip labels. Default is \code{cex=0.5}; may 
   \item{plotSurface}{
 Boolean value that indicates whether likelihood surface(s) for the selected piecewise model is plotted. If \code{plotSurface=TRUE} the optimal model is evaluated from 1e-10 to 1 at \code{n.points} (see below), and contours are plotted. Default is no plot. 
 }
+  \item{printTitle}{
+Whether to print titles on surface plots. 
+}
   \item{n.points}{
 The number of values between 1e-10 and 1 for each of r and epsilon to evaluate the selected piecewise model (hence, a total of \code{n.points} x \code{n.points} parameter combinations considered). A greater value of \code{n.points} gives better resolution of the surface, but comes with a computational burden. Default is \code{n.points=100}. Only has meaning if \code{plotSurface=T}.
 }
@@ -60,7 +64,7 @@ Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale,
 }
 
 \author{
-Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
+Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
 
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}
 

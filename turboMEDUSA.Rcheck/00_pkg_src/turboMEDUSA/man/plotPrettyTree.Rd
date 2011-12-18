@@ -4,7 +4,7 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 }
 \description{
-Plot a publication-quality colour-coded tree, where edge colours indicate piecewise diversification model membership from a\code{\link{runTurboMEDUSA}} analysis. A wrapper for \code{\link{plot.phylo}} in the APE package.
+Plot a publication-quality colour-coded tree, where edge colours indicate piecewise diversification model membership from a \code{\link{runTurboMEDUSA}} analysis. A wrapper for \code{\link{plot.phylo}} in the APE package.
 }
 \usage{
 plotPrettyTree(treeParameters, time = TRUE, node.labels = FALSE, margin = FALSE, cex = 0.5,
@@ -50,7 +50,7 @@ Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale,
 }
 
 \author{
-Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
+Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
 
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}
 

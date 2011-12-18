@@ -1,0 +1,36 @@
+citHeader("To cite turboMEDUSA in a publication use:")
+
+## R >= 2.8.0 passes package metadata to citation().
+     if(!exists("meta") || is.null(meta)) meta <- packageDescription("turboMEDUSA")
+     year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+     vers <- paste("R package version", meta$Version)
+
+citEntry(entry="Article",
+	title = "Nine exceptional radiations plus high turnover explain species diversity in jawed vertebrates",
+        author = personList(as.person("Michael E. Alfaro"),
+		as.person("Francesco Santini"),
+		as.person("Chad Brock"),
+		as.person("Hugo Alamillo"),
+		as.person("Alex Dornburg"),
+		as.person("Daniel L. Rabosky"),
+		as.person("Giorgio Carnevale"),
+		as.person("Luke J. Harmon")),
+	journal = "Proceedings of the National Academy of Sciences of the United States of America",
+  	year = "2009",
+	volume = "106",
+	pages = "13410-13414",
+
+        textVersion = "Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale, and LJ Harmon. 2009. Nine exceptional radiations plus high turnover explain species diversity in jawed vertebrates. Proceedings of the National Academy of Sciences of the United States of America 106: 13410-13414.")
+
+ citEntry(entry="Manual",
+              title = "turboMEDUSA: Modelling Evolutionary Diversification Using Stepwise AIC",
+              author = personList(as.person("Joseph W. Brown"),
+                                  as.person("Richard G. FitzJohn"),
+                                  as.person("Michael E. Alaro"),
+                                  as.person("Luke J. Harmon")),
+              year = year,
+              note = vers,
+     
+              textVersion =
+              paste("Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon. (",
+                    year, "). turboMEDUSA: Modelling Evolutionary Diversification Using Stepwise AIC. ", vers, ".", sep=""))

@@ -1,7 +1,11 @@
+2011-12-17
+  * added a whack of error checking when model dimension is high and certain cuts are made invalid
+
 2011-12-13
   * updated plotPrettyTree function.
   * took out AIC weights, as they are meaningless when using a threshold criterion > 0.
 	- if desired, can still be calculated using function "calculate.model.weights".
+  * fixed precision problem in Yule model when dealing with large trees.
 
 2011-12-12
   * re-implemented 'mixed' models

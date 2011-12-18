@@ -1,7 +1,6 @@
 calculate.model.fit	turboMEDUSA-internal
 calculate.model.fit.summary	turboMEDUSA-internal
 calculate.model.weights	turboMEDUSA-internal
-carnivora	carnivora
 descendants.cutAtNode	turboMEDUSA-internal
 descendants.cutAtNode.idx	turboMEDUSA-internal
 descendants.cutAtStem	turboMEDUSA-internal

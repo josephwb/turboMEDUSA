@@ -8,8 +8,8 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 }
 
 \usage{
-runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="bd",
-	criterion = "aicc", shiftCut = "stem", initialR = 0.05, initialE = 0.5, plotFig = FALSE,
+runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="mixed",
+	criterion = "aicc", shiftCut = "both", initialR = 0.05, initialE = 0.5, plotFig = FALSE,
 	nexus = FALSE, verbose = TRUE, mc = FALSE, num.cores = NULL, ...)
 }
 
@@ -24,7 +24,7 @@ Optional; only required if tree is NOT completely sampled. A dataframe with mini
 The number of piecewise models to be fit to the phylogeny. The program may overrule this value and fit fewer models is the tree is small (such that the denominator in the AIC correction factor becomes undefined).
 }
   \item{model}{
-The flavour of piecewise models to be fit to the phylogeny. Can be birth-death (\code{model="bd"}), the default, pure-birth (\code{model="yule"}), or mixed (\code{model="mixed"}). For \code{mixed} model analyses, both BD and Yule models are considered for all potential breaks.
+The flavour of piecewise models to be fit to the phylogeny. Can be birth-death (\code{model="bd"}), pure-birth (\code{model="yule"}), or mixed (\code{model="mixed"}) (the default). For \code{mixed} model analyses, both BD and Yule models are considered for all potential breaks.
 }
   \item{stop}{
 The criterion for when the analysis should be terminated. \code{stop="model.limit"} will terminate after \code{model.limit} piecewise models have been fit to the the phylogeny (see above). The alternative criterion is \code{stop="threshold"}. Here \code{threshold} refers to the increase in AIC score that should be considered significant given the number of tips in the phylogeny; analysis will terminate when the addition of a piecewise BD model does not improve AIC score by \code{threshold}.
@@ -33,7 +33,7 @@ The criterion for when the analysis should be terminated. \code{stop="model.limi
 The statistical criterion used to determine whether larger models fit the data significantly better. Options are \code{criterion="aicc"} (default) or \code{criterion="aic"}. As AIC and AICc will select the same breaks for any given model size, this option is only useful if \code{stop="threshold"}. In this case, the default is strongly advised, as for some trees AIC can continue to improve well after AICc has deteriorated.
 }
   \item{shiftCut}{
-Determines where rate shifts are placed on the tree. Three options are available. For the default option \code{shiftCut="stem"}, when a subtree is selected for submodel consideration, it is assumed that the shift in diversification occurred in the branch leading to the clade. The second option \code{shiftCut="node"} assumes the shift occurred at the node representing the most recent common ancestor of the clade (that is, omitting the leading branch). The final option \code{shiftCut="both"} considers both possibilities for shift placement, and carries the shift with the higher AICc score forward to piecewise model selection.
+Determines where rate shifts are placed on the tree. Three options are available. For the first option \code{shiftCut="stem"}, when a subtree is selected for submodel consideration, it is assumed that the shift in diversification occurred in the branch leading to the clade. The second option \code{shiftCut="node"} assumes the shift occurred at the node representing the most recent common ancestor of the clade (that is, omitting the leading branch). The final and default option \code{shiftCut="both"} considers both possibilities for shift placement, and carries the shift with the higher AICc score forward to piecewise model selection.
 }
   \item{initialR}{
 Starting guess for net diversification rate. May need to be decreased for the program to work on large trees.
@@ -92,7 +92,7 @@ Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale,
 }
 
 \author{
-Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
+Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
 
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}
 

@@ -33,6 +33,6 @@ Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale,
 }
 
 \author{
-Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
+Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
 
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}

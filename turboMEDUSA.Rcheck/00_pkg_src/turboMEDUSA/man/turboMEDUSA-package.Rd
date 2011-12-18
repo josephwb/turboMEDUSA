@@ -18,12 +18,11 @@ LazyLoad: \tab yes\cr
  }
 }
 
-\author{
-Luke J. Harmon, Daniel L. Rabosky, Richard G. FitzJohn, and Joseph W. Brown
-
-Maintainer: Joseph W. Brown <josephwb@uidaho.edu>
-}
-
 \references{
 Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale, and LJ Harmon. 2009. Nine exceptional radiations plus high turnover explain species diversity in jawed vertebrates. \emph{Proceedings of the National Academy of Sciences} \bold{106}: 13410-13414.
 }
+
+\author{
+Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
+
+Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}

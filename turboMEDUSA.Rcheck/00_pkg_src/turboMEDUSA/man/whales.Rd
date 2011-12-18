@@ -2,7 +2,7 @@
 \alias{whales}
 \title{Whale Phylogeny}
 \description{
-  Tree, various richnesses.
+  Tree, species richnesses.
 }
 \usage{
 data(whales)

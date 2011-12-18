@@ -1,6 +1,6 @@
 runTurboMEDUSA <-
-function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
-	criterion="aicc", shiftCut="stem", initialR=0.05, initialE=0.5, plotFig=FALSE, nexus=FALSE,
+function(phy, richness=NULL, model.limit=20, stop="model.limit", model="mixed",
+	criterion="aicc", shiftCut="both", initialR=0.05, initialE=0.5, plotFig=FALSE, nexus=FALSE,
 	verbose=TRUE, mc=FALSE, num.cores=NULL, ...)
 {
 	if (nexus) phy <- read.nexus(phy);
@@ -25,8 +25,6 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	
 ## Store pertinent information: branch times, richness, descendants
 	cat("Preparing data for analysis... ");
-	obj <- make.cache.medusa(phy=phy, richness=richness, mc=mc, num.cores=num.cores);
-	cat("done.\n");
 	
 ## Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
 	pend.nodes <- seq_len(length(phy$tip.label));   # Calculate pendant splits just once, keep track through various models
@@ -34,10 +32,15 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	root.node <- length(phy$tip.label) + 1;
 	all.nodes <- c(pend.nodes, root.node, int.nodes);
 	
-	desc <- list(desc.stem=obj$desc.stem, desc.node=obj$desc.node)
+## The important bits. Set up z, get descendants and number of tips per node
+	obj <- make.cache.medusa(phy=phy, richness=richness, all.nodes=all.nodes, mc=mc, num.cores=num.cores);
 	
+	desc <- list(desc.stem=obj$desc.stem, desc.node=obj$desc.node);
 	z <- obj$z;
 	z.orig <- z; # Save for summarizing models later
+	num.tips <- obj$num.tips;
+	
+	cat("done.\n");
 	
 ## Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
  ## Will show particular performance gain for edges with many fossil observations
@@ -82,16 +85,6 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	
 	prefit <- list(tips=tips, virgin.nodes=virgin.nodes);
 	
-## Needed downstream; don't recalculate
- ## Gives the number of tips associated with an internal node; determines whether a node is 'virgin' or not
-	num.tips <- list()
-	if (mc)
-	{
-		num.tips <- mclapply(all.nodes, get.num.tips, phy=phy, mc.cores=num.cores);
-	} else {
-		num.tips <- lapply(all.nodes, get.num.tips, phy=phy);
-	}
-	
 ## Fit the base model
 ## 'fit' holds current results; useful for initializing subsequent models
 	fit <- list();
@@ -109,7 +102,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	} else if (model == "bd") {
 		fit <- medusa.ml.initial(z=z, initialR=initialR, initialE=initialE, model="bd");
 		fit$model <- "bd";
-	} else if (model == "yule") {
+	} else {
 		fit <- medusa.ml.initial(z=z, initialR=initialR, initialE=initialE, model="yule");
 		fit$model <- "yule";
 	}
@@ -120,7 +113,10 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		cat("Step 1 (of ", model.limit, "): best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "; model = ", models[[1]]$model, "\n", sep="");
 		for (i in seq_len(model.limit-1))
 		{
-			node.list <- all.nodes[-fit$split.at];
+			node.list <- all.nodes[-fit$split.at]; # this seems inefficient; create list and delete from there; will need -fit$split.at[i+1]
+			
+			
+			
 			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 			{
 				res <- mclapply(node.list, medusa.ml.update, z=z, desc=desc, fit=fit, prefit=prefit, num.tips=num.tips, root.node=root.node, model=model, criterion=criterion, shiftCut=shiftCut, mc.cores=num.cores);
@@ -132,18 +128,21 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 			models <- c(models, res[best]);
 			fit <- res[[best]];   # keep track of '$split.at' i.e. nodes already considered
 			
-			z <- medusa.split(node=node.list[best], z=z, desc=desc, shiftCut=fit$cut.at)$z;
+			z <- medusa.split(node=node.list[best], z=z, desc=desc, shiftCut=fit$cut.at[i+1])$z;
 			
 			cat("Step ", i+1, " (of ", model.limit, "): best likelihood = ", round(models[[i+1]]$lnLik, digits=7), "; AICc = ", models[[i+1]]$aicc,
-				"; break at node ", models[[i+1]]$split.at[i+1], "; model = ", models[[i+1]]$model, "; cut=", models[[i+1]]$cut.at, "\n", sep="");
+				"; shift at node ", models[[i+1]]$split.at[i+1], "; model=", models[[i+1]]$model[i+1], "; cut=", models[[i+1]]$cut.at[i+1], "\n", sep="");
 		}
 	} else if (stop == "threshold") {
 		i <- 1;
 		done <- FALSE;
-		cat("Step 1: best likelihood = ", models[[1]]$lnLik, "; AICc = ", models[[1]]$aicc, "\n", sep="");
+		cat("Step 1: best likelihood = ", round(models[[i+1]]$lnLik, digits=7), "; AICc = ", round(models[[i+1]]$aicc, digits=7), "; model = ", models[[1]]$model[i+1], "\n", sep="");
 		while (!done & i < model.limit)
 		{
-			node.list <- all.nodes[-fit$split.at];
+			node.list <- all.nodes[-fit$split.at]; # this seems inefficient; create list and delete from there; will need -fit$split.at[i+1]
+			
+			
+			
 			if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 			{
 				res <- mclapply(node.list, medusa.ml.update, z=z, desc=desc, fit=fit, prefit=prefit, num.tips=num.tips, root.node=root.node, model=model, criterion=criterion, shiftCut=shiftCut, mc.cores=num.cores);
@@ -162,10 +161,10 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 			models <- c(models, res[best]);
 			fit <- res[[best]];   # keep track of '$split.at' i.e. nodes already considered
 			
-			z <- medusa.split(node=node.list[best], z=z, desc=desc, shiftCut=fit$cut.at)$z;
+			z <- medusa.split(node=node.list[best], z=z, desc=desc, shiftCut=fit$cut.at[i+1])$z;
 			
-			cat("Step ", i+1, ": best likelihood = ", models[[i+1]]$lnLik, "; AICc = ", models[[i+1]]$aicc,
-				"; break at node ", models[[i+1]]$split.at[i+1], "; cut=", models[[i+1]]$cut.at, "\n", sep="");
+			cat("Step ", i+1, ": best likelihood = ", round(models[[i+1]]$lnLik, digits=7), "; AICc = ", round(models[[i+1]]$aicc, digits=7),
+				"; shift at node ", models[[i+1]]$split.at[i+1], "; model=", models[[i+1]]$model[i+1], "; cut=", models[[i+1]]$cut.at[i+1], "\n", sep="");
 			i <- i+1;
 		}
 	}
@@ -182,6 +181,6 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 	}
 	results <- list(z=z.orig, desc=desc, models=models, phy=phy, threshold=threshold, modelSummary=modelSummary);
 	
-	return(results);
+#	return(results);
 }
 
