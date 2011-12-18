@@ -16,6 +16,7 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 	modelSummary <- results$modelSummary;
 	threshold <- results$threshold;
 	cutAt <- as.character(modelSummary$Cut.at);
+	models <- as.character(modelSummary$Model);
 	cutAt[1] <- "NA";
 	
 # First, determine which model is desired
@@ -37,10 +38,11 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 	
 	break.pts <- fit[[model.id]]$split.at;
 	cuts <- cutAt[1: model.id];
+	part.models <- models[1: model.id];
 		
 	opt.model <- cbind(N.Models=seq(1:length(fit[[model.id]]$split.at)), Shift.Node=fit[[model.id]]$split.at, fit[[model.id]]$par, LnLik.part=fit[[model.id]]$lnLik.part)
 	opt.model <- as.data.frame(opt.model);
-	opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cuts, opt.model[,c(3:5)])
+	opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cuts, Model=part.models, opt.model[,c(3:5)])
 	opt.model[1,2] <- NA # root node for base model
 	
 	base.model <- as.data.frame(fit[[1]]$par);
