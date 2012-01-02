@@ -8,7 +8,7 @@ Plot a publication-quality colour-coded tree, where edge colours indicate piecew
 }
 \usage{
 plotPrettyTree(treeParameters, time = TRUE, node.labels = FALSE, margin = FALSE, cex = 0.5,
-	label.offset = 0, font = 3, color.tip.label = FALSE, ...)
+	label.offset = 0, font = 3, colourTipLabels = FALSE, ...)
 }
 
 \arguments{
@@ -33,7 +33,7 @@ Specifies how far tip labels are offset rightward from the default \code{plot.ph
   \item{font}{
 Specifies the font to display for tip labels. The default \code{font=3} plots labels in italic. Options are \code{font=1} (plain text), \code{font=2} (bold), \code{font=3} (italic, the default), and \code{font=4} (bold italic).
 }
-  \item{color.tip.label}{
+  \item{colourTipLabels}{
 Determines whether tip labels should be coloured according to their piecewise diversification model membership.
 }
   \item{\dots}{

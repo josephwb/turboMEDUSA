@@ -19,7 +19,7 @@
 3. Implement summary function for a results over a distribution of trees
   - just need to find a efficient way to parse the list of lists
 
-4. Make surface plotting more general
+4. Make surface plotting more general - DONE
   - fit plot to relevant region (i.e. not just [0,1] for both r and epsilon) - DONE
   - plots for Yule models - DONE
 

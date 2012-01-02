@@ -1,10 +1,24 @@
-2011-12-17
-  * added a whack of error checking when model dimension is high and certain cuts are made invalid
+2012-01-01
+  * added 'preserveModelFlavour' option to mixed models. Default (for now) is TRUE
+  * rearranged code for efficiency and readability
+
+2011-12-29
+  * added ability to fit individual nodes designated by user
+  * whole bunch of speed updates
+
+2011-12-21-29
+  * several setbacks dealt with
+
+2011-12-20
+  * removed annoying requirement that summary had to be directed to an object
+
+2011-12-19
+  * sped up Yule fitting through simplification of equations
 
 2011-12-13
-  * updated plotPrettyTree function.
-  * took out AIC weights, as they are meaningless when using a threshold criterion > 0.
-	- if desired, can still be calculated using function "calculate.model.weights".
+  * updated plotPrettyTree function
+  * took out AIC weights, as they are meaningless when using a threshold criterion > 0
+	- if desired, can still be calculated using function "calculate.model.weights"
   * fixed precision problem in Yule model when dealing with large trees.
 
 2011-12-12

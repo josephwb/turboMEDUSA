@@ -8,9 +8,9 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 }
 
 \usage{
-runTurboMEDUSA(phy, richness = NULL, model.limit = 20, stop = "model.limit", model="mixed",
-	criterion = "aicc", shiftCut = "both", initialR = 0.05, initialE = 0.5, plotFig = FALSE,
-	nexus = FALSE, verbose = TRUE, mc = FALSE, num.cores = NULL, ...)
+runTurboMEDUSA(phy, richness = NULL, modelLimit = 20, stop = "modelLimit", model="mixed",
+	fixedEpsilon = NULL, criterion = "aicc", shiftCut = "both", initialR = 0.05, initialE = 0.5,
+	preserveModelFlavour = TRUE, plotFig = FALSE, verbose = TRUE, mc = FALSE, numCores = NULL, ...)
 }
 
 \arguments{
@@ -20,14 +20,17 @@ Ultrametric phylogenetic tree. Assumed to be of class phylo (i.e. ape format). N
   \item{richness}{
 Optional; only required if tree is NOT completely sampled. A dataframe with minimally two columns \code{taxon} and \code{n.taxa}. The identifier \code{taxon} must match exactly with a tip.label in the phylogeny \code{phy}; this is checked. May also include an \code{exemplar} column, used for renaming incompletely-sampled clades that require collapsing; in this case, \code{exemplar} must match exactly with a tip label and \code{taxon} will be the name for that clade (say, genus, family, etc.). If no richness information is provided then it is assumed tips represent single species with complete sampling.
 }
-  \item{model.limit}{
+  \item{modelLimit}{
 The number of piecewise models to be fit to the phylogeny. The program may overrule this value and fit fewer models is the tree is small (such that the denominator in the AIC correction factor becomes undefined).
 }
   \item{model}{
 The flavour of piecewise models to be fit to the phylogeny. Can be birth-death (\code{model="bd"}), pure-birth (\code{model="yule"}), or mixed (\code{model="mixed"}) (the default). For \code{mixed} model analyses, both BD and Yule models are considered for all potential breaks.
 }
   \item{stop}{
-The criterion for when the analysis should be terminated. \code{stop="model.limit"} will terminate after \code{model.limit} piecewise models have been fit to the the phylogeny (see above). The alternative criterion is \code{stop="threshold"}. Here \code{threshold} refers to the increase in AIC score that should be considered significant given the number of tips in the phylogeny; analysis will terminate when the addition of a piecewise BD model does not improve AIC score by \code{threshold}.
+The criterion for when the analysis should be terminated. \code{stop="modelLimit"} will terminate after \code{modelLimit} piecewise models have been fit to the the phylogeny (see above). The alternative criterion is \code{stop="threshold"}. Here \code{threshold} refers to the increase in AIC score that should be considered significant given the number of tips in the phylogeny; analysis will terminate when the addition of a piecewise BD model does not improve AIC score by \code{threshold}.
+}
+  \item{fixedEpsilon}{
+A fixed value for the extinction fraction. Will be held constant while r (net diversification) is estimated. Only for use in the birth-death model.
 }
   \item{criterion}{
 The statistical criterion used to determine whether larger models fit the data significantly better. Options are \code{criterion="aicc"} (default) or \code{criterion="aic"}. As AIC and AICc will select the same breaks for any given model size, this option is only useful if \code{stop="threshold"}. In this case, the default is strongly advised, as for some trees AIC can continue to improve well after AICc has deteriorated.
@@ -41,11 +44,11 @@ Starting guess for net diversification rate. May need to be decreased for the pr
   \item{initialE}{
 Starting guess for relative extinction rate.
 }
+  \item{preserveModelFlavour}{
+Only for use when using \code{model="mixed"}. When a clade has been fit with model i (either \code{"yule"} or \code{"bd"}), and a rate shift is introduced within the clade, whether the basal rate is reestimated under model i (\code{preserveModelFlavour=TRUE}) or alternative models flavours are considered (\code{preserveModelFlavour=FALSE}). The default is to not preserve model flavour.
+}
   \item{plotFig}{
 Boolean value that indicates whether a plot of AIC and AICc against model size should be generated. Default is for no plot.
-}
-  \item{nexus}{
-Boolean value that indicates whether the tree being passed in is in Nexus format. Default \code{nexus=FALSE} (i.e. the tree being passed in is in phylo format)
 }
   \item{verbose}{
 Print out additional information to screen, such as which taxa are pruned from the original tree given richness information. Mostly useful for debugging.
@@ -53,7 +56,7 @@ Print out additional information to screen, such as which taxa are pruned from t
   \item{mc}{
 Indicate whether multiple cores should be used (\code{mc=TRUE}). Works only on unix-like machines (i.e. not Windows), and only in non-GUI instantiations of R.
 }
-  \item{num.cores}{
+  \item{numCores}{
 The number of cores to use if \code{mc=TRUE}. By default all cores detected will be used. This option is only useful if one wants to limits the number of cares devoted to a particular R job.
 }
   \item{\dots}{

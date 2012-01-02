@@ -1,9 +1,9 @@
-\name{get.b.d}
-\alias{get.b.d}
+\name{getBD}
+\alias{getBD}
 \title{Get Per-lineage Birth and Death Rates}
 \description{Get per-lineage birth and death rates from inferred net diversification and relative extinction rates.}
 \usage{
-get.b.d(r, epsilon)
+getBD(r, epsilon)
 }
 \arguments{
   \item{r}{Net diversification rate (b-d)}

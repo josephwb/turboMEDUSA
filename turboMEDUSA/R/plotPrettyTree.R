@@ -2,7 +2,7 @@
 ## treeParameters <- list(z, edge.colour, break.pts, phy, labels)
 ## make it possible to change default colors
 plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, margin=FALSE, cex=0.5, label.offset=0,
-	font=3, color.tip.label=FALSE, ...)
+	font=3, colourTipLabels=FALSE, ...)
 {
 	edge.colour <- treeParameters$edge.colour;
 	labels <- treeParameters$labels;
@@ -13,7 +13,7 @@ plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, margin
 	
 	dev.new();
 	
-	if (color.tip.label)
+	if (colourTipLabels)
 	{
 		for (i in 1:length(phy$tip.label))
 		{
