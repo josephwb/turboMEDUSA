@@ -28,3 +28,13 @@
 6. Plot tip richnesses next to tree (needs to consider coordinates)
 
 7. Fix r (b) optimization interval for extreme clades
+
+8. Document:
+\alias{extractCladeFromTree}
+\alias{findMrca}
+\alias{getNodeNumber}
+\alias{medusaFitClade}
+\alias{medusaFitUserNode}
+\alias{plotModelFit}
+\alias{plotNN}
+\alias{runMultiMEDUSA}

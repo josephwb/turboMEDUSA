@@ -33,6 +33,8 @@ prepareData <- function (phy, richness, verbose)
 		}
 	}
 	
+	if (class(phy) != "phylo") {cat("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n"); stop;}
+	
 # Prune tree down to lineages with assigned richnesses
 	temp <- richness[, "n.taxa"];
 	names(temp) <- richness[, "taxon"];
@@ -58,6 +60,41 @@ prepareData <- function (phy, richness, verbose)
 	return(list(phy=phy, richness=richness));
 }
 
+# Determine desired model from passed in fixed parameters (if present)
+configureModel <- function (model, epsilon, r, b, d, constraint, initialR, initialE)
+{
+	sp <- NULL;
+	fixPar <- NULL;
+	if (!is.null(epsilon)) # user-defined epsilon
+	{
+		if (epsilon <= 0 | epsilon >= 1) {cat("\n\nWARNING: value of epsilon (", epsilon, ") is invalid; must be > 0 and < 1. Stopping analysis.\n", sep=""); stop;}
+		sp <- c(initialR, epsilon);
+		fixPar <- epsilon;
+		model <- "fixedEpsilon";
+	} else if (!is.null(r)) # user-defined net diversification rate
+	{
+		if (r <= 0) {cat("\n\nWARNING: value of r (", r, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		sp <- c(r, initialE);
+		fixPar <- r;
+		model <- "fixedR";
+	} else if (!is.null(d)) # user-defined extiction rate
+	{
+		if (d <= 0) {cat("\n\nWARNING: value of d (", d, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		sp <- c(initialR, d);
+		fixPar <- d;
+		model <- "fixedD";
+	} else if (!is.null(b)) # user-defined speciation rate
+	{
+		if (b <= 0) {cat("\n\nWARNING: value of b (", b, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		sp <- c((b/2), initialE);
+		fixPar <- b;
+		model <- "fixedB";
+	} else {
+		sp <- c(initialR, initialE);
+	}
+	return(list(model=model, sp=sp, fixPar=fixPar))
+}
+
 
 ## Original default was to fit 20 models (or less if the tree was small).
 ## Changing to a stop-criterion (stop="modelLimit") e.g. when k = n-1 (i.e. when denominator of aicc correction is undefined).
@@ -70,7 +107,7 @@ prepareData <- function (phy, richness, verbose)
 getMaxModelLimit <- function (richness, modelLimit, model, stop, verbose)
 {
 	samp.size <- (2*length(richness[,1]) - 1)
-	if (model == "bd" || model == "mixed")
+	if (model == "bd" || model == "mixed" || model == "fixedB" || model == "fixedD")
 	{
 		max.modelLimit <- as.integer(samp.size/3) - ((!(samp.size %% 3)) * 1);
 	} else {
@@ -90,11 +127,12 @@ getMaxModelLimit <- function (richness, modelLimit, model, stop, verbose)
 		if (model == "bd")
 		{
 			cat(" birth-death models")
-		} else if (model == "mixed")
-		{
+		} else if (model == "mixed") {
 			cat(" mixed models")
-		} else {
+		} else if (model == "yule") {
 			cat(" pure-birth (Yule) models");
+		} else {
+			cat(" diversification models")
 		}
 		if (stop == "threshold") {cat(" (or until threshold is not satisfied)");}
 		cat(".\n\n")
@@ -175,22 +213,14 @@ makeCacheMedusa <- function (phy, richness, all.nodes, mc, numCores)
 		desc.node <- lapply(seq_len(max(all.edges)), descendantsCutAtNode.idx, all.edges=all.edges);
 	}
 	
-	# for (i in 1:length(desc.node)) #  *** NEED TO FIX THIS SHIT!!! ***
-	# {
-		# if (length(desc.node[[i]]) == 0) # tips
-		# {
-			# desc.node[[i]] = descendantsCutAtStem.idx(node.list=i, all.edges=all.edges)
-		# }
-	# }
-	
 ## Needed downstream; don't recalculate
  ## Gives the number of tips associated with an internal node; determines whether a node is 'virgin' or not
 	num.tips <- list()
 	if (mc)
 	{
-		num.tips <- mclapply(all.nodes, getNumTips, phy=phy, mc.cores=numCores);
+		num.tips <- mclapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips, mc.cores=numCores);
 	} else {
-		num.tips <- lapply(all.nodes, getNumTips, phy=phy);
+		num.tips <- lapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips);
 	}
 	
 	res <- list(z=z, desc.stem=desc.stem, desc.node=desc.node, num.tips=num.tips);
@@ -198,10 +228,21 @@ makeCacheMedusa <- function (phy, richness, all.nodes, mc, numCores)
 }
 
 
-## Needed for determining whther nodes are virgin nodes
-getNumTips <- function (node, phy)
+## Get the number of tips descended from internal node 'node'.
+## Needed for determining whether nodes are virgin nodes.
+## Uses code from geiger functions 'node.sons' and 'node.leaves'.
+getNumTips <- function (node, phy, totalTips=NULL)
 {
-	n <- length(node.leaves(phy,node));
+	if (is.null(totalTips)) totalTips <- length(phy$tip.label);
+	if (node <= totalTips) return(1);
+	
+	n <- 0;
+	d <- phy$edge[which(phy$edge[, 1] == node), 2];
+	for (j in d) {
+		if (j <= totalTips)
+			n <- n + 1
+		else n <- n + getNumTips(j, phy, totalTips)
+	}
 	return(n);
 }
 
@@ -261,14 +302,8 @@ getNodeNumber <- function (phy, richness, mrca, verbose)
 	{
 		phy <- prepareData(phy=phy, richness=richness, verbose=verbose)$phy;
 	}
-	if (!is.null(mrca))
-	{
-		
-		
-		
-		
-	}
 	
+	nodeNumber <- findMrca(phy, mrca);
 	
 	return(nodeNumber);
 }
@@ -277,6 +312,18 @@ getNodeNumber <- function (phy, richness, mrca, verbose)
 findMrca = function(phy, tips)
 {
 	tt <- match(tips, phy$tip.label);
+	if (sum(!is.na(tt)) != length(tips))
+	{
+		for (i in 1:length(tt))
+		{
+			if (is.na(tt[i]))
+			{
+				cat("\n\nWarning: taxon '", tips[i], "' is not found in the tree. Stopping.\n", sep="");
+				stop;
+			}
+		}
+	}
+	
 	getMRCA(phy, tt); #ape function
 }
 

@@ -1,7 +1,7 @@
 \name{getBD}
 \alias{getBD}
-\title{Get Per-lineage Birth and Death Rates}
-\description{Get per-lineage birth and death rates from inferred net diversification and relative extinction rates.}
+\title{Get per-lineage birth and death rates}
+\description{Get per-lineage birth (speciation) and death (extinction) rates from inferred net diversification and relative extinction rates.}
 \usage{
 getBD(r, epsilon)
 }

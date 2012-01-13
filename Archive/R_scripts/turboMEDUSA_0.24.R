@@ -168,8 +168,7 @@ function(phy, richness=NULL, model.limit=20, stop="model.limit", model="bd",
 		print(modelSummary)
 	}
 	results <- list(z=z.orig, anc=anc, models=models, phy=phy, threshold=threshold, modelSummary=modelSummary)
-	
-	return(results)
+
 }
 
 
@@ -330,7 +329,6 @@ function(results, model=NULL, cutoff="threshold", criterion="aicc", plotTree=TRU
 		}
 	}
 	treeParameters <- list(mm=mm, break.pts=break.pts, phy=phy, z=z)
-	return(treeParameters)
 }
 
 

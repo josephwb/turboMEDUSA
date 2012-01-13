@@ -1,6 +1,6 @@
 \name{whales}
 \alias{whales}
-\title{Whale Phylogeny}
+\title{Whale phylogeny}
 \description{
   Tree, species richnesses.
 }

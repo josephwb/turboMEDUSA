@@ -1,11 +1,12 @@
-\name{turboMEDUSA}
+\name{turboMEDUSA-package}
+\alias{turboMEDUSA-package}
 \alias{turboMEDUSA}
 \docType{package}
 \title{
-turboMEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
+MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 }
 \description{
-Fits piecewise birth-death models to an ultrametric phylogenetic tree according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. A reimplementation of the original \pkg{\link{geiger}} MEDUSA method, meant especially for the analysis of large trees. Optimal model size is determined via a stepwise AIC approach. Run with \code{\link{runTurboMEDUSA}} and summarize results with \code{\link{summarizeTurboMEDUSA}}. Trees with coloured branches (depending on model membership) can be plotted using \code{\link{plotPrettyTree}}.
+Fits piecewise birth-death models to an ultrametric phylogenetic tree according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. A reimplementation of the original \pkg{\link{geiger}} MEDUSA method, meant especially for the analysis of large trees. Optimal model size is determined via a stepwise AIC approach. Run with \code{\link{MEDUSA}} and summarize results with \code{\link{medusaSummary}}. Trees with coloured branches (depending on model membership) can be plotted using \code{\link{plotPrettyTree}}.
 }
 \details{
 \tabular{ll}{

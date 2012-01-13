@@ -1,3 +1,15 @@
+2012-01-05
+  * added fixed d and fixed b constrained models
+
+2012-01-04
+  * added fixed epsilon and fixed r constrained models
+
+2012-01-03
+  * cleaned up documentation
+
+2012-01-02
+  * added 95% confidence intervals on parameter estimates via profile likelihoods
+
 2012-01-01
   * added 'preserveModelFlavour' option to mixed models. Default (for now) is TRUE
   * rearranged code for efficiency and readability

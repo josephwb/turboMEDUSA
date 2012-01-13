@@ -10,10 +10,10 @@ function(phy, richness=NULL, modelLimit=20, stop="modelLimit", model="bd",
 		for (i in 1:num.trees)
 		{
 			cat("\nProcessing tree ", i, " (of ", num.trees, ")...\n\n", sep="")
-			res[[i]] <- runTurboMEDUSA(phy=phy[[i]], richness=richness, modelLimit=modelLimit, stop=stop, model=model, criterion=criterion, shiftCut=shiftCut, initialR=initialR, initialE=initialE, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, numCores=numCores, ...)
+			res[[i]] <- MEDUSA(phy=phy[[i]], richness=richness, modelLimit=modelLimit, stop=stop, model=model, criterion=criterion, shiftCut=shiftCut, initialR=initialR, initialE=initialE, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, numCores=numCores, ...)
 		}
 	} else {
-		res <- runTurboMEDUSA(phy, richness=richness, modelLimit=modelLimit, stop=stop, model=model, criterion=criterion, shiftCut=shiftCut, initialR=initialR, initialE=initialE, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, numCores=numCores, ...)
+		res <- MEDUSA(phy, richness=richness, modelLimit=modelLimit, stop=stop, model=model, criterion=criterion, shiftCut=shiftCut, initialR=initialR, initialE=initialE, plotFig=plotFig, nexus=nexus, verbose=verbose, mc=mc, numCores=numCores, ...)
 	}
 	return(res)
 }
