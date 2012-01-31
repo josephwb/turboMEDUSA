@@ -1,3 +1,0 @@
-export(plotPrettyTree)
-export(runTurboMEDUSA)
-export(summarizeTurboMEDUSA)
