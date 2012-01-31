@@ -90,6 +90,7 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 	}
 	
 	mm <- match(phy$edge[,2], z[,"dec"]);
+	edge.color=z[mm,"partition"];
 # Plot tree with purdy colours and labelled nodes (to better map between tree and table)
 	if (plotTree)
 	{
@@ -97,7 +98,7 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 		margin <- FALSE;
 		
 		if (time) {margin=TRUE;}
-		plot.phylo(phy, edge.color=z[mm,"partition"], no.margin=!margin, cex=cex, ...);
+		plot.phylo(phy, edge.color=edge.color, no.margin=!margin, cex=cex, ...);
 		if (time)
 		{
 			axisPhylo(cex.axis=0.75);
@@ -170,7 +171,7 @@ function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=
 			}
 		}
 	}
-	treeParameters <- list(z=z, edge.colour=mm, break.pts=break.pts, phy=phy, labels=labels);
+	treeParameters <- list(z=z, edge.colour=edge.color, break.pts=break.pts, phy=phy, labels=labels);
 }
 
 

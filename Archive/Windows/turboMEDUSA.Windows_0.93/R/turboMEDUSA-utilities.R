@@ -111,8 +111,7 @@ medusa.ml.fit.partition <- function (partition, z, sp=c(0.05, 0.5), model)
 			node.richness  <- sum(new.part[,"n.t"], na.rm=TRUE);
 			depth <- max(new.part[,"t.0"]);
 			maxVal <- (log(node.richness) / depth) * 3;
-			
-			if (node.richness == 1)
+			if (node.richness <= 1)
 			{
 				maxVal <- 1
 			}

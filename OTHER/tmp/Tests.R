@@ -1,8 +1,8 @@
 require(geiger);
-load("/Users/josephwb/Projects/R_working/turboMEDUSA/turboMEDUSA/tmp.rda");
+load("/Users/josephwb/Projects/R_working/turboMEDUSA/OTHER/tmp.rda");
 phy <- tmp$phy;
 richness <- tmp$richness;
-richness=NULL; modelLimit=20; stop="modelLimit"; model="mixed"; fixEpsilon=NULL; fixR=NULL; criterion="aicc"; shiftCut="both"; userNode=NULL; initialR=0.05; initialE=0.5; plotFig=FALSE; verbose=TRUE; mc=FALSE; numCores=NULL; fixB=NULL; fixD=NULL; preserveModelFlavour=T; modelNum=NULL; cutoff="threshold"; crit=1.92;
+richness=NULL; modelLimit=5; stop="modelLimit"; model="mixed"; fixEpsilon=NULL; fixR=NULL; criterion="aicc"; shiftCut="both"; userNode=NULL; initialR=0.05; initialE=0.5; plotFig=FALSE; verbose=TRUE; mc=FALSE; numCores=NULL; epsilon=NULL; r=NULL; b=NULL; d=NULL; preserveModelFlavour=T; modelNum=NULL; cutoff="threshold"; crit=1.92; stepBack=TRUE; modelNum=NULL; cutoff="threshold"; criterion="aicc"; plotTree=TRUE; time=TRUE; node.labels=TRUE; cex=0.5; plotSurface=FALSE; printTitle=TRUE; n.points=100; fixThreshold=NULL; stepBack=T;
 
 check.multicore<-function () 
 {

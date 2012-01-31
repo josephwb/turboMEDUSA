@@ -23,11 +23,11 @@
   - fit plot to relevant region (i.e. not just [0,1] for both r and epsilon) - DONE
   - plots for Yule models - DONE
 
-5. Pass in user fixed epsilon
+5. Pass in user fixed epsilon - DONE
 
 6. Plot tip richnesses next to tree (needs to consider coordinates)
 
-7. Fix r (b) optimization interval for extreme clades
+7. Fix r (b) optimization interval for extreme clades - DONE
 
 8. Document:
 \alias{extractCladeFromTree}

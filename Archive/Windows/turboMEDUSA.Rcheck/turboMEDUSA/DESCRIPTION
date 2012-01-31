@@ -10,5 +10,5 @@ License: GPL (>= 2)
 LazyLoad: yes
 Depends: ape, geiger
 Enhances: geiger
-Packaged: 2012-01-12 21:09:03 UTC; josephwb
-Built: R 2.14.1; ; 2012-01-12 21:09:07 UTC; unix
+Packaged: 2012-01-13 17:43:49 UTC; josephwb
+Built: R 2.14.1; ; 2012-01-13 17:44:00 UTC; unix

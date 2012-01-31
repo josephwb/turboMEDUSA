@@ -4,7 +4,7 @@
 plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, margin=FALSE, cex=0.5, label.offset=0,
 	font=3, color.tip.label=FALSE, ...)
 {
-	edge.colour <- treeParameters$edge.colour;
+	edge.color <- treeParameters$edge.colour;
 	labels <- treeParameters$labels;
 	break.pts <- treeParameters$break.pts;
 	phy <- treeParameters$phy;
@@ -21,7 +21,7 @@ plotPrettyTree <- function (treeParameters, time=TRUE, node.labels=FALSE, margin
 		}
 	}
 	if (time) {margin=TRUE;}
-	plot.phylo(phy, edge.color=z[edge.colour,"partition"], no.margin=!margin, cex=cex, label.offset=label.offset, tip.color=colour, font=font, ...);
+	plot.phylo(phy, edge.color=edge.color, no.margin=!margin, cex=cex, label.offset=label.offset, tip.color=colour, font=font, ...);
 	if (time)
 	{
 		axisPhylo(cex.axis=0.75);
