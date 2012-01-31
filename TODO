@@ -1,0 +1,40 @@
+1. Implement pure-birth (Yule) model - DONE
+  - need to:
+     - count parameters better in information theoretic calculations - DONE
+        - remove 'NAs' from parameter counts
+        - update stopping criterion (more models allowed) - DONE
+     - pass model flavour to various functions (get.max.model.limit, make.lik.medusa.part,
+       medusa.ml.fit.partition, medusa.ml.initial, medusa.ml.prefit, medusa.ml.update
+       calculate.model.fit) - DONE
+
+2. Implement mixed models (mix of BD and Yule processes) - DONE
+  - need to:
+     - calculate both flavours for both tips and virgin.nodes
+        - put results in a common list 'prefit' - DONE
+     - calculate both flavours for all splits, select best one for each - DONE
+     - perform checks on all downstream functions - DONE
+     - update summarizeTurboMEDUSA to consider flavour of model when plotting surfaces - DONE
+        - at the moment assume only BD models are to be plotted
+
+3. Implement summary function for a results over a distribution of trees
+  - just need to find a efficient way to parse the list of lists
+
+4. Make surface plotting more general - DONE
+  - fit plot to relevant region (i.e. not just [0,1] for both r and epsilon) - DONE
+  - plots for Yule models - DONE
+
+5. Pass in user fixed epsilon - DONE
+
+6. Plot tip richnesses next to tree (needs to consider coordinates)
+
+7. Fix r (b) optimization interval for extreme clades - DONE
+
+8. Document:
+\alias{extractCladeFromTree}
+\alias{findMrca}
+\alias{getNodeNumber}
+\alias{medusaFitClade}
+\alias{medusaFitUserNode}
+\alias{plotModelFit}
+\alias{plotNN}
+\alias{runMultiMEDUSA}

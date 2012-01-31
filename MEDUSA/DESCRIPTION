@@ -1,0 +1,14 @@
+Package: MEDUSA
+Type: Package
+Title: MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
+Version: 0.93-2.9.1
+Date: 2012-01-31
+Author: Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
+Maintainer: Joseph W. Brown <josephwb@uidaho.edu>
+Description: Fits piecewise diversification models from a time-calibrated phylogenetic tree and complete extant species richness.
+License: GPL (>= 2)
+LazyLoad: yes
+Depends: ape, geiger, multicore (>= 0.1-3)
+Enhances: geiger
+OS_type: unix
+Packaged: 2012-01-24 02:45:49 UTC; josephwb
