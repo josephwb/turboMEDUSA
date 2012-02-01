@@ -1,4 +1,0 @@
-export(getBD)
-export(plotPrettyTree)
-export(MEDUSA)
-export(medusaSummary)
