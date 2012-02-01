@@ -1,5 +1,6 @@
 \name{MEDUSA}
 \alias{MEDUSA}
+\alias{print.medusa}
 \title{
 Fit piecewise diversification models to a time-calibrated phylogeny
 }

@@ -1,5 +1,7 @@
 2012-01-31
   * made final updates to 'fitSisters' function
+  * implemented checks for multicore dependency; stops if Windows or GUI implementation
+	- removes necessity for separate Windows version. Yay!
 
 2012-01-13
   * added 'backStep' function which considers removing previously-fit shifts. These may lose significance as more nested shifts are added.

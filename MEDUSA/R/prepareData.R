@@ -27,13 +27,12 @@ prepareData <- function (phy, richness, verbose)
 			{
 				colnames(richness) = c("n.taxa", "taxon");
 			} else {
-				cat("MEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n")
-				stop;
+				stop("MEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
 			}
 		}
 	}
 	
-	if (class(phy) != "phylo") {cat("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n"); stop;}
+	if (class(phy) != "phylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
 	
 # Prune tree down to lineages with assigned richnesses
 	temp <- richness[, "n.taxa"];
@@ -49,8 +48,7 @@ prepareData <- function (phy, richness, verbose)
 		print(as.character(richness[, "taxon"]));
 		stop;
 	} else if (length(phy$tip.label) != length(pruned$phy$tip.label)) {
-		cat("MEDUSA thinks there is a typo in either the tree or richness files, as one or more tips were dropped from the tree.\n");
-		stop;
+		stop("MEDUSA thinks there is a typo in either the tree or richness files, as one or more tips were dropped from the tree.\n");
 	}
 
 	phy <- pruned$phy;
@@ -67,25 +65,25 @@ configureModel <- function (model, epsilon, r, b, d, initialR, initialE)
 	fixPar <- NULL;
 	if (!is.null(epsilon)) # user-defined epsilon
 	{
-		if (epsilon <= 0 | epsilon >= 1) {cat("\n\nWARNING: value of epsilon (", epsilon, ") is invalid; must be > 0 and < 1. Stopping analysis.\n", sep=""); stop;}
+		if (epsilon <= 0 | epsilon >= 1) {stop("\n\nWARNING: value of epsilon (", epsilon, ") is invalid; must be > 0 and < 1. Stopping analysis.\n", sep="");}
 		sp <- c(initialR, epsilon);
 		fixPar <- epsilon;
 		model <- "fixedEpsilon";
 	} else if (!is.null(r)) # user-defined net diversification rate
 	{
-		if (r <= 0) {cat("\n\nWARNING: value of r (", r, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		if (r <= 0) {stop("\n\nWARNING: value of r (", r, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c(r, initialE);
 		fixPar <- r;
 		model <- "fixedR";
 	} else if (!is.null(d)) # user-defined extiction rate
 	{
-		if (d <= 0) {cat("\n\nWARNING: value of d (", d, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		if (d <= 0) {stop("\n\nWARNING: value of d (", d, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c(initialR, d);
 		fixPar <- d;
 		model <- "fixedD";
 	} else if (!is.null(b)) # user-defined speciation rate
 	{
-		if (b <= 0) {cat("\n\nWARNING: value of b (", b, ") is invalid; must be > 0. Stopping analysis.\n", sep=""); stop;}
+		if (b <= 0) {stop("\n\nWARNING: value of b (", b, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c((b/2), initialE);
 		fixPar <- b;
 		model <- "fixedB";
@@ -350,12 +348,26 @@ descendantsCutAtNode.idx <- function (node.list, all.edges)
 }
 
 
+## via Jon Eastman
+check.multicore<-function () 
+{
+    tmp = rownames(installed.packages());
+    if ("multicore" %in% tmp)
+    {
+        require(multicore);
+        return(TRUE);
+    } else {
+        return(FALSE);
+    }
+}
+
+
 ## Check that provided arguments are valid
 checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCut, criterion, stepBack,
 	preserveModelFlavour, epsilon, r, b, d, fixThreshold, initialR, initialE,
 	verbose, mc, numCores)
 {
-	if (class(phy) != "phylo" && class(phy) != "multiPhylo") {cat("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n"); stop;}
+	if (class(phy) != "phylo" && class(phy) != "multiPhylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
 	
 ## String arguments
 	model=match.arg(model, choices=c("mixed", "bd", "yule"));
@@ -364,19 +376,35 @@ checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCu
 	criterion=match.arg(criterion, choices=c("aicc", "aic"));
 	
 ## Boolean arguments
-	if (class(stepBack) != "logical") {cat("\n\nWARNING: argument \"stepBack\"is not of class \"logical\". Stopping.\n"); stop;}
-	if (class(preserveModelFlavour) != "logical") {cat("\n\nWARNING: argument \"preserveModelFlavour\"is not of class \"logical\". Stopping.\n"); stop;}
-	if (class(verbose) != "logical") {cat("\n\nWARNING: argument \"verbose\"is not of class \"logical\". Stopping.\n"); stop;}
-	if (class(mc) != "logical") {cat("\n\nWARNING: argument \"mc\"is not of class \"logical\". Stopping.\n"); stop;}
+	if (class(stepBack) != "logical") {stop("\n\nWARNING: argument \"stepBack\"is not of class \"logical\". Stopping.\n");}
+	if (class(preserveModelFlavour) != "logical") {stop("\n\nWARNING: argument \"preserveModelFlavour\"is not of class \"logical\". Stopping.\n");}
+	if (class(verbose) != "logical") {stop("\n\nWARNING: argument \"verbose\"is not of class \"logical\". Stopping.\n");}
+	if (class(mc) != "logical") {stop("\n\nWARNING: argument \"mc\" is not of class \"logical\". Stopping.\n");}
+	
+	if (mc)
+	{
+		if (Sys.info()["sysname"] == "Windows")
+		{
+			stop("\"mc\" argument requested, but package \"multicore\" is not available for Windows. Stopping.\n");
+		}
+		if (!is.na(Sys.getenv()["R_GUI_APP_VERSION"]))
+		{
+			stop("\"mc\" argument requested, but package \"multicore\" cannot be run in a GUI environment. Stopping.\n");
+		}
+		if (!check.multicore())
+		{
+			stop("\"mc\" argument requested, but package \"multicore\" is not installed. Stopping.\n");
+		}
+	}
 	
 ## Numeric arguments
-	if (class(modelLimit) != "numeric" && class(modelLimit) != "NULL") {cat("\n\nWARNING: argument \"modelLimit\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(epsilon) != "numeric" && class(epsilon) != "NULL") {cat("\n\nWARNING: argument \"epsilon\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(r) != "numeric" && class(r) != "NULL") {cat("\n\nWARNING: argument \"r\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(b) != "numeric" && class(b) != "NULL") {cat("\n\nWARNING: argument \"b\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(d) != "numeric" && class(d) != "NULL") {cat("\n\nWARNING: argument \"d\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(fixThreshold) != "numeric" && class(fixThreshold) != "NULL") {cat("\n\nWARNING: argument \"fixThreshold\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(initialR) != "numeric" && class(initialR) != "NULL") {cat("\n\nWARNING: argument \"initialR\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(initialE) != "numeric" && class(initialE) != "NULL") {cat("\n\nWARNING: argument \"initialE\"is not valid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
-	if (class(numCores) != "numeric" && class(numCores) != "NULL") {cat("\n\nWARNING: argument \"numCores\"is invalid. Expecting 'NULL' or numeric. Stopping.\n"); stop;}
+	if (class(modelLimit) != "numeric" && class(modelLimit) != "NULL") {stop("\n\nWARNING: argument \"modelLimit\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(epsilon) != "numeric" && class(epsilon) != "NULL") {stop("\n\nWARNING: argument \"epsilon\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(r) != "numeric" && class(r) != "NULL") {stop("\n\nWARNING: argument \"r\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(b) != "numeric" && class(b) != "NULL") {stop("\n\nWARNING: argument \"b\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(d) != "numeric" && class(d) != "NULL") {stop("\n\nWARNING: argument \"d\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(fixThreshold) != "numeric" && class(fixThreshold) != "NULL") {stop("\n\nWARNING: argument \"fixThreshold\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(initialR) != "numeric" && class(initialR) != "NULL") {stop("\n\nWARNING: argument \"initialR\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(initialE) != "numeric" && class(initialE) != "NULL") {stop("\n\nWARNING: argument \"initialE\"is not valid. Expecting 'NULL' or numeric. Stopping.\n");}
+	if (class(numCores) != "numeric" && class(numCores) != "NULL") {stop("\n\nWARNING: argument \"numCores\"is invalid. Expecting 'NULL' or numeric. Stopping.\n");}
 }

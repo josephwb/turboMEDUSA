@@ -1,5 +1,6 @@
 \name{fitSisters}
 \alias{fitSisters}
+\alias{print.sisterFit}
 \title{
 Fit piecewise diversification models to sister clades in a time-calibrated phylogeny
 }
