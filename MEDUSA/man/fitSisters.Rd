@@ -74,18 +74,14 @@ In addition, the relative fit of the \code{Base} and \code{Sisters} models is al
 }
 
 \value{
-An object of class \code{"sisterFit"}. This is a list with elements:
+An object of class \code{"sisterFit"}. Returned invisibly. This is a list with elements:
 \item{$parameterSummary}{A dataframe listing parameter estimates and precision statistics.}
 \item{$modelSummary}{A dataframe summarizing the relative fit of a single model vs. the implemented 2-piece sister-lineages model.}
 \item{$fixPar}{The fixed parameter value used in a constrained model. If a constrained model is not implemented, this will be NULL.}
 \item{$models}{A list containing the base and sister-clade diversificaton models estimated for each tree. Includes tree(s) (which may have been pruned using richness information).}
 }
 
-\references{
-Alfaro, ME, F Santini, C Brock, H Alamillo, A Dornburg, DL Rabosky, G Carnevale, and LJ Harmon. 2009. Nine exceptional radiations plus high turnover explain species diversity in jawed vertebrates. \emph{Proceedings of the National Academy of Sciences} \bold{106}: 13410-13414.
-}
-
 \author{
-Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
+Joseph W. Brown.
 
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}

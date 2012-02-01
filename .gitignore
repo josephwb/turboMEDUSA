@@ -1,2 +1,4 @@
 # Ignore specific files
 .DS_Store
+DATA
+OTHER

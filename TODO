@@ -14,7 +14,7 @@
      - calculate both flavours for all splits, select best one for each - DONE
      - perform checks on all downstream functions - DONE
      - update summarizeTurboMEDUSA to consider flavour of model when plotting surfaces - DONE
-        - at the moment assume only BD models are to be plotted
+        - at the moment assume only BD models are to be plotted - FIXED
 
 3. Implement summary function for a results over a distribution of trees
   - just need to find a efficient way to parse the list of lists
@@ -29,12 +29,4 @@
 
 7. Fix r (b) optimization interval for extreme clades - DONE
 
-8. Document:
-\alias{extractCladeFromTree}
-\alias{findMrca}
-\alias{getNodeNumber}
-\alias{medusaFitClade}
-\alias{medusaFitUserNode}
-\alias{plotModelFit}
-\alias{plotNN}
-\alias{runMultiMEDUSA}
+8. Complete documentation

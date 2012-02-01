@@ -47,10 +47,8 @@ prepareData <- function (phy, richness, verbose)
 		cat("\nRichness taxon labels:\n");
 		print(as.character(richness[, "taxon"]));
 		stop;
-	} else if (length(phy$tip.label) != length(pruned$phy$tip.label)) {
-		stop("MEDUSA thinks there is a typo in either the tree or richness files, as one or more tips were dropped from the tree.\n");
 	}
-
+	
 	phy <- pruned$phy;
 # Check the tree
 	#	plotNN(phy)					# Node numbers (ape-style) plotted
