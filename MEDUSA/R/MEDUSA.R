@@ -1,4 +1,4 @@
-MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
+ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
 	shiftCut="both", criterion="aicc", stepBack=TRUE, preserveModelFlavour=FALSE, epsilon=NULL, r=NULL,
 	b=NULL, d=NULL, fixThreshold=NULL, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...)
 {
@@ -139,7 +139,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			cat("Step 1: lnLik=", round(models[[1]]$lnLik, digits=7), "; AICc=", round(models[[1]]$aicc, digits=7),
 				"; model=", models[[1]]$model[1], "\n", sep="");
 			
-			while (!done && i) {
+			while (!done && i) { # hmm. is 'i' necessary here?
 				node.list <- all.nodes[-fit$split.at];
 				if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 				{

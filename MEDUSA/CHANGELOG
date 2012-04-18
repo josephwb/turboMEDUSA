@@ -1,4 +1,7 @@
 2012-02-01
+  * added informative error message when zero-length branches encountered
+
+2012-02-01
   * fixed a minor bug and got rid of unix-requirement
 
 2012-01-31

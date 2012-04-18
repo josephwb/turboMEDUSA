@@ -208,6 +208,9 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	z <- cbind(z,partition=rep(1, length(z[,1]))); # Stores piecewise model structure
 	rownames(z) <- NULL;
 	
+# Stop if zero-length branches exist
+	if (any(z[,"t.len"] == 0)) {stop("\n\nWARNING: zero-length branches encountered. Stopping.\n");}
+	
 # Used for identifying descendant nodes below i.e. tracking breakpoints
 	all.edges <- as.matrix(z[,c("anc","dec")]);
 	desc.stem <- list();

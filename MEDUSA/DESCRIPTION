@@ -1,7 +1,7 @@
 Package: MEDUSA
 Type: Package
 Title: MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
-Version: 0.93-2.9.1
+Version: 0.93-2.9.2
 Date: 2012-01-31
 Author: Joseph W. Brown, Richard G. FitzJohn, Michael E. Alfaro, and Luke J. Harmon.
 Maintainer: Joseph W. Brown <josephwb@uidaho.edu>
