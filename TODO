@@ -30,3 +30,6 @@
 7. Fix r (b) optimization interval for extreme clades - DONE
 
 8. Complete documentation
+
+9. alter output such that only the final optimal model is saved to the results
+  - this will require changing summary functions

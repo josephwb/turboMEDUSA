@@ -1,3 +1,6 @@
+2012-04-23
+  * fixed problem with small trees (< 4 tips).
+
 2012-02-01
   * added informative error message when zero-length branches encountered
 

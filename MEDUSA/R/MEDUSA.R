@@ -1,4 +1,4 @@
- MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
+MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
 	shiftCut="both", criterion="aicc", stepBack=TRUE, preserveModelFlavour=FALSE, epsilon=NULL, r=NULL,
 	b=NULL, d=NULL, fixThreshold=NULL, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...)
 {
@@ -17,23 +17,23 @@
 		phy <- phyData$phy;
 		richness <- phyData$richness;
 		
-	## Determine correct AICc threshold from tree size (based on simulations)
-	 ## Should be used for interpreting model-fit
+	# Determine correct AICc threshold from tree size (based on simulations)
+	 # Should be used for interpreting model-fit
 		threshold <- getThreshold(treeSize=length(phy$tip.label), fixThreshold=fixThreshold, stop=stop);
 		
-	## Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
-	## and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
+	# Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
+	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
 		modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
 		
-	## Store pertinent information: branch times, richness, descendants
+	# Store pertinent information: branch times, richness, descendants
 		cat("Preparing data for analysis:\n");
-	## Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
+	# Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
 		pend.nodes <- seq_len(length(phy$tip.label));   # Calculate pendant splits just once, keep track through various models
 		int.nodes <- (length(phy$tip.label)+2):max(phy$edge); # Omit root node
 		root.node <- length(phy$tip.label) + 1;
 		all.nodes <- c(pend.nodes, root.node, int.nodes);
 		
-	## The important bits. Set up z, get descendants and number of tips per node
+	# The important bits. Set up z, get descendants and number of tips per node
 		obj <- makeCacheMedusa(phy=phy, richness=richness, all.nodes=all.nodes, shiftCut=shiftCut, mc=mc, numCores=numCores);
 		desc <- list(stem=obj$desc.stem, node=obj$desc.node);
 		z <- obj$z;
@@ -41,15 +41,15 @@
 		
 		cat("done.\n\n");
 		
-	## Fit the base model. This is done first as it will catch potential invalid fixed parameter values.
-	## 'fit' holds current results; useful for initializing subsequent models
+	# Fit the base model. This is done first as it will catch potential invalid fixed parameter values.
+	# 'fit' holds current results; useful for initializing subsequent models
 		baseFit <- list();
 		baseFit <- medusaMLFitBase(z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 		if (baseFit$lnLik == -Inf && !is.null(fixPar))
 		{stop("\n\nConstrained model cannot be fit to data with current fixed parameter value. Stopping analysis.\n\n");}
 	
-	## Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
-	## Will show particular performance gain for edges with many fossil observations
+	# Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
+	# Will show particular performance gain for edges with many fossil observations
 		cat("Optimizing parameters for pendant edges... ");
 		tips <- NULL;
 	# Will always be shiftCut="stem"; if mixed model, keep only best fit and throw out other in medusaMLPrefit
@@ -57,8 +57,8 @@
 			mc=mc, numCores=numCores);
 		cat("done.\n");
 		
-	## Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
-	 ## Remain useful until a spilt is accepted within the clade
+	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
+	 # Remain useful until a spilt is accepted within the clade
 		cat("Pre-calculating parameters for internal nodes... ");
 		virgin.stem <- list(); virgin.node <- list();
 		if (mc) {
@@ -104,13 +104,13 @@
 					res <- lapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour);
 				}
-	## Select model with best score according to the specific criterion employed (default aicc)
+	# Select model with best score according to the specific criterion employed (default aicc)
 				best <- which.min(unlist(lapply(res, "[[", criterion)));
 				fit <- res[[best]];   # keep track of '$split.at' i.e. nodes already considered
 				z <- medusaSplit(node=node.list[best], z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
 				step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
 				
-	## Consider parameter removal
+	# Consider parameter removal
 				if (stepBack)
 				{
 					backFit <- backStep(currentModel=fit, z=z, step=step, model=model, fixPar=fixPar, criterion=criterion);
@@ -156,7 +156,7 @@
 				z <- medusaSplit(node=node.list[best], z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
 				step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
 				
-	## Consider parameter removal
+	# Consider parameter removal
 				if (stepBack)
 				{
 					backFit <- backStep(currentModel=fit, z=z, step=step, model=model, fixPar=fixPar, criterion=criterion);

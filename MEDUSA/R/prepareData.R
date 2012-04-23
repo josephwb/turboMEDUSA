@@ -182,15 +182,18 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	interior <- phy$edge[,2] %in% phy$edge[,1];
 	bt <- branching.times(phy);
 	
-# Consider only internal edges first
-	edges.int <- phy$edge[interior,];
-	colnames(edges.int) <- c("anc", "dec");
-	
-	t.0 <- bt[match(edges.int[,1], (n.tips+1):max(edges.int))];
-	t.1 <- c(t.0[i.int] - phy$edge.length[interior]);
-	
-	z.internal <- cbind(edges.int, t.0, t.1, t.len=t.0 - t.1,
-		n.0=rep(1, n.int), n.t=rep(NA, n.int));
+# Consider only internal edges first. may be zero if only 2 tips.
+	if (n.int > 0)
+	{
+		edges.int <- matrix(phy$edge[interior,], nrow=n.int, ncol=2); # force as matrix; screws up if n.int==1 (numeric)
+		colnames(edges.int) <- c("anc", "dec");
+		
+		t.0 <- bt[match(edges.int[,1], (n.tips+1):max(edges.int))];
+		t.1 <- c(t.0[i.int] - phy$edge.length[interior]);
+		
+		z.internal <- cbind(edges.int, t.0, t.1, t.len=t.0 - t.1,
+			n.0=rep(1, n.int), n.t=rep(NA, n.int));
+	}
 	
 # Now, pendant edges; 
 	edges.pendant <- phy$edge[match(seq_len(n.tips), phy$edge[,2]),];
@@ -204,8 +207,14 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	z.pendant <- cbind(edges.pendant, t.0, t.1, t.len=t.0 - t.1,
 		n.0=rep(1, n.tips), n.t=ext.richness);
 	
-	z <- rbind(z.internal, z.pendant);
-	z <- cbind(z,partition=rep(1, length(z[,1]))); # Stores piecewise model structure
+	if (n.int > 0)
+	{
+		z <- rbind(z.internal, z.pendant);
+	} else { # case with only 2 pendant edges.
+		z <- z.pendant;
+	}
+	
+	z <- cbind(z, partition=rep(1, length(z[,1]))); # Stores piecewise model structure
 	rownames(z) <- NULL;
 	
 # Stop if zero-length branches exist
