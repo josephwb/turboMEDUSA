@@ -29,7 +29,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 		cat("Preparing data for analysis:\n");
 	# Keep track of all nodes, internal and pendant (for keeping track of breakpoints)
 		pend.nodes <- seq_len(length(phy$tip.label));   # Calculate pendant splits just once, keep track through various models
-		int.nodes <- (length(phy$tip.label)+2):max(phy$edge); # Omit root node
+		int.nodes <- unique(phy$edge[,1])[-1]; # Omit root node
 		root.node <- length(phy$tip.label) + 1;
 		all.nodes <- c(pend.nodes, root.node, int.nodes);
 		
@@ -59,28 +59,36 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 		
 	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
 	 # Remain useful until a spilt is accepted within the clade
-		cat("Pre-calculating parameters for internal nodes... ");
-		virgin.stem <- list(); virgin.node <- list();
-		if (mc) {
-			if (shiftCut == "stem" || shiftCut == "both") {
-				virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-					fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+		
+		cat("int.nodes =", int.nodes, "\n")
+		if (length(int.nodes) > 0)
+		{
+			cat("Pre-calculating parameters for internal nodes... ");
+			virgin.stem <- list(); virgin.node <- list();
+			if (mc) {
+				if (shiftCut == "stem" || shiftCut == "both") {
+					virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+				}
+				if (shiftCut == "node" || shiftCut == "both") {
+					virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+				}
+			} else {
+				if (shiftCut == "stem" || shiftCut == "both") {
+					virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion);
+				}
+				if (shiftCut == "node" || shiftCut == "both") {
+					virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion);
+				}
 			}
-			if (shiftCut == "node" || shiftCut == "both") {
-				virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-					fixPar=fixPar, criterion=criterion, mc.cores=numCores);
-			}
+			virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
 		} else {
-			if (shiftCut == "stem" || shiftCut == "both") {
-				virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-					fixPar=fixPar, criterion=criterion);
-			}
-			if (shiftCut == "node" || shiftCut == "both") {
-				virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-					fixPar=fixPar, criterion=criterion);
-			}
+			virgin.nodes <- NULL;
 		}
-		virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
+		
 		cat("done.\n\n");
 		
 		prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
