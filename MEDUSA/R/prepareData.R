@@ -290,9 +290,11 @@ getNumTips <- function (node, phy, totalTips=NULL)
 	n <- 0;
 	d <- phy$edge[which(phy$edge[, 1] == node), 2];
 	for (j in d) {
-		if (j <= totalTips)
-			n <- n + 1
-		else n <- n + getNumTips(j, phy, totalTips)
+		if (j <= totalTips) {
+			n <- n + 1;
+		} else {
+			n <- n + getNumTips(j, phy, totalTips);
+		}
 	}
 	return(n);
 }
@@ -311,8 +313,7 @@ descendantsCutAtStem <- function (node, all.edges)
 	ans <- node;
 	repeat {
 		node <- all.edges[all.edges[,1] %in% node,2];
-		if (length(node) > 0)
-		{
+		if (length(node) > 0) {
 			ans <- c(ans, node);
 		} else {break;}
 	}

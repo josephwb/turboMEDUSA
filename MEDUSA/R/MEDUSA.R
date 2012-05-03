@@ -11,7 +11,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	model <- conf$model;
 	fixPar <- conf$fixPar;
 	
-	runMEDUSA <- function (phy, richness, verbose=TRUE, ...)
+	runMEDUSA <- function (phy, richness, verbose, ...)
 	{
 		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose);
 		phy <- phyData$phy;
@@ -47,49 +47,52 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 		baseFit <- medusaMLFitBase(z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 		if (baseFit$lnLik == -Inf && !is.null(fixPar))
 		{stop("\n\nConstrained model cannot be fit to data with current fixed parameter value. Stopping analysis.\n\n");}
-	
+		
+	# If only one model is desired (i.e. base model), don't bother with all of the precalculations.
+		if (modelLimit != 1) {
 	# Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
 	# Will show particular performance gain for edges with many fossil observations
-		cat("Optimizing parameters for pendant edges... ");
-		tips <- NULL;
+			cat("Optimizing parameters for pendant edges... ");
+			tips <- NULL;
 	# Will always be shiftCut="stem"; if mixed model, keep only best fit and throw out other in medusaMLPrefit
-		tips <- prefitTips(pend.nodes=pend.nodes, z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion,
-			mc=mc, numCores=numCores);
-		cat("done.\n");
-		
+			tips <- prefitTips(pend.nodes=pend.nodes, z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion,
+				mc=mc, numCores=numCores);
+			cat("done.\n");
+			
 	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
 	 # Remain useful until a spilt is accepted within the clade
-		if (length(int.nodes) > 0)
-		{
-			cat("Pre-calculating parameters for internal nodes... ");
-			virgin.stem <- list(); virgin.node <- list();
-			if (mc) {
-				if (shiftCut == "stem" || shiftCut == "both") {
-					virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+			if (length(int.nodes) > 0)
+			{
+				cat("Pre-calculating parameters for internal nodes... ");
+				virgin.stem <- list(); virgin.node <- list();
+				if (mc) {
+					if (shiftCut == "stem" || shiftCut == "both") {
+						virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+							fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+					}
+					if (shiftCut == "node" || shiftCut == "both") {
+						virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+							fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+					}
+				} else {
+					if (shiftCut == "stem" || shiftCut == "both") {
+						virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+							fixPar=fixPar, criterion=criterion);
+					}
+					if (shiftCut == "node" || shiftCut == "both") {
+						virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+							fixPar=fixPar, criterion=criterion);
+					}
 				}
-				if (shiftCut == "node" || shiftCut == "both") {
-					virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
-				}
+				virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
 			} else {
-				if (shiftCut == "stem" || shiftCut == "both") {
-					virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-						fixPar=fixPar, criterion=criterion);
-				}
-				if (shiftCut == "node" || shiftCut == "both") {
-					virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-						fixPar=fixPar, criterion=criterion);
-				}
+				virgin.nodes <- NULL;
 			}
-			virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
-		} else {
-			virgin.nodes <- NULL;
+			
+			cat("done.\n\n");
+			
+			prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
 		}
-		
-		cat("done.\n\n");
-		
-		prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
 		
 		stopOnLimit <- function(fit)
 		{
@@ -176,7 +179,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 				
 		# Compare last accepted model to current best model
 				if (as.numeric(models[[length(models)]][criterion]) - as.numeric(fit[criterion]) < threshold) {
-					cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n\n", sep="");
+					if (verbose) cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n\n", sep="");
 					done <- TRUE;
 					break;
 				}
@@ -196,7 +199,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 		
 		modelSummary <- calculateModelFitSummary(models=models, phy=phy, threshold=threshold);
 		
-		results <- list(desc=desc, models=models, phy=phy, fixPar=fixPar, threshold=threshold, modelSummary=modelSummary);
+		results <- list(desc=desc, num.tips=num.tips, models=models, phy=phy, fixPar=fixPar, threshold=threshold, modelSummary=modelSummary);
 		class(results) <- "medusa";
 		
 		if (verbose) {cat("\n"); print(modelSummary)};
@@ -206,10 +209,10 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	
 	if (class(phy) == "multiPhylo")
 	{
-		results <- lapply(phy, runMEDUSA, richness, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
+		results <- lapply(phy, runMEDUSA, richness=richness, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
 		class(results) <- "multiMedusa";
 	} else {
-		results <- runMEDUSA(phy, richness, ...);
+		results <- runMEDUSA(phy=phy, richness=richness, verbose=verbose, ...);
 	}
 	
 	invisible(results);

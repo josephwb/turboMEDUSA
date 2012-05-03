@@ -153,7 +153,6 @@ getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion)
 ## Considering both models
 		fit <- getBestPartialModel(fit1=fit.yule, fit2=fit.bd, z=z, criterion=criterion);
 		
-		
 		# fit.bd.val <- calculateModelFit(fit=fit.bd, z=z); ## NOT valid here, as sample size is NOT z
 		# fit.yule.val <- calculateModelFit(fit=fit.yule, z=z);
 		
@@ -403,7 +402,6 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 		depth <- max(new.part[,"t.0"]);
 		
 # use different intervals based on model flavour
-	
 	if (model == "yule") {
 		
 		maxVal <- (log(node.richness) / depth) * 5;
@@ -747,14 +745,14 @@ getBestPartialModel <- function (fit1, fit2, z, criterion)
 	} else {
 		if (criterion == "aicc")
 		{
-			if (getAICc(fit1$lnLik,k1,n) < getAICc(fit2$lnLik,k2,n))
+			if (getAICc(fit1$lnLik, k1, n) < getAICc(fit2$lnLik, k2 ,n))
 			{
 				return(fit1);
 			} else {
 				return(fit2);
 			}
 		} else {
-			if (getAIC(fit1$lnLik,k1) < getAIC(fit2$lnLik,k2))
+			if (getAIC(fit1$lnLik, k1) < getAIC(fit2$lnLik, k2))
 			{
 				return(fit1);
 			} else {

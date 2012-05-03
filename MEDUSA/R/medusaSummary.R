@@ -205,7 +205,7 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 			}
 		}
 	}
-	treeParameters <- list(z=z, edge.colour=edge.color, break.pts=break.pts, phy=phy, labels=labels, par=fit$par);
+	treeParameters <- list(z=z, edge.colour=edge.color, break.pts=break.pts, phy=phy, labels=labels, par=fit$par, aicc=opt.fit);
 	class(treeParameters) <- "medusa.summary";
 	invisible(treeParameters);
 }
