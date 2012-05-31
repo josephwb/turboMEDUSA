@@ -1,7 +1,6 @@
 fitSisters <- function (phy, richness=NULL, node=NULL, tips=NULL, model="mixed",
 	criterion="aicc", epsilon=NULL, r=NULL, b=NULL, d=NULL, plotSurface=FALSE,
-	initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...)
-{
+	initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...) {
 	if (is.null(tips) && is.null(node) && node != "root") stop("\n\nWarning: need to provide either a node number or set of 2 taxa whose MRCA is the desired node. Stopping.\n");
 	
 ## Set up model	
@@ -11,8 +10,7 @@ fitSisters <- function (phy, richness=NULL, node=NULL, tips=NULL, model="mixed",
 	model <- conf$model;
 	fixPar <- conf$fixPar;
 	
-	runFitSisters <- function(phy, richness, ...)
-	{
+	runFitSisters <- function(phy, richness, ...) {
 ## Use richness information to prune tree. Could be several trees.
 		phyData <- extractSubTree(phy=phy, tips=tips, node=node, richness=richness, verbose=verbose);
 		phy <- phyData$phy;
@@ -40,8 +38,7 @@ fitSisters <- function (phy, richness=NULL, node=NULL, tips=NULL, model="mixed",
 		return(list(models=models, phy=phy));
 	}
 	
-	if (class(phy) == "phylo")
-	{
+	if (class(phy) == "phylo") {
 		res <- runFitSisters(phy, richness);
 	} else if (class(phy) == "multiPhylo") {
 		if (mc)
@@ -66,8 +63,7 @@ fitSisters <- function (phy, richness=NULL, node=NULL, tips=NULL, model="mixed",
 ## Need to consider the possibility of birth-death, yule, mixed, or constrained models.
 ## Need to consider where shft is placed (shiftCut). Placement affects not only new clade, but
 ## also the size of the split clade. Only relevant if shiftCut = "both".
-sisterFit <- function (node, z, desc, fit, model, fixPar, criterion)
-{
+sisterFit <- function (node, z, desc, fit, model, fixPar, criterion) {
 	sp <- NULL;
 	aff <- NULL;
 	op <- fit$par; # store previously fit parameter values
@@ -83,8 +79,7 @@ sisterFit <- function (node, z, desc, fit, model, fixPar, criterion)
 	aff <- obj$affected;
 
 ## Ensure that neither partition is empty; can occur with "node" or "both" cutting. If so, kill it.
-	if (sum(z.stem[,"partition"] == aff[1]) == 0 || sum(z.stem[,"partition"] == aff[2]) == 0)
-	{
+	if (sum(z.stem[,"partition"] == aff[1]) == 0 || sum(z.stem[,"partition"] == aff[2]) == 0) {
 		fit$lnLik <- -Inf;
 		fit$aic <- Inf;
 		fit$aicc <- Inf;
@@ -126,15 +121,11 @@ sisterFit <- function (node, z, desc, fit, model, fixPar, criterion)
 	return(list(fit));
 }
 
-findMrca <- function(phy, tips)
-{
+findMrca <- function(phy, tips) {
 	tt <- match(tips, phy$tip.label);
-	if (sum(!is.na(tt)) != length(tips))
-	{
-		for (i in 1:length(tt))
-		{
-			if (is.na(tt[i]))
-			{
+	if (sum(!is.na(tt)) != length(tips)) {
+		for (i in 1:length(tt)) {
+			if (is.na(tt[i])) {
 				cat("\n\nWarning: taxon '", tips[i], "' is not found in the tree. Stopping.\n", sep="");
 				stop;
 			}
@@ -144,12 +135,10 @@ findMrca <- function(phy, tips)
 }
 
 # 'tips' contains 2 (or more) tip labels, used for defining a MRCA node
-extractSubTree <- function (phy, tips=NULL, node=NULL, richness=NULL, verbose=T)
-{
+extractSubTree <- function (phy, tips=NULL, node=NULL, richness=NULL, verbose=T) {
 	if (is.null(tips) && is.null(node) && node != "root") stop("\n\nWarning: need to provide either a node number or set of 2 taxa whose MRCA is the desired node. Stopping.\n");
 	
-	if (!is.null(tips))
-	{
+	if (!is.null(tips)) {
 		node <- findMrca(phy, tips);
 	} else if (node == "root") {
 		node <- length(phy$tip.label) + 1;
@@ -164,8 +153,7 @@ extractSubTree <- function (phy, tips=NULL, node=NULL, richness=NULL, verbose=T)
 }
 
 
-sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
-{
+sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE) {
 	summarizeSingleTree <- function ()
 	{
 	## Get profile likelihoods for base and sister model separately
@@ -191,8 +179,7 @@ sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
 		scores <- c(as.numeric(models[[1]][criterion]), as.numeric(models[[2]][criterion]));
 		weights <- calculateModelWeights(fit=scores);
 		
-		if (all(modelFlavour == "yule"))
-		{
+		if (all(modelFlavour == "yule")) {
 			parameterSummary <- cbind(Clade=clades, Richness=richness, lnLik=indLikes, model=modelFlavour, r=par[,1], profLikes[,1:2]);
 		} else {
 			parameterSummary <- cbind(Clade=clades, Richness=richness,lnLik=indLikes, model=modelFlavour, par, profLikes);
@@ -210,16 +197,14 @@ sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
 		return(summary);
 	}
 	
-	summarizeMultipleTrees <- function ()
-	{
+	summarizeMultipleTrees <- function () {
 		cladeNames <-c("Base", "Clade1", "Clade2");
 		basePar <- NULL;
 		clade1Par <- NULL;
 		clade2Par <- NULL;
 		AICscores <- list();
 		
-		for (i in 1:length(results))
-		{
+		for (i in 1:length(results)) {
 			models <- results[[i]]$models;
 			base <- models[[1]];
 			sis <- models[[2]];
@@ -235,8 +220,7 @@ sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
 		summPar <- as.data.frame(summPar); rownames(summPar) <- NULL;
 		summPar <- cbind(Clade=cladeNames, summPar);
 		
-		if (all(is.na(summPar[,"Mean.eps"]))) # yule; forget epsilon
-		{
+		if (all(is.na(summPar[,"Mean.eps"]))) { # yule; forget epsilon
 			summPar <- summPar[,c(1:5)];
 			parameterSummary <- summPar[,c(1:5)];
 		} else {
@@ -257,8 +241,7 @@ sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
 		return(summary);
 	}
 	
-	if (length(results) == 2) # single tree
-	{
+	if (length(results) == 2) { # single tree
 		summary <- summarizeSingleTree();
 		summary$nTrees <- 1;
 	} else { # multiple trees
@@ -271,8 +254,7 @@ sisterFitSummary <- function (results, criterion, fixPar, plotSurface=FALSE)
 
 
 ## Passed-in 'p' will be a two-column matrix
-summarizeParameters <- function(p)
-{
+summarizeParameters <- function(p) {
 ## Want: mean, min, max, st.dev
 	p1 <- c(Mean.r=mean(p[,1]), Min=min(p[,1]), Max=max(p[,1]), StDev=sd(p[,1]));
 	p2 <- c(Mean.eps=mean(p[,2]), Min=min(p[,2]), Max=max(p[,2]), StDev=sd(p[,2]));
@@ -284,13 +266,11 @@ summarizeParameters <- function(p)
 
 
 ## 'AICscores' is a list of AIC scores for base and sister models
-summarizeMultipleSisterModelFit <- function(AICscores)
-{
+summarizeMultipleSisterModelFit <- function(AICscores) {
 	delta <- NULL;
 	w <- NULL;
 	
-	for (i in 1:length(AICscores))
-	{
+	for (i in 1:length(AICscores)) {
 		x <- calculateModelWeights(AICscores[[i]]);
 		delta <- rbind(delta, x$delta);
 		w <- rbind(w, x$w);
@@ -311,8 +291,7 @@ summarizeMultipleSisterModelFit <- function(AICscores)
 	return(modelSummary);
 }
 
-print.sisterFit <- function(x, ...)
-{
+print.sisterFit <- function(x, ...) {
 	if (x$nTrees > 1) {cat("\nResults from the analysis of ", x$nTrees, " phylogenetic trees.\n", sep="");}
 	
 	cat("\nParameter Summary:\n\n");

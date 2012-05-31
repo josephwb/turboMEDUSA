@@ -1,3 +1,16 @@
+2012-05-29
+  * added error-checking for 1) non-binary and 2) non-ultrametric trees
+
+2012-05-21
+  * added user options to printing summary tree from multiMEDUSA
+	- branch colouring, tree rearrangement ("ladderizing"), etc.
+
+2012-05-11
+  * fixed starting parameter issue when dissolving splits (now weighted mean)
+
+2012-05-08
+  * added summary function for distribution of trees
+
 2012-04-23
   * fixed problem with small trees (< 4 tips).
 

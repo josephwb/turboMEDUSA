@@ -1,7 +1,6 @@
 medusaFitClade <- function (phy=phy, richness=NULL, userNode=NULL, model="mixed",
 	epsilon=NULL, r=NULL, b=NULL, d=NULL, criterion="aicc", shiftCut="both",
-	extractClade=FALSE, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...)
-{
+	extractClade=FALSE, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...) {
 # Used for testing specific hypotheses, whether between clades, or against background
 	phyData <- prepareData(phy=phy, richness=richness, verbose=verbose);
 	phy <- phyData$phy;
@@ -30,8 +29,7 @@ medusaFitClade <- function (phy=phy, richness=NULL, userNode=NULL, model="mixed"
 	
 	models <- list(fit);	
 	
-	for (i in 1:length(userNode))
-	{
+	for (i in 1:length(userNode)) { # ugh. get rid of loop and use *apply instead
 		fit <- list(medusaFitUserNode(userNode[i], z, desc, model, root.node, criterion, shiftCut, sp=sp, fixPar));
 		models <- c(models, fit);
 	}
@@ -48,30 +46,26 @@ medusaFitClade <- function (phy=phy, richness=NULL, userNode=NULL, model="mixed"
 #	return(models);
 }
 
-medusaFitUserNode <- function (node, z, desc, model, root.node, criterion, shiftCut, sp, fixPar)
-{
+medusaFitUserNode <- function (node, z, desc, model, root.node, criterion, shiftCut, sp, fixPar) {
 ## various combinations possible
 	fit.stem <- NULL;
 	fit.node <- NULL;
 	cut.at <- NULL;
 	
-	if (shiftCut == "stem" | shiftCut == "both")
-	{
+	if (shiftCut == "stem" | shiftCut == "both") {
 		obj.stem <- medusaSplitStem(node=node, z=z, desc=desc$stem);
 		z.stem <- obj.stem$z[obj.stem$z[,"partition"] == 2,,drop=FALSE];
 		
 		fit.stem <- getOptimalModelFlavour(z=z.stem, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 	}
-	if ((shiftCut == "node" || shiftCut == "both") && (node > root.node))
-	{
+	if ((shiftCut == "node" || shiftCut == "both") && (node > root.node)) {
 		obj.node <- medusaSplitNode(node=node, z=z, desc=desc$node);
 		z.node <- obj.node$z[obj.node$z[,"partition"] == 2,,drop=FALSE];
 		
 		fit.node <- getOptimalModelFlavour(z=z.node, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 	}
 ## Now, figure out which shift position is optimal	
-	if (is.null(fit.node))
-	{
+	if (is.null(fit.node)) {
 		fit <- fit.stem;
 		cut.at <- "stem";
 	} else if (is.null(fit.stem)) {
@@ -92,8 +86,7 @@ medusaFitUserNode <- function (node, z, desc, model, root.node, criterion, shift
 		
 		if (criterion == "aic") {element <- 1;} else {element <- 2;}
 		
-		if (stem.fit[[element]] < node.fit[[element]])
-		{
+		if (stem.fit[[element]] < node.fit[[element]]) {
 			fit <- fit.stem;
 			fit <- fit.stem;
 			cut.at <- "stem";
@@ -116,8 +109,7 @@ medusaFitUserNode <- function (node, z, desc, model, root.node, criterion, shift
 }
 
 ## Only used for base model
-medusaMLBaseModel <- function (z, extractClade, nodes, model, shiftCut, desc, criterion, sp, fixPar)
-{
+medusaMLBaseModel <- function (z, extractClade, nodes, model, shiftCut, desc, criterion, sp, fixPar) {
 	rootnode <- min(z[,"anc"]);
 	fit <- NULL;
 	model.id <- NULL;

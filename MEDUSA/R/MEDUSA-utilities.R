@@ -1,6 +1,5 @@
 ## Only used for base model
-medusaMLFitBase <- function (z, sp, model, fixPar, criterion)
-{
+medusaMLFitBase <- function (z, sp, model, fixPar, criterion) {
 	fit <- getOptimalModelFlavour(z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 	model.fit <- calculateModelFit(fit=fit, z=z);
 	
@@ -17,8 +16,7 @@ medusaMLFitBase <- function (z, sp, model, fixPar, criterion)
 ## Returns a list with elements:
 ##   z: new medusa matrix, with the new partition added
 ##   affected: indices of the partitions affected by the split (n == 2).
-medusaSplitStem <- function (node, z, desc, extract=FALSE)
-{
+medusaSplitStem <- function (node, z, desc, extract=FALSE) {
 	part <- z[,"partition"];
 	base <- min(part[z[,"anc"] == node | z[,"dec"] == node]);
 	tag <- max(part) + 1;
@@ -29,8 +27,7 @@ medusaSplitStem <- function (node, z, desc, extract=FALSE)
 	return(list(z=z, affected=c(unique(part[idx]), tag)));
 }
 
-medusaSplitNode <- function (node, z, desc, extract=FALSE)
-{
+medusaSplitNode <- function (node, z, desc, extract=FALSE) {
 	part <- z[,"partition"];
 	base <- min(part[z[,"anc"] == node]);
 	tag <- max(part) + 1;
@@ -42,8 +39,7 @@ medusaSplitNode <- function (node, z, desc, extract=FALSE)
 }
 
 ## The general function for when the flavour of shiftCut is unknown
-medusaSplit <- function (node, z, desc, shiftCut)
-{
+medusaSplit <- function (node, z, desc, shiftCut) {
 	descendants <- desc$stem; # will be correct half the time
 	if (shiftCut == "node") {descendants <- desc$node;}
 	
@@ -59,17 +55,14 @@ medusaSplit <- function (node, z, desc, shiftCut)
 
 ## Pre-fit values for pendant edges; DON'T recalculate later; should account for ~25% of all calculations
 ## Also cache values for virgin nodes; useful until subsetted, especially for large trees.
-prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCores)
-{
-	if (all(z[z[,"dec"] %in% pend.nodes,"n.t"] == 1) && (model == "yule" || model == "mixed"))
-	{
+prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCores) {
+	if (all(z[z[,"dec"] %in% pend.nodes,"n.t"] == 1) && (model == "yule" || model == "mixed")) {
 		fit <- list(list(par=c(0, NA), lnLik=0, model="yule"));
 		fit <- rep(fit, length(pend.nodes));
 		return(fit);
 	}
 	
-	if (model == "mixed") # yule will always have a better AIC for tip, regardless of richness
-	{
+	if (model == "mixed") { # yule will always have a better AIC for tip, regardless of richness
 		if (mc) {
 			tips <- mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
 				model="yule", fixPar=fixPar, criterion=criterion, mc.cores=numCores);
@@ -89,12 +82,10 @@ prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCore
 	return(tips);
 }
 
-medusaMLPrefitTip <- function (node, z, sp, model, fixPar, criterion)
-{
+medusaMLPrefitTip <- function (node, z, sp, model, fixPar, criterion) {
 	z.tip <- z[z[,"dec"] == node,,drop=FALSE];
 	
-	if (all(z.tip[,"n.t"] == 1) && (model == "yule" || model == "mixed"))
-	{
+	if (all(z.tip[,"n.t"] == 1) && (model == "yule" || model == "mixed")) {
 		return(list(par=c(0, NA), lnLik=0, model="yule"));
 	}
 	
@@ -102,50 +93,42 @@ medusaMLPrefitTip <- function (node, z, sp, model, fixPar, criterion)
 	return(fit);
 }
 
-medusaMLPrefitNode <- function (node, z, desc, sp, model, fixPar, criterion)
-{
+medusaMLPrefitNode <- function (node, z, desc, sp, model, fixPar, criterion) {
 	z.node <- medusaSplitNode(node=node, z=z, desc=desc, extract=TRUE)$z;
 	fit <- getOptimalModelFlavour(z=z.node, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 	return(fit);
 }
 
-medusaMLPrefitStem <- function (node, z, desc, sp, model, fixPar, criterion)
-{
+medusaMLPrefitStem <- function (node, z, desc, sp, model, fixPar, criterion) {
 	z.stem <- medusaSplitStem(node=node, z=z, desc=desc, extract=TRUE)$z;
-#	z.stem <- z.stem[z.stem[,"partition"] == 2,,drop=FALSE];
 	fit <- getOptimalModelFlavour(z=z.stem, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 	return(fit);
 }
 
 
 ## When model == mixed, fit both and find optimal flavour
-getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion)
-{
+getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion) {
 	fit.bd <- NULL;
 	fit.yule <- NULL;
 	fit <- NULL;
 	
-	if (model == "yule" | model == "mixed")
-	{
+	if (model == "yule" | model == "mixed") {
 		fit.yule <- medusaMLFitPartition(z=z, sp=sp, model="yule");
 		fit.yule$model <- "yule";
 	}
-	if (model == "bd" | model == "mixed")
-	{
+	if (model == "bd" | model == "mixed") {
 		if (is.na(sp[2])) {sp[2] <- 0.5;}
 		fit.bd <- medusaMLFitPartition(z=z, sp=sp, model="bd");
 		fit.bd$model <- "bd";
 	}
-	if (model != "mixed" && model != "bd" && model != "yule") # i.e. the constrained models
-	{
+	if (model != "mixed" && model != "bd" && model != "yule") { # i.e. the constrained models
 		fit <- medusaMLFitPartition(z=z, sp=sp, model=model, fixPar=fixPar);
 		fit$model <- model;
 		return(fit);
 	}
 	
 ## Figure out which model fits best
-	if (is.null(fit.bd))
-	{
+	if (is.null(fit.bd)) {
 		fit <- fit.yule;
 	} else if (is.null(fit.yule)) {
 		fit <- fit.bd;
@@ -163,13 +146,16 @@ getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion)
 }
 
 
+## Memory issues required a restructuring. medusaMLUpdate finds intermediate results *within* a particular model size.
+##  - only pertinent values are recorded: split.at, aic, aicc, cut.at.
+##  - the optimal model is later reoptimized to get all required values: above + likelihood, z, etc.
 ## 'fit' contains parameter values from previous model, used to initialize subsequent model.
 ## Pass in pre-fitted values for pendant edges and virgin nodes (in 'prefit'); DON'T recalculate.
 ## Need to consider the possibility of birth-death, yule, mixed, or constrained models.
 ## Need to consider where shft is placed (shiftCut). Placement affects not only new clade, but
 ## also the size of the split clade. Only relevant if shiftCut = "both".
-medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, model, fixPar, criterion, shiftCut, preserveModelFlavour)
-{
+#medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, model, fixPar, criterion, shiftCut, preserveModelFlavour)
+medusaMLUpdate <- function (node, z, desc, fit, prefit, root.node, model, fixPar, criterion, shiftCut, preserveModelFlavour) {
 ## various combinations possible
 	fit1.stem <- NULL;
 	fit1.node <- NULL;
@@ -182,22 +168,17 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 	op <- fit$par; # store previously fit parameter values
 	cool <- TRUE;
 	
-	# new.part.1 <- NULL;
-	# new.part.2 <- NULL;
-	
 	fit1 <- NULL;
 	fit2 <- NULL;
 	
-	if (shiftCut == "stem" | shiftCut == "both" | node < root.node) # can enter on "node" if a tip
-	{
+	if (shiftCut == "stem" | shiftCut == "both" | node < root.node) { # can enter on "node" if a tip
 ## First, diminshed clade
 		obj.stem <- medusaSplitStem(node=node, z=z, desc=desc$stem);
 		z.stem <- obj.stem$z;
 		aff <- obj.stem$affected;
 
 ## Ensure that neither partition is empty; can occur with "node" or "both" cutting. If so, kill it.
-		if (sum(z.stem[,"partition"] == aff[1]) == 0 || sum(z.stem[,"partition"] == aff[2]) == 0)
-		{
+		if (sum(z.stem[,"partition"] == aff[1]) == 0 || sum(z.stem[,"partition"] == aff[2]) == 0) {
 			fit$lnLik <- -Inf;
 			fit$aic <- Inf;
 			fit$aicc <- Inf;
@@ -212,11 +193,9 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 		
 ## check if diminished clade conforms to a cached clade
 		x <- which(dimClade[,"anc"] == min(dimClade[,"anc"]));
-		if (length(x) == 1) # a cut-at-stem scenario
-		{
+		if (length(x) == 1) { # a cut-at-stem scenario
 			y <- as.numeric(dimClade[x, "dec"]);
-			if (length(unique(dimClade[(dimClade[,"dec"] < root.node),"dec"])) == prefit$num.tips[[y]])
-			{
+			if (length(unique(dimClade[(dimClade[,"dec"] < root.node),"dec"])) == prefit$num.tips[[y]]) {
 				if (y < root.node)
 				{
 					fit1.stem <- prefit$tips[[y]];
@@ -226,12 +205,9 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 			}
 		}
 				
-		if(is.null(fit1.stem))
-		{
-			if (model == "mixed")
-			{
-				if (preserveModelFlavour)  ## In mixed models, may want to conserve flavour of previously fit model
-				{
+		if (is.null(fit1.stem)) {
+			if (model == "mixed") {
+				if (preserveModelFlavour) { ## In mixed models, may want to conserve flavour of previously fit model
 					if (sum(!is.na(sp)) < 2) # yule
 					{
 						fit1.stem <- medusaMLFitPartition(z=dimClade, sp=sp, model="yule");
@@ -248,10 +224,8 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 			}
 		}
 		
-		
 ## Second, new clade
-		if (node < root.node) # tip, already calculated
-		{
+		if (node < root.node) { # tip, already calculated
 			fit2.stem <- prefit$tips[[node]];
 		} else if (length(unique(z.stem[(z.stem[,"partition"] == aff[2] & z.stem[,"dec"] < root.node),"dec"])) == prefit$num.tips[[node]]) {
 ## vigin node, already calculated
@@ -263,21 +237,18 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 		}
 	}
 	
-	if ((shiftCut == "node" || shiftCut == "both") && (node > root.node)) # never enter if tip
-	{
+	if ((shiftCut == "node" || shiftCut == "both") && (node > root.node)) { # never enter if tip
 ## First, diminshed clade
 		obj.node <- medusaSplitNode(node=node, z=z, desc=desc$node);
 		z.node <- obj.node$z;
 		aff <- obj.node$affected;
 		
 ## Need to check if cut is valid. May be inadmissable because of pattern of previous breaks (especially with shiftCut=both)
-		if (is.na(aff[1]) || is.na(aff[2]))
-		{
+		if (is.na(aff[1]) || is.na(aff[2])) {
 			cool <- FALSE;
 		}		
 ## Check that partition is not empty; can occur with "node" or "both" cutting.
-		if (sum(z.node[,"partition"] == aff[1]) == 0 || sum(z.node[,"partition"] == aff[2]) == 0 || !cool)
-		{
+		if (sum(z.node[,"partition"] == aff[1]) == 0 || sum(z.node[,"partition"] == aff[2]) == 0 || !cool) {
 			fit$lnLik <- -Inf;
 			fit$aic <- Inf;
 			fit$aicc <- Inf;
@@ -290,10 +261,8 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 ## first, consider diminshed clade. may result in a clade that has been cached
 		dimClade <- z.node[z.node[,"partition"] == aff[1],,drop=FALSE];
 		
-		if (model == "mixed")
-		{
-			if (preserveModelFlavour)  ## In mixed models, may want to conserve flavour of previously fit model
-			{
+		if (model == "mixed") {
+			if (preserveModelFlavour) { ## In mixed models, may want to conserve flavour of previously fit model
 				if (sum(!is.na(sp)) < 2) # yule
 				{
 					fit1.node <- medusaMLFitPartition(z=dimClade, sp=sp, model="yule"); # should this change? probably.
@@ -320,8 +289,7 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 	}
 	
 ## Now, figure out which shift position is optimal	
-	if (is.null(fit2.node))
-	{
+	if (is.null(fit2.node)) {
 		fit1 <- fit1.stem;
 		fit2 <- fit2.stem;
 		cut.at <- "stem";
@@ -343,8 +311,7 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 		
 		if (criterion == "aic") {element <- 1;} else {element <- 2;}
 		
-		if (stem.fit[[element]] < node.fit[[element]])
-		{
+		if (stem.fit[[element]] < node.fit[[element]]) {
 			fit1 <- fit1.stem;
 			fit2 <- fit2.stem;
 			cut.at <- "stem";
@@ -354,6 +321,155 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 			cut.at <- "node";
 		}
 	}
+	op[aff[1],] <- fit1$par; # Replace parameters with new values for diminished clade
+	
+	if (!preserveModelFlavour) {fit$model[aff[1]] <- fit1$model;} # update altered model
+	
+	fit$par <- rbind(op, fit2$par);
+	fit$lnLik.part[aff] <- c(fit1$lnLik, fit2$lnLik); # Replace parameters with new values for diminished clade
+	fit$lnLik <- sum(fit$lnLik.part);
+	
+	model.fit <- calculateModelFit(fit=fit, z=z);
+	
+	intFit <- list(aic=model.fit[1], aicc=model.fit[2], split.at=node, cut.at=cut.at);
+	
+	return(intFit);
+}
+
+
+## this was the original general function, but presented a significant memory issue for large trees.
+## re-fit optimal node shift to get all required values; significant memory issue for large trees if done otherwise.
+## shiftCut and node are fixed. model is as well, but it seems tricky...
+medusaFitOptimal <- function (node, z, desc, fit, prefit, root.node, model, fixPar, criterion, shiftCut, preserveModelFlavour) {
+## various combinations possible
+	fit1 <- NULL;
+	fit1 <- NULL;
+	fit2 <- NULL;
+	fit2 <- NULL;
+	cut.at <- shiftCut;
+	
+	sp <- NULL;
+	aff <- NULL;
+	op <- fit$par; # store previously fit parameter values
+	cool <- TRUE;
+	
+	fit1 <- NULL;
+	fit2 <- NULL;
+	
+	if (shiftCut == "stem") {
+## First, diminshed clade
+		obj <- medusaSplitStem(node=node, z=z, desc=desc$stem);
+		z <- obj$z;
+		aff <- obj$affected;
+
+## Ensure that neither partition is empty; can occur with "node" or "both" cutting. If so, kill it.
+		if (sum(z[,"partition"] == aff[1]) == 0 || sum(z[,"partition"] == aff[2]) == 0) {
+			fit$lnLik <- -Inf;
+			fit$aic <- Inf;
+			fit$aicc <- Inf;
+			return(fit);
+		}
+		
+## Everything is cool; proceed.
+		sp <- op[aff[1],]; # Use previously fit parameter values from clade that is currently being split
+		
+## first, consider diminshed clade. may result in a clade that has been cached previously
+		dimClade <- z[z[,"partition"] == aff[1],,drop=FALSE];
+		
+## check if diminished clade conforms to a cached clade
+		x <- which(dimClade[,"anc"] == min(dimClade[,"anc"]));
+		if (length(x) == 1) { # a cut-at-stem scenario
+			y <- as.numeric(dimClade[x, "dec"]);
+			if (length(unique(dimClade[(dimClade[,"dec"] < root.node),"dec"])) == prefit$num.tips[[y]]) {
+				if (y < root.node) {
+					fit1 <- prefit$tips[[y]];
+				} else {
+					fit1 <- prefit$virgin.nodes$stem[[y - root.node]];
+				}
+			}
+		}
+				
+		if (is.null(fit1)) {
+			if (model == "mixed") {
+				if (preserveModelFlavour) ## In mixed models, may want to conserve flavour of previously fit model
+				{
+					if (sum(!is.na(sp)) < 2) { # yule
+						fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model="yule");
+					} else {
+						fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model="bd");
+					}
+				} else {
+## consider both model flavours
+					fit1 <- getOptimalModelFlavour(z=dimClade, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+				}
+			} else {
+				fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model=model, fixPar=fixPar);
+				fit1$model <- model;
+			}
+		}
+		
+## Second, new clade
+		if (node < root.node) { # tip, already calculated
+			fit2 <- prefit$tips[[node]];
+		} else if (length(unique(z[(z[,"partition"] == aff[2] & z[,"dec"] < root.node),"dec"])) == prefit$num.tips[[node]]) {
+## vigin node, already calculated
+			fit2 <- prefit$virgin.nodes$stem[[node - root.node]];
+		} else {
+## novel shift
+			newClade <- z[z[,"partition"] == aff[2],,drop=FALSE];
+			fit2 <- getOptimalModelFlavour(z=newClade, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+		}
+	} else if (shiftCut == "node") {
+## First, diminshed clade
+		obj <- medusaSplitNode(node=node, z=z, desc=desc$node);
+		z <- obj$z;
+		aff <- obj$affected;
+		
+## Need to check if cut is valid. May be inadmissable because of pattern of previous breaks
+		if (is.na(aff[1]) || is.na(aff[2])) {
+			cool <- FALSE;
+		}		
+## Check that partition is not empty; can occur with "node" cutting.
+		if (sum(z[,"partition"] == aff[1]) == 0 || sum(z[,"partition"] == aff[2]) == 0 || !cool) {
+			fit$lnLik <- -Inf;
+			fit$aic <- Inf;
+			fit$aicc <- Inf;
+			return(fit);
+		}
+		
+## Everything is cool; proceed.
+		sp <- op[aff[1],]; # Use previously fit parameter values from clade that is currently being split
+		
+## first, consider diminshed clade. may result in a clade that has been cached
+		dimClade <- z[z[,"partition"] == aff[1],,drop=FALSE];
+		
+		if (model == "mixed") {
+			if (preserveModelFlavour) { ## In mixed models, may want to conserve flavour of previously fit model
+				if (sum(!is.na(sp)) < 2) { # yule
+					fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model="yule"); # should this change? probably.
+				} else {
+					fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model="bd");
+				}
+			} else {
+## consider both model flavours
+				fit1 <- getOptimalModelFlavour(z=dimClade, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+			}
+		} else {
+			fit1 <- medusaMLFitPartition(z=dimClade, sp=sp, model=model, fixPar=fixPar);
+			fit1$model <- model;
+		}
+		
+## Second, new clade
+		if (length(unique(z[(z[,"partition"] == aff[2] & z[,"dec"] < root.node),"dec"])) == prefit$num.tips[[node]]) {
+## vigin node, already calculated
+			fit2 <- prefit$virgin.nodes$node[[node - root.node]];
+		} else {
+## novel shift
+			newClade <- z[z[,"partition"] == aff[2],,drop=FALSE];
+			fit2 <- getOptimalModelFlavour (z=newClade, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+		}
+	}
+	
 	op[aff[1],] <- fit1$par; # Replace parameters with new values for diminished clade
 	
 	if (!preserveModelFlavour) {fit$model[aff[1]] <- fit1$model;} # update altered model
@@ -379,8 +495,7 @@ medusaMLUpdate <- function (node, z, desc, fit, prefit, num.tips, root.node, mod
 ## Default values should never be used (except for first model), as the values from the previous model are passed in.
 ## The 'suppressWarnings' catches harmless warnings for when extreme parameter values are tried, 
 ## generating -Inf log-likelihoods. Depends on sclae of the tree.
-medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
-{
+medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL) {
 #	new.part <- z[z[,"partition"] == partition.id,,drop=FALSE]; # now subsetted earlier
 	new.part <- z;
 	
@@ -388,11 +503,10 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 	lik <- makePartitionLikelihood(partition=new.part, model=model, fixPar=fixPar);
 	foo <- function (x) {-lik(pars=exp(x));} # work with parameters in log-space to preserve precision
 	
-	if (model == "bd")
-	{
+	if (model == "bd") {
 		fit <- optim(fn=foo, par=log(sp), method="N", control=list(maxit=5000));
 		
-		if(fit$convergence != 0) {cat("\nDidn't converge. Shit. Convergence = ", fit$convergence, "\n");}
+		if (fit$convergence != 0) {cat("\nDidn't converge. Shit. Convergence = ", fit$convergence, "\n");}
 		
 		return(list(par=exp(fit$par), lnLik=-fit$value));
 	}
@@ -410,8 +524,7 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 		suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
 		par <- c(exp(fit$minimum), NA);
 		
-		while (par[1]/maxVal > 0.95) # crash against boundary; doesn't seem to get used...
-		{
+		while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
 			maxVal <- par[1] * 3;
 #			cat("Hit boundary\n")
 			suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
@@ -430,8 +543,7 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 		b <- exp(fit$minimum);
 		par <- c((b - fixPar), (fixPar / b));
 		
-		while (fit$objective == Inf)
-		{
+		while (fit$objective == Inf) {
 			cat("maxVal =", maxVal, "; b =", b, "; r =", b - fixPar, "; epsilon =", fixPar/b, "\n")
 			
 			x <- x * 0.75;
@@ -451,8 +563,7 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 		suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
 		par <- c(exp(fit$minimum), sp[2]);
 		
-		while (par[1]/maxVal > 0.9) # crash against boundary
-		{
+		while (par[1]/maxVal > 0.9) { # crash against boundary
 			maxVal <- par[1] * 3;
 			suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
 			par <- c(exp(fit$minimum), sp[2]);
@@ -508,8 +619,7 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL)
 #			i.pend.n.t.n1 <- which(pend.n.t != 1)
 
 ## makePartitionLikelihood: generate a likelihood function for a single partition.
-makePartitionLikelihood <- function (partition, model, fixPar)
-{
+makePartitionLikelihood <- function (partition, model, fixPar) {
 	i.int <- is.na(partition[,"n.t"])
 	i.pend <- !(i.int)
 	n.int <- sum(i.int);
@@ -674,8 +784,7 @@ makePartitionLikelihood <- function (partition, model, fixPar)
 
 
 ## 'fit' contains '$par' and '$lnlik' and '$model'; check last value for presence of fixed parameters
-calculateModelFit <- function (fit, z)
-{
+calculateModelFit <- function (fit, z) {
 ## Sample size taken (for now) as the total num.nodes in the tree (internal + pendant)
   # num.nodes = (2*length(phy$tip.label) - 1) == (2*length(richness[,1]) - 1) == length(z[,1]) + 1
 #	n <- (length(z[,1]) + 1) + sum(!is.na(z[,"n.f"]));
@@ -688,16 +797,14 @@ calculateModelFit <- function (fit, z)
   # 2 parameters for base model (no breakpoint) + 3 parameters (r, eps, breakpoint) for each subsequent model
   
 # Determine number of piecewise models currently involved
-	if (length(fit$par) < 3) # i.e. base model
-	{
+	if (length(fit$par) < 3) { # i.e. base model
 		num.models <- 1;
 	} else {
 		num.models <- length(fit$par[,1]);
 	}
 	model = fit$model[1];
 	
-	if (model == "fixedEpsilon" || model == "fixedR" || model == "fixedB" || model == "fixedD")
-	{
+	if (model == "fixedEpsilon" || model == "fixedR" || model == "fixedB" || model == "fixedD") {
 		k <- 2 * num.models - 1;
 	} else {
 		k <- sum(!is.na(fit$par)) + num.models - 1; # number of estimated parameters + number of breaks
@@ -705,9 +812,7 @@ calculateModelFit <- function (fit, z)
 	
 	lnLik <- fit$lnLik;
 	
-#	aic <- -2 * lnLik + 2*k;
 	aic <- getAIC(lnLik, k);
-#	aicc <- aic + 2*k*(k+1)/(n-k-1);
 	aicc <- getAICc(lnLik, k, n);
 	
 	model.fit <- c(aic, aicc, k);
@@ -715,45 +820,37 @@ calculateModelFit <- function (fit, z)
 }
 
 
-getAIC <- function (lnLik, k)
-{
+getAIC <- function (lnLik, k) {
 	return(-2 * lnLik + 2*k);
 }
 
-getAICc <- function (lnLik, k, n)
-{
+getAICc <- function (lnLik, k, n) {
 	return(getAIC(lnLik,k) + 2*k*(k+1)/(n-k-1));
 }
 
 
 ## Used for comparing models fit to the same partition
-getBestPartialModel <- function (fit1, fit2, z, criterion)
-{
+getBestPartialModel <- function (fit1, fit2, z, criterion) {
 	n <- (length(z[,1]) + 1); # the number of nodes involved
 ## Add '1' to parameters to account for break
 	k1 <- 1 + sum(!is.na(fit1$par));
 	k2 <- 1 + sum(!is.na(fit2$par));
 	
-	if (n - k1 <= 1 || n - k2 <= 1) # deals with single edges, where AICc correction becomes undefined. use AIC.
-	{
-		if (getAIC(fit1$lnLik,k1) < getAIC(fit2$lnLik,k2))
-		{
+	if (n - k1 <= 1 || n - k2 <= 1) { # deals with single edges, where AICc correction becomes undefined. use AIC.
+		if (getAIC(fit1$lnLik,k1) < getAIC(fit2$lnLik,k2)) {
 			return(fit1);
 		} else {
 			return(fit2);
 		}
 	} else {
-		if (criterion == "aicc")
-		{
-			if (getAICc(fit1$lnLik, k1, n) < getAICc(fit2$lnLik, k2 ,n))
-			{
+		if (criterion == "aicc") {
+			if (getAICc(fit1$lnLik, k1, n) < getAICc(fit2$lnLik, k2 ,n)) {
 				return(fit1);
 			} else {
 				return(fit2);
 			}
 		} else {
-			if (getAIC(fit1$lnLik, k1) < getAIC(fit2$lnLik, k2))
-			{
+			if (getAIC(fit1$lnLik, k1) < getAIC(fit2$lnLik, k2)) {
 				return(fit1);
 			} else {
 				return(fit2);
@@ -764,10 +861,8 @@ getBestPartialModel <- function (fit1, fit2, z, criterion)
 
 
 ## Consider removing previously-fit rate shifts
-backStep <- function (currentModel, z, step, model, fixPar, criterion)
-{
+backStep <- function (currentModel, z, step, model, fixPar, criterion) {
 ## As a first step, only consider removing entire shifts. Later deal with individual parameters.
-	
 	z.opt <- z;
 	bestModel <- currentModel;
 	bestScore <- as.numeric(bestModel[criterion]);
@@ -775,8 +870,7 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion)
 	bestRemoved <- NULL;
 	improve <- T;
 	
-	while (improve) # may be possible to remove > 1 previously fit shift
-	{
+	while (improve) { # may be possible to remove > 1 previously fit shift
 		allDeletedShifts <- c(allDeletedShifts, bestRemoved);
 		currentModel <- bestModel;
 		z <- z.opt;
@@ -786,17 +880,16 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion)
 		numModels <- length(bestModel$par)/2;
 		improve <- F;
 		
-		if (numModels > 2)
-		{
-			for (i in 2:(numModels - 1)) # don't waste time removing last shift
-			{
+		if (numModels > 2) {
+			for (i in 2:(numModels - 1)) { # don't waste time removing last shift
 				fitModel <- currentModel;
 				obj <- dissolveSplit(z, cut=cuts[i], node=nodes[i], aff=i);
 				aff <- obj$affected;
 				z.temp <- obj$z[obj$z[,"partition"] == aff,,drop=FALSE];
 				
-			# set par to mean of 2 affected partitions. perhaps weight (where weight comes form number of edges)
-				sp <- c(mean(pars[c(aff,i),1]), mean(pars[c(aff,i),2], na.rm=T));
+		## set par to weighted mean of 2 affected partitions
+				weights <- c(sum(z[,"partition"] == aff), sum(z[,"partition"] == i)); # weight from number of edges involved
+				sp <- c(weighted.mean(pars[c(aff,i),1], weights), weighted.mean(pars[c(aff,i),2], weights, na.rm=T));
 				
 				fit <- getOptimalModelFlavour(z=z.temp, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 				
@@ -811,8 +904,7 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion)
 				fitModel$aicc <- model.fit[2];
 				fitModel$num.par <- model.fit[3];
 				
-				if (fitModel[criterion] < bestScore)
-				{
+				if (fitModel[criterion] < bestScore) {
 					fitModel$split.at <- fitModel$split.at[-i];
 					fitModel$model[aff] <- fit$model;
 					fitModel$model <- fitModel$model[-i];
@@ -832,18 +924,15 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion)
 
 
 ## Remove previously-fit rate shift
-dissolveSplit <- function (z, cut, node, aff)
-{
+dissolveSplit <- function (z, cut, node, aff) {
 ## Grab ancestral branch partition membership
 	anc <- z[which(z[,"dec"] == node)];
 	root <- min(z[,"anc"]);
 	tag <- NULL;
 	
-	if (cut == "node")
-	{
+	if (cut == "node") {
 		tag <- as.numeric(z[which(z[,"dec"] == node),"partition"]);
-	} else if (cut == "stem" && anc > root)
-	{
+	} else if (cut == "stem" && anc > root) {
 		tag <- as.numeric(z[which(z[,"dec"] == anc),"partition"]);
 	} else if (cut == "stem" && anc == root) { # need to take other side of root
 		dec <- z[which(z[,"anc"] == root),"dec"];
@@ -858,8 +947,7 @@ dissolveSplit <- function (z, cut, node, aff)
 
 
 ## reduce partition IDs to reflect dissolved split
-updateZ <- function (z, deletedPart)
-{
+updateZ <- function (z, deletedPart) {
 	idx <- z[,"partition"] > deletedPart;
 	z[idx,"partition"] <- z[idx,"partition"] - 1;
 	return(z);
@@ -867,10 +955,8 @@ updateZ <- function (z, deletedPart)
 
 
 ## Only print if model improves AIC score
-printRemovedShifts <- function (remove)
-{
-	for (i in 1:length(remove))
-	{
+printRemovedShifts <- function (remove) {
+	for (i in 1:length(remove)) {
 		cat("  Removing shift at node #", remove[i], "\n", sep="");
 	}
 }

@@ -1,62 +1,31 @@
-medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion="aicc", plotTree=TRUE,
-	time=TRUE, node.labels=TRUE, cex=0.5, plotSurface=FALSE, printTitle=TRUE, n.points=100, ...)
-{
-# Desirables:
-#  1. table listing parameter values of selected model
-#  2. list parameters of base model
-#  3. tree printed with colour-coded edges, node labels to indicate split position(s)
-#  4. plot likelihood surface
+## Need to update this given new output format (i.e. only 1 optimal model)
+
+medusaSummary <- function(results, plotTree=TRUE, time=TRUE, node.labels=TRUE, colourOffset=0, 
+	cex=0.5, plotSurface=FALSE, printTitle=TRUE, n.points=100, ...) {
 	
 # Extract components from results
-	fit <- results$models;
+	fit <- results$optModel;
 	phy <- results$phy;
-	desc <- results$desc;
 	modelSummary <- results$modelSummary;
 	threshold <- results$threshold;
-	cutAt <- as.character(modelSummary$Cut.at);
+	cutAt <- as.character(modelSummary$Cut.At);
 	cutAt[1] <- "NA";
 	fixPar <- results$fixPar;
-	baseModel <- as.data.frame(fit[[1]]$par);
-	baseFlavour <- fit[[1]]$model;
+	criterion <- results$criterion;
 	
-# First, determine which model is desired
-	model.id <- 0;
-	if (!is.null(modelNum))
-	{
-		model.id <- modelNum;
-	} else {   # Find best model using some criterion (threshold or user-defined)
-		if (cutoff != "threshold") {threshold <- cutoff}
-		else {cat("\nSelecting model based on corrected threshold (improvement in information theoretic score of ",
-				threshold, " units).\n", sep="");}
-		model.id <- 1;
-		while (1)
-		{
-			if ((model.id + 1) > length(fit)) break;
-			if ((unlist(fit[[model.id]][criterion]) - unlist(fit[[model.id+1]][criterion])) < threshold) break;
-			model.id <- model.id + 1;
-		}
-	}
-	
-	fit <- fit[[model.id]];
 	break.pts <- fit$split.at;
-	cuts <- cutAt[1:length(break.pts)];
 	modelFlavour <- fit$model;
 	z <- fit$z;
 	
 	# Get desired tree-model conformation
 # Check on cutAtStem option to accurately recover model and paint tree; made more difficult by stepBack ***
 	labels <- break.pts;
-	if (length(break.pts) > 1)
-	{
+	if (length(break.pts) > 1) {
 		labels[1] <- break.pts[1];
-		for (i in 2:length(break.pts))
-		{
-#			tmp <- medusaSplit(node=break.pts[i], z=z, desc=desc, shiftCut=cutAt[i]);
-			if (cutAt[i] == "stem")
-			{
+		for (i in 2:length(break.pts)) {
+			if (cutAt[i] == "stem") {
 				labels[i] <- z[which(z[,"dec"] == break.pts[i]),"anc"];
 			}
-#			z <- tmp$z;
 		}
 	}
 	
@@ -66,79 +35,55 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 	opt.model <- cbind(N.Models=seq(1:length(fit$split.at)), Shift.Node=fit$split.at,
 		round(fit$par, digits=7), LnLik.part=fit$lnLik.part)
 	opt.model <- as.data.frame(opt.model);
-	if (all(modelFlavour == "yule"))
-	{
-		opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cuts, Model=modelFlavour, r=opt.model[,3], profLikes[,c(1:2)],
+	if (all(modelFlavour == "yule")) {
+		opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cutAt, Model=modelFlavour, r=opt.model[,3], profLikes[,c(1:2)],
 			opt.model[,c(4:5)])
 	} else {
-		opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cuts, Model=modelFlavour, r=opt.model[,3], profLikes[,c(1:2)],
+		opt.model <- cbind(opt.model[,c(1:2)], Cut.at=cutAt, Model=modelFlavour, r=opt.model[,3], profLikes[,c(1:2)],
 			epsilon=opt.model[,4], profLikes[,c(3:4)], LnLik.part=opt.model[,5])
 	}
 	
-	opt.model[1,2] <- NA # root node for base model
-	
-	cat("\nEstimated parameter values for model #", model.id, ":\n\n", sep="");
+	cat("\nEstimated parameter values for optimal MEDUSA model:\n\n", sep="");
 	print.data.frame(opt.model, digits=5);
 	cat("\n95% confidence intervals calculated from profile likelihoods\n");
 	
-	opt.fit <- 0;
-	base.fit <- 0;
-	if (criterion == "aicc")
-	{
-		opt.fit <- modelSummary$aicc[model.id];
-		base.fit <- modelSummary$aicc[1];
-	} else { # aic used
-		opt.fit <- modelSummary$aic[model.id];
-		base.fit <- modelSummary$aic[1];
+	cat("\nModel fit summary for optimal MEDUSA model:\n\n", sep="");
+	cat("\tAIC threshold = ", threshold, "\n", sep="");
+	cat("\tLog-likelihood = ", fit$lnLik, "\n", sep="");
+	cat("\t", criterion, " = ", as.numeric(fit[criterion]), "\n", sep="");
+	cat("\tNumber of parameters = ", fit$num.par, "\n", sep="");
+	if (!is.null(results$fixPar)) {
+		cat("\tModel constrained to: ", fit$model[1], " with parameter fixed at ", results$fixPar, "\n", sep="");
 	}
-	cat("\nModel fit summary for model #", model.id, ":\n\n", sep="");
-	cat("\tLog-likelihood = ", as.numeric(results$models[[model.id]]["lnLik"]), "\n", sep="");
-	cat("\t", criterion, " = ", opt.fit, "\n", sep="");
-	
-	if (model.id != 1)
-	{
-		cat("\nFor comparison, failure to accommodate rate heterogeneity leads to the following estimated parameter values for the base (single homogeneous-", baseFlavour, ") model:\n\n", sep="");
-		print.data.frame(baseModel, digits=5, row.names=FALSE);
-		cat("\nModel fit summary for base model:\n\n", sep="");
-		cat("\tLog-likelihood = ", as.numeric(results$models[[1]]["lnLik"]), "\n", sep="");
-		cat("\t", criterion, " = ", base.fit, "\n", sep="");
-	}
-		
+			
 	mm <- match(phy$edge[,2], z[,"dec"]);
-	edge.color=z[mm,"partition"];
+	edge.color <- z[mm, "partition"] + colourOffset; # ugh. make this nicer
+	
 # Plot tree with purdy colours and labelled nodes (to better map between tree and table)
-	if (plotTree)
-	{
+	if (plotTree) {
 		dev.new();
 		margin <- FALSE;
 		
 		if (time) margin <- TRUE;
 		plot.phylo(phy, edge.color=edge.color, no.margin=!margin, cex=cex, ...);
-		if (time)
-		{
+		if (time) {
 			axisPhylo(cex.axis=0.75);
 			mtext("Divergence Time (MYA)", at=(max(get("last_plot.phylo", envir = .PlotPhyloEnv)$xx)*0.5),
 				side = 1, line = 2, cex=0.75);
 		}
-		if (node.labels) # label with stem/node breaks in mind
-		{
-			for (i in  1:length(break.pts))
-			{
-				nodelabels(i, node=labels[i], frame = "c", font = 1, cex=0.5);
+		if (node.labels) { # label with stem/node breaks in mind
+			for (i in  1:length(break.pts)) {
+				nodelabels(i, node = labels[i], frame = "c", font = 1, cex = 0.5);
 			}
 		}
 	}
 	
-	
 ## *** BRING THIS OUTSIDE TO FORM ITS OWN FUNCTION ***
-	if (plotSurface)
-	{
+	if (plotSurface) {
 		n.pieces <- length(opt.model[,1]);
 		cat("\n");
-		for (k in 1:n.pieces)
-		{	
-			if (fit$model[k] == "bd")
-			{
+		for (k in 1:n.pieces) {	
+			if (fit$model[k] == "bd") {
 				lik <- makePartitionLikelihood(z[z[,"partition"] == k,,drop=FALSE], model="bd");
 ## center these around the MLEs
 				opt.r <- as.numeric(opt.model[k,"r"]);
@@ -148,8 +93,7 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 				r.vals <- seq(from=(opt.r/10), to=(opt.r*2), length.out=n.points);
 				eps.vals <- seq(from=1e-10, to=1.0, length.out=n.points);
 				
-				for (i in 1:length(r.vals))
-				{
+				for (i in 1:length(r.vals)) {
 					for (j in 1:(length(eps.vals))) {lik.vals[i,j] <- lik(pars=c(r.vals[i], eps.vals[j]));}
 				}
 				if (n.pieces > 1) {cat("Completed computing surface for piecewise model #", k, "\n", sep="");}
@@ -175,10 +119,8 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 				opt.val <- as.numeric(opt.model[k,"r"]);
 				lik.vals <- numeric(n.points);
 				
-				if (opt.val > 0)
-				{
-					if (fit$model[k] == "fixedR")
-					{
+				if (opt.val > 0) {
+					if (fit$model[k] == "fixedR") {
 						par.vals <- seq(from=(profLikes[k,3]/2), to=(profLikes[k,4] * 2), length.out=n.points);
 					} else {
 						par.vals <- seq(from=(profLikes[k,1]/2), to=(profLikes[k,2] * 2), length.out=n.points);	
@@ -187,8 +129,7 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 					par.vals <- seq(from=0, to=1e-5, length.out=n.points);
 				}
 				
-				for (i in 1:length(par.vals))
-				{
+				for (i in 1:length(par.vals)) {
 					lik.vals[i] <- lik(pars=par.vals[i]);
 				}
 				if (n.pieces > 1) {cat("Completed computing surface for piecewise model #", k, "\n", sep="");}
@@ -205,54 +146,63 @@ medusaSummary <- function(results, modelNum=NULL, cutoff="threshold", criterion=
 			}
 		}
 	}
-	treeParameters <- list(z=z, edge.colour=edge.color, break.pts=break.pts, phy=phy, labels=labels, par=fit$par, aicc=opt.fit);
+	treeParameters <- list(z=z, edge.colour=edge.color, break.pts=break.pts, phy=phy, labels=labels,
+		par=fit$par, aicc=as.numeric(fit["aicc"]));
 	class(treeParameters) <- "medusa.summary";
 	invisible(treeParameters);
 }
 
 
 ## Prints out a table of likelihoods, parameters, and aic scores
-calculateModelFitSummary <- function (models, phy, threshold, ...)
-{
-	tmp <- matrix(nrow=(length(models)), ncol=6);
-	colnames(tmp) <- c("N.Models", "Shift.Node", "N.Param", "Ln.Lik", "aic", "aicc");
+## because a threshold is used, aic weights are meaningless.
+optModelSummary <- function (optModel) {
+	modelSize <- length(optModel$split.at);
 	
-	w.aic <- numeric(length(models));
-	w.aicc <- numeric(length(models));
-	cut.at <- character(length(models));
-	model <- character(length(models));
+	summ <- data.frame(cbind(seq(1:modelSize), optModel$split.at, optModel$cut.at, optModel$model,
+		signif(optModel$lnLik.part, digits=7)), signif(optModel$par, digits=6));
+	colnames(summ) <- c("Model.ID", "Shift.Node", "Cut.At", "Model", "Ln.Lik.part", "r", "epsilon");
 	
-	for (i in 1:length(tmp[,1]))
-	{
-		tmp[i,] <- c(length(models[[i]]$split.at), tail(models[[i]]$split.at,1), models[[i]]$num.par, models[[i]]$lnLik,
-			models[[i]]$aic, models[[i]]$aicc);
-		cut.at[i] <- tail(models[[i]]$cut.at,1);
-		model[i] <- tail(models[[i]]$model,1);
-	}
-	cut.at[1] <- "NA";
-	
-	all.res <- as.data.frame(tmp);
-	
-	if (threshold == 0)
-	{
-		w.aic <- round(calculateModelWeights(all.res$aic), digits=5);
-		w.aicc <- round(calculateModelWeights(all.res$aicc), digits=5);
-		all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:5)], w.aic=w.aic$w,
-			aicc=all.res$aicc, w.aicc=w.aicc$w);
-	} else {
-		all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:6)]);
-	}
-	
-	all.res[1,2] <- NA # root node for base model
-
-	return(all.res);
+	return(summ);
 }
+
+
+# calculateModelFitSummary <- function (models, threshold, ...) {
+	# tmp <- matrix(nrow=(length(models)), ncol=6);
+	# colnames(tmp) <- c("N.Models", "Shift.Node", "N.Param", "Ln.Lik", "aic", "aicc");
+	
+	# w.aic <- numeric(length(models));
+	# w.aicc <- numeric(length(models));
+	# cut.at <- character(length(models));
+	# model <- character(length(models));
+	
+	# for (i in 1:length(tmp[,1])) {
+		# tmp[i,] <- c(length(models[[i]]$split.at), tail(models[[i]]$split.at,1), models[[i]]$num.par, models[[i]]$lnLik,
+			# models[[i]]$aic, models[[i]]$aicc);
+		# cut.at[i] <- tail(models[[i]]$cut.at,1);
+		# model[i] <- tail(models[[i]]$model,1);
+	# }
+	# cut.at[1] <- "NA";
+	
+	# all.res <- as.data.frame(tmp);
+	
+	# if (threshold == 0) {
+		# w.aic <- round(calculateModelWeights(all.res$aic), digits=5);
+		# w.aicc <- round(calculateModelWeights(all.res$aicc), digits=5);
+		# all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:5)], w.aic=w.aic$w,
+			# aicc=all.res$aicc, w.aicc=w.aicc$w);
+	# } else {
+		# all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:6)]);
+	# }
+	
+	# all.res[1,2] <- NA # root node for base model
+
+	# return(all.res);
+# }
 
 
 ## 'fit' is a single vector of AIC scores across all models
 ## These are meaningless when using a threshold criterion
-calculateModelWeights <- function (fit)
-{
+calculateModelWeights <- function (fit) {
 	best <- min(fit);
 	delta <- fit-best;
 	sumDelta <- sum(exp(-0.5 * delta));
@@ -264,9 +214,8 @@ calculateModelWeights <- function (fit)
 }
 
 
-## Create a plot of model-fit vs. model-size. not used anymore. easily generated.
-plotModelFit <- function (all.res)
-{
+## Create a plot of model-fit vs. model-size. deprecated. easily generated.
+plotModelFit <- function (all.res) {
 	ylim <- c(min(all.res[,"aic"],all.res[,"aicc"]), max(all.res[,"aic"],all.res[,"aicc"]));
 	plot(all.res[,"N.Models"],all.res[,"aicc"], xlab="Number of Piecewise Models", ylab="Model Fit",
 		ylim=ylim, type="l", col="blue");
@@ -275,36 +224,32 @@ plotModelFit <- function (all.res)
 	points(all.res[,"N.Models"],all.res[,"aic"], col="black", pch=21, bg="white");
 	
 	legend("topleft", c("aicc","aic"), pch=21, pt.bg="white", lty=1, col=c("blue", "black"),
-		inset = .05, cex=0.75, bty="n"); # 'bottomright' also works
+		inset=0.05, cex=0.75, bty="n"); # 'bottomright' also works
 }
 
 
 ## passed-in function fun will have form: lik <- makePartitionLikelihood(partition=new.part, model=model);
 ## passed-in parameters parm are MLEs stored in a matrix
-getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
-{
+getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 	res <- matrix(nrow=length(parm[,1]), ncol=4);
 	colnames(res) <- c("r.low", "r.high", "eps.low", "eps.high")
 	inc <- 0.05;
 	
-	for (i in 1:length(parm[,1]))
-	{
+	for (i in 1:length(parm[,1])) {
 #		cat("Model",i,"\n")
 		model <- models[i]
 		sp <- as.numeric(parm[i,]);
 		new.part <- z[z[,"partition"] == i,,drop=FALSE];
 		lik <- makePartitionLikelihood(partition=new.part, model=model, fixPar=fixPar);
 		
-		if (model == "yule")
-		{
+		if (model == "yule") {
 			par <- sp[1];
 			maxLik <- lik(par); if (maxLik == -Inf) maxLik <- 0; # correct for -Inf at boundary lambda == 0
 			
 			threshold <- function (x) lik(x) - maxLik + crit; # find roots on either side of maxLik
 			
 	## need intelligent bounds
-			if (par != 0)
-			{
+			if (par != 0) {
 				low.bound <- par - par/2;
 				up.bound <- par + par/2;
 			} else {
@@ -312,15 +257,12 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 				up.bound <- par + inc/2;
 			}
 			
-			if (low.bound != 0)
-			{
-				while (threshold(low.bound) > 0)
-				{
+			if (low.bound != 0) {
+				while (threshold(low.bound) > 0) {
 					low.bound <- low.bound - inc;
 				}
 			}
-			while (threshold(up.bound) > 0)
-			{
+			while (threshold(up.bound) > 0) {
 				up.bound <- up.bound + inc;
 			}
 			
@@ -342,12 +284,10 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			low.bound <- par1 - par1/2;
 			up.bound <- par1 + par1/2;
 			
-			while (thresholdR(low.bound) > 0)
-			{
+			while (thresholdR(low.bound) > 0) {
 				low.bound <- low.bound - inc;
 			}
-			while (thresholdR(up.bound) > 0)
-			{
+			while (thresholdR(up.bound) > 0) {
 				up.bound <- up.bound + inc;
 			}
 			if (low.bound <= 0) low.bound <- 0;
@@ -361,26 +301,22 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			low.bound <- par2 - par2/2;
 			up.bound <- par2 + par2/2;
 			
-			while (thresholdE(low.bound) > 0)
-			{
+			while (thresholdE(low.bound) > 0) {
 				low.bound <- low.bound - inc;
 			}
-			while (thresholdE(up.bound) > 0)
-			{
+			while (thresholdE(up.bound) > 0) {
 				up.bound <- up.bound + inc;
 			}
 			
 			if (low.bound < 0) low.bound <- 0;
 			if (up.bound > 1) up.bound <- 1;
 			
-			if (low.bound == 0)
-			{
+			if (low.bound == 0) {
 				res[i,3] <- 0;
 			} else {
 				res[i,3] <- uniroot(thresholdE, lower=0, upper=par2)$root;
 			}
-			if (up.bound == 1)
-			{
+			if (up.bound == 1) {
 				res[i,4] <- 1;
 			} else {
 				res[i,4] <- uniroot(thresholdE, lower=par2, upper=up.bound)$root;
@@ -400,31 +336,26 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			low.bound <- par - par/2;
 			up.bound <- par + par/2;
 			
-			while (threshold(low.bound) > 0)
-			{
+			while (threshold(low.bound) > 0) {
 				low.bound <- low.bound - inc;
 			}
-			while (threshold(up.bound) > 0)
-			{
+			while (threshold(up.bound) > 0) {
 				up.bound <- up.bound + inc;
 			}
 			
 			if (low.bound < 0) low.bound <- 0;
 			if (up.bound > 1 && model == "fixedR") up.bound <- 1;
 			
-			if (model == "fixedEpsilon")
-			{
+			if (model == "fixedEpsilon") {
 				res[i,1] <- uniroot(threshold, lower=low.bound, upper=par)$root;
 				res[i,2] <- uniroot(threshold, lower=par, upper=up.bound)$root;
 			} else if (model == "fixedR") {
-				if (par < 1e-10 || low.bound == 0)
-				{
+				if (par < 1e-10 || low.bound == 0) {
 					res[i,3] <- 0;
 				} else {
 					res[i,3] <- uniroot(threshold, lower=low.bound, upper=par)$root;
 				}
-				if (up.bound == 1)
-				{
+				if (up.bound == 1) {
 					res[i,4] <- 1;
 				} else {
 					res[i,4] <- uniroot(threshold, lower=par, upper=up.bound)$root;
@@ -433,8 +364,7 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			
 		} else if (model == "fixedB" || model == "fixedD") {
 			par <- NULL;
-			if (model == "fixedB")
-			{
+			if (model == "fixedB") {
 				par <- getBD(sp)$d;
 			} else {
 				par <- getBD(sp)$b;
@@ -445,12 +375,10 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			low.bound <- par - par/2;
 			up.bound <- par + par/2;
 			
-			while (threshold(low.bound) > 0)
-			{
+			while (threshold(low.bound) > 0) {
 				low.bound <- low.bound - inc;
 			}
-			while (threshold(up.bound) > 0)
-			{
+			while (threshold(up.bound) > 0) {
 				up.bound <- up.bound + inc;
 			}
 			
@@ -461,8 +389,7 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 			down <- suppressWarnings(uniroot(threshold, lower=low.bound, upper=par)$root);
 			up <- suppressWarnings(uniroot(threshold, lower=par, upper=up.bound)$root);
 			
-			if (model == "fixedB")
-			{
+			if (model == "fixedB") {
 				res[i,1] <- fixPar - up;
 				res[i,2] <- fixPar - down;
 				res[i,3] <- down / fixPar;
@@ -484,8 +411,7 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92)
 ## Used in previous version of program; now in terms of r and epsilon
 ## Possibly of use to users wishing to translate results
 ## More general version of the function getBD below
-BD <- function (par1, par2=NULL)
-{
+BD <- function (par1, par2=NULL) {
 	if (is.null(par2))
 	{
 		r <- par1[1];
@@ -506,8 +432,7 @@ BD <- function (par1, par2=NULL)
 ## Get b and d values from r (b-d) and epsilson (d/b)
 ## Used in previous version of program; now in terms of r and epsilon
 ## Possibly of use to users wishing to translate results
-getBD <- function (r, epsilon)
-{
+getBD <- function (r, epsilon) {
 	if (is.na(epsilon)) {epsilon <- 0;}
 	
 	b <- r/(1-epsilon);
@@ -516,30 +441,25 @@ getBD <- function (r, epsilon)
 }
 
 ## Print out tree with ape-style node-numbering
-## Possibly of interest for users to identify numbers of node(s) off interest
- ## If this is the case, make sure to pass in pruned tree
-plotNN <- function (phy, time=TRUE, margin=TRUE, label.offset=0.5, cex=0.5, ...) 
-{
+## Possibly of interest for users to identify node number(s) of interest
+plotNN <- function (phy, time=TRUE, margin=TRUE, label.offset=0.5, cex=0.5, ...)  {
 	phy$node.label <- (length(phy$tip.label) + 1):max(phy$edge);
 	plot.phylo(phy, show.node.label=TRUE, no.margin=!margin, label.offset=label.offset, cex=cex, ...);
 #	if (time && !margin) {cat("Cannot plot time axis without a margin.\n");}
 	if (time && margin) {axisPhylo(cex.axis=0.75)};
 }
 
-print.medusa <- function(x, ...)
-{
+print.medusa <- function(x, ...) {
 	cat("\n");
 	print(x$modelSummary);
 	cat("\n");
 }
 
-print.multiMedusa <- function(x, ...)
-{
+print.multiMedusa <- function(x, ...) {
 	cat("\n");
 	cat("MEDUSA results for ", length(x), " trees.\n", sep="")
 	
-	for (i in 1:length(x))
-	{
+	for (i in 1:length(x)) {
 		cat("\n");
 		print(x[[i]]$modelSummary);
 	}

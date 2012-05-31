@@ -11,8 +11,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	model <- conf$model;
 	fixPar <- conf$fixPar;
 	
-	runMEDUSA <- function (phy, richness, verbose, ...)
-	{
+	runMEDUSA <- function (phy, richness, verbose, ...) {
 		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose);
 		phy <- phyData$phy;
 		richness <- phyData$richness;
@@ -61,8 +60,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			
 	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
 	 # Remain useful until a spilt is accepted within the clade
-			if (length(int.nodes) > 0)
-			{
+			if (length(int.nodes) > 0) {
 				cat("Pre-calculating parameters for internal nodes... ");
 				virgin.stem <- list(); virgin.node <- list();
 				if (mc) {
@@ -94,12 +92,14 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
 		}
 		
-		stopOnLimit <- function(fit)
-		{
-			models <- list(fit); # contains fit for base model
+		stopOnLimit <- function(fit) {
+			#models <- list(fit); # contains fit for base model
+			optModel <- fit;
 			
-			cat("Step 1 (of ", modelLimit, "): lnLik=", models[[1]]$lnLik, "; AICc=", models[[1]]$aicc,
-				"; model=", models[[1]]$model, "\n", sep="");
+			#cat("Step 1 (of ", modelLimit, "): lnLik=", models[[1]]$lnLik, "; AICc=", models[[1]]$aicc,
+			#	"; model=", models[[1]]$model, "\n", sep="");
+			cat("Step 1 (of ", modelLimit, "): lnLik=", optModel$lnLik, "; AICc=", optModel$aicc,
+				"; model=", optModel$model, "\n", sep="");
 			
 			for (i in seq_len(modelLimit-1)) {
 				node.list <- all.nodes[-fit$split.at];
@@ -114,14 +114,21 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour);
 				}
 	# Select model with best score according to the specific criterion employed (default aicc)
-				best <- which.min(unlist(lapply(res, "[[", criterion)));
-				fit <- res[[best]];   # keep track of '$split.at' i.e. nodes already considered
-				z <- medusaSplit(node=node.list[best], z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
-				step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
+				best <- res[[which.min(unlist(lapply(res, "[[", criterion)))]];
+				
+				node <- best$split.at;
+				cut <- best$cut.at;
+				
+			# re-optimize on best break node/position
+				fit <- medusaFitOptimal(node=node, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node, model=model,
+					fixPar=fixPar, criterion=criterion, shiftCut=cut, preserveModelFlavour=preserveModelFlavour);
+				
+				z <- medusaSplit(node=node, z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
+				#step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
+				step <- rbind(optModel$step, c("add", tail(fit$split.at,1)));
 				
 	# Consider parameter removal
-				if (stepBack)
-				{
+				if (stepBack) {
 					backFit <- backStep(currentModel=fit, z=z, step=step, model=model, fixPar=fixPar, criterion=criterion);
 					fit <- backFit$fit;
 					z <- backFit$z;
@@ -130,25 +137,29 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 				
 				fit$z <- z;
 				fit$step <- step;
-				models <- c(models, list(fit));
+				#models <- c(models, list(fit));
+				optModel <- fit;
 				
 				cat("Step ", i+1, " (of ", modelLimit, "): lnLik=", round(fit$lnLik, digits=7),
 					"; AICc=", fit$aicc, "; shift at node ", tail(fit$split.at,1), "; model=",
 					tail(fit$model,1), "; cut=", tail(fit$cut.at,1), "; # shifts=", length(fit$split.at) - 1, "\n", sep="");
 			}
-			return(models);
+			#return(models);
+			return(optModel);
 		}
 		
-		stopOnThreshold <- function (fit)
-		{
-			models <- list(fit); # contains fit for base model
+		stopOnThreshold <- function (fit) {
+			#models <- list(fit); # contains fit for base model
+			optModel <- fit;
 			i <- 1;
 			done <- FALSE;
 			
-			cat("Step 1: lnLik=", round(models[[1]]$lnLik, digits=7), "; AICc=", round(models[[1]]$aicc, digits=7),
-				"; model=", models[[1]]$model[1], "\n", sep="");
+			#cat("Step 1: lnLik=", round(models[[1]]$lnLik, digits=7), "; AICc=", round(models[[1]]$aicc, digits=7),
+			#	"; model=", models[[1]]$model[1], "\n", sep="");
+			cat("Step 1: lnLik=", round(optModel$lnLik, digits=7), "; AICc=", round(optModel$aicc, digits=7),
+				"; model=", optModel$model[1], "\n", sep="");
 			
-			while (!done && i) { # hmm. is 'i' necessary here?
+			while (!done && i) {
 				node.list <- all.nodes[-fit$split.at];
 				if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
 				{
@@ -160,14 +171,21 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour);
 				}
 	# Select model with best score according to the specific criterion employed (default aicc)
-				best <- which.min(unlist(lapply(res, "[[", criterion)));
-				fit <- res[[best]];   # keep track of '$split.at' i.e. nodes already considered
-				z <- medusaSplit(node=node.list[best], z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
-				step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
+				best <- res[[which.min(unlist(lapply(res, "[[", criterion)))]];
+				
+				node <- best$split.at;
+				cut <- best$cut.at;
+				
+			# re-optimize on best break node/position
+				fit <- medusaFitOptimal(node=node, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node, model=model,
+					fixPar=fixPar, criterion=criterion, shiftCut=cut, preserveModelFlavour=preserveModelFlavour);
+				
+				z <- medusaSplit(node=node, z=z, desc=desc, shiftCut=tail(fit$cut.at,1))$z;
+				#step <- rbind(models[[length(models)]]$step, c("add", tail(fit$split.at,1)));
+				step <- rbind(optModel$step, c("add", tail(fit$split.at,1)));
 				
 	# Consider parameter removal
-				if (stepBack)
-				{
+				if (stepBack) {
 					backFit <- backStep(currentModel=fit, z=z, step=step, model=model, fixPar=fixPar, criterion=criterion);
 					fit <- backFit$fit;
 					z <- backFit$z;
@@ -178,41 +196,54 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 				fit$step <- step;
 				
 		# Compare last accepted model to current best model
-				if (as.numeric(models[[length(models)]][criterion]) - as.numeric(fit[criterion]) < threshold) {
-					if (verbose) cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n\n", sep="");
+				#if (as.numeric(models[[length(models)]][criterion]) - as.numeric(fit[criterion]) < threshold) {
+				#	if (verbose) cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n\n", sep="");
+				#	done <- TRUE;
+				#	break;
+				#}
+				if (as.numeric(optModel[criterion]) - as.numeric(fit[criterion]) < threshold) {
+					if (verbose) cat("\nNo significant increase in ", criterion, " score. Disregarding subsequent piecewise models.\n", sep="");
 					done <- TRUE;
 					break;
 				}
 				
 				if (!is.null(backFit$remove)) {printRemovedShifts(remove=backFit$remove);}
-				models <- c(models, list(fit));
+				#models <- c(models, list(fit));
+				optModel <- fit;
 				
 				cat("Step ", i+1, ": lnLik=", round(fit$lnLik, digits=7),
 					"; AICc=", fit$aicc, "; shift at node ", tail(fit$split.at,1), "; model=",
 					tail(fit$model,1), "; cut=", tail(fit$cut.at,1), "; # shifts=", length(fit$split.at) - 1, "\n", sep="");
 				i <- i+1;
 			}
-			return(models);
+			#return(models);
+			return(optModel);
 		}
 		
-		if (stop == "modelLimit") models <- stopOnLimit(fit=baseFit) else models <- stopOnThreshold(fit=baseFit);
+		#if (stop == "modelLimit") models <- stopOnLimit(fit=baseFit) else models <- stopOnThreshold(fit=baseFit);
+		if (stop == "modelLimit") optModel <- stopOnLimit(fit=baseFit) else optModel <- stopOnThreshold(fit=baseFit);
 		
-		modelSummary <- calculateModelFitSummary(models=models, phy=phy, threshold=threshold);
+		#modelSummary <- calculateModelFitSummary(models=models, threshold=threshold);
+		modelSummary <- optModelSummary(optModel);
 		
-		results <- list(desc=desc, num.tips=num.tips, models=models, phy=phy, fixPar=fixPar, threshold=threshold, modelSummary=modelSummary);
+		
+		#results <- list(desc=desc, models=models, phy=phy, fixPar=fixPar, threshold=threshold, modelSummary=modelSummary);
+		results <- list(desc=desc, optModel=optModel, phy=phy, fixPar=fixPar, criterion=criterion,
+			stop=stop, threshold=threshold, modelSummary=modelSummary);
 		class(results) <- "medusa";
 		
-		if (verbose) {cat("\n"); print(modelSummary)};
+		if (verbose) {cat("\n"); cat("Summary of optimal MEDUSA model:\n"); print(modelSummary)};
 		cat("\n");
 		return(results);
 	}
 	
-	if (class(phy) == "multiPhylo")
-	{
+	if (class(phy) == "multiPhylo") {
 		results <- lapply(phy, runMEDUSA, richness=richness, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
+		results <- list(results=results, richness=richness);
 		class(results) <- "multiMedusa";
 	} else {
 		results <- runMEDUSA(phy=phy, richness=richness, verbose=verbose, ...);
+		results$richness <- richness;
 	}
 	
 	invisible(results);

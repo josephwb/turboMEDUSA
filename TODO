@@ -31,5 +31,8 @@
 
 8. Complete documentation
 
-9. alter output such that only the final optimal model is saved to the results
+9. Alter output such that only the final optimal model is saved to the results
   - this will require changing summary functions
+
+10. Significant memory problem: intermediate results of lapply over nodes can be several 100s of MB for large trees (e.g. 2000 tips)
+  - keep only AICc score and node ID during course of lapply, recalcuate on best node after - DONE

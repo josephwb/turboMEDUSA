@@ -50,8 +50,10 @@ prepareData <- function (phy, richness, verbose)
 	}
 	
 	phy <- pruned$phy;
+	
 # Check the tree
-	#	plotNN(phy)					# Node numbers (ape-style) plotted
+	if (!is.ultrametric(phy)) {stop("\n\nWARNING: input tree is not ultrametric. Stopping analysis.\n", sep="");}
+	if (!is.binary.tree(phy)) {stop("\n\nWARNING: input tree is not binary (i.e. contains one or more polytomies). Stopping analysis.\n", sep="");}
 	
 	return(list(phy=phy, richness=richness));
 }
@@ -217,8 +219,8 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	z <- cbind(z, partition=rep(1, length(z[,1]))); # Stores piecewise model structure
 	rownames(z) <- NULL;
 	
-# Stop if zero-length branches exist
-	if (any(z[,"t.len"] == 0)) {stop("\n\nWARNING: zero-length branches encountered. Stopping.\n");}
+# Stop if zero-length branches exist *** Do I want this? 
+	#if (any(z[,"t.len"] == 0)) {stop("\n\nWARNING: zero-length branches encountered. Stopping.\n");}
 	
 # Used for identifying descendant nodes below i.e. tracking breakpoints
 	all.edges <- as.matrix(z[,c("anc","dec")]);
@@ -305,8 +307,8 @@ getNumTips <- function (node, phy, totalTips=NULL)
 
 # *** MAYBE RECODE descendantsCutAtStem IN C++ AS IT IS SLOW FOR LARGE TREES ***
 
-## This generates the indices of all descendants of a node, using ape's edge matrix.
-## Deals with row numbers of the edge matrix rather than node numbers of the tree.
+## This generates the indices of all descendants of a node, using a reordered version ape's edge matrix (z).
+## Deals with row numbers of z rather than node numbers of the tree.
 descendantsCutAtStem <- function (node, all.edges)
 {
 	ans <- numeric();
@@ -336,8 +338,8 @@ stripStem <- function (x)
 }
 
 
-## This generates the indices of all descendants of a node, using ape's edge matrix.
-## Deals with row numbers of the edge matrix rather than node numbers of the tree.
+## This generates the indices of all descendants of a node, using a reordered version ape's edge matrix (z).
+## Deals with row numbers of z than node numbers of the tree.
 descendantsCutAtNode <- function (node, all.edges)
 {
 	ans <- numeric();
@@ -360,7 +362,7 @@ descendantsCutAtNode.idx <- function (node.list, all.edges)
 
 
 ## via Jon Eastman
-check.multicore<-function () 
+check.multicore <- function () 
 {
     tmp = rownames(installed.packages());
     if ("multicore" %in% tmp)
@@ -372,6 +374,17 @@ check.multicore<-function ()
     }
 }
 
+check.colorspace <- function () 
+{
+    tmp = rownames(installed.packages());
+    if ("colorspace" %in% tmp)
+    {
+        require(colorspace);
+        return(TRUE);
+    } else {
+        return(FALSE);
+    }
+}
 
 ## Check that provided arguments are valid
 checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCut, criterion, stepBack,
