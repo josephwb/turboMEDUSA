@@ -46,7 +46,7 @@ Potential additional arguments for plotting etc.
 
 \value{
 An object of class \code{"medusa.sum"}. This is a list with elements:
-\item{$z}{A matrix listing branch times and richnesses, coded by model membership. The model used is either the optimal model (the default) or a user-selected mdoel.}
+\item{$z}{A matrix listing branch times and richnesses, coded by model membership. The model used is either the optimal model (the default) or a user-selected model.}
 \item{$mm}{Colour-coding for edges.}
 \item{$break.point}{The position in the tree where shifts in models occur.}
 \item{$phy}{The tree (possibly pruned from the original tree using richness information).}

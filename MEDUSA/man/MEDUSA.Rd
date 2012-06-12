@@ -12,7 +12,7 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 MEDUSA(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
 	shiftCut="both", criterion="aicc", stepBack=TRUE, preserveModelFlavour=FALSE, epsilon=NULL,
 	r=NULL, b=NULL, d=NULL, fixThreshold=NULL, initialR=0.05, initialE=0.5,
-	verbose=TRUE, mc=FALSE, numCores=NULL, ...)
+	verbose=TRUE, mc=FALSE, numCores=NULL, resolveTree=FALSE, ...)
 }
 
 \arguments{
@@ -72,6 +72,9 @@ Indicate whether multiple cores should be used (\code{mc=TRUE}). Works only on u
 }
   \item{numCores}{
 The number of cores to use if \code{mc=TRUE}. By default all cores detected will be used. This option is only useful if one wishes to limit the number of cares devoted to \code{MEDUSA} analysis.
+}
+  \item{resolveTree}{
+MEDUSA maths require a fully resolved (i.e. binary) tree. If your tree contains polytomies, MEDUSA will complain and refuse to continue with analysis. If the tree is not binary and \code{resolveTree} is set to \code{TRUE}, polytomies will be randomly resolved, with zero-length edges inserted into the tree.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.

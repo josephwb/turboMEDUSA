@@ -7,7 +7,7 @@ Summarize the fit of piecewise diversification models across a distribution of t
 Summarize results from \code{\link{MEDUSA}} analysis across a distribution of trees.
 }
 \usage{
-multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=FALSE, cex=0.5, ...)
+multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=FALSE, plotTree=TRUE, cex=0.5, ...)
 }
 
 \arguments{
@@ -23,6 +23,9 @@ Determines the threshold (expressed as a proportion) for which splits are record
   \item{plotModelSizes}{
 Boolean value that determines whether a histogram of the number of piecewise diversification models per tree is plotted. Default is no plot.
 }
+  \item{plotTree}{
+Boolean value that determines whether an annotated tree is plotted. Default is to plot. A possible reason to set \code{plotTree=FALSE} is that the \code{\link{plotMultiMedusa}} function gives greater flexibility.
+}
   \item{cex}{
 Specifies the font size for printing tip labels. Default is \code{cex=0.5}; may need to decrease for larger trees. Only has meaning if \code{plotTree=TRUE}.
 }
@@ -33,11 +36,11 @@ Potential additional arguments for plotting etc.
 
 \value{
 An object of class \code{"multiMedusaSummary"}. This is a list with elements:
-\item{$model.sizes}{A matrix listing branch times and richnesses, coded by model membership. The model used is either the optimal model (the default) or a user-selected mdoel.}
+\item{$model.sizes}{A numeric vector of model sizes (i.e. number of splits) across all trees.}
 \item{$num.trees}{The number of trees analyzed.}
 \item{$shift.summary}{The position in the tree where shifts in models occur, together with their frequecny across trees.}
-\item{$summary.tree}{The tree (possibly pruned from the original tree using richness information) on which the results were summarized. Of class \code{"phylo"}. In addition to standard \code{"phylo"} elements, includes a matrix \code{$rates}. This matrix is oredered according to \code{summary.tree$edge}, and includes columns: \code{r.mean}, \code{r.median}, \code{r.sd}, \code{eps.mean}, \code{eps.median}, \code{eps.sd}, and \code{freq}. \code{freq} corresponds to the frequency with which an edge is present accross all trees.}
-This object can be passed to \code{plotPrettyTree} to produce publication-quality trees.
+\item{$summary.tree}{The tree (possibly pruned from the original tree using richness information) on which the results were summarized. Of class \code{"phylo"}. In addition to standard \code{"phylo"} elements, includes a matrix \code{$rates}. This matrix is ordered according to \code{summary.tree$edge}, and includes columns: \code{r.mean}, \code{r.median}, \code{r.sd}, \code{eps.mean}, \code{eps.median}, \code{eps.sd}, and \code{freq}. \code{freq} corresponds to the frequency with which an edge is present accross all trees.}
+This object can be passed to \code{\link{plotMultiMedusa}} to produce publication-quality trees.
 }
 
 \author{
@@ -47,5 +50,5 @@ Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}
 
 \seealso{
 \code{\link{MEDUSA}}
-\code{\link{plotPrettyTree}}
+\code{\link{plotMultiMedusa}}
 }

@@ -1,18 +1,20 @@
 MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
 	shiftCut="both", criterion="aicc", stepBack=TRUE, preserveModelFlavour=FALSE, epsilon=NULL, r=NULL,
-	b=NULL, d=NULL, fixThreshold=NULL, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL, ...)
+	b=NULL, d=NULL, fixThreshold=NULL, initialR=0.05, initialE=0.5, verbose=TRUE, mc=FALSE, numCores=NULL,
+	resolveTree=FALSE, ...)
 {
 	checkValidArguments(phy, richness, model, modelLimit, stop, shiftCut, criterion, stepBack,
 		preserveModelFlavour, epsilon, r, b, d, fixThreshold, initialR, initialE,
-		verbose, mc, numCores);
+		verbose, mc, numCores, resolveTree);
 	
 	conf <- configureModel(model=model, epsilon=epsilon, r=r, b=b, d=d, initialR=initialR, initialE=initialE);
 	sp <- conf$sp;
 	model <- conf$model;
 	fixPar <- conf$fixPar;
 	
-	runMEDUSA <- function (phy, richness, verbose, ...) {
-		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose);
+	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) {
+		
+		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose, resolveTree);
 		phy <- phyData$phy;
 		richness <- phyData$richness;
 		
@@ -238,7 +240,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	}
 	
 	if (class(phy) == "multiPhylo") {
-		results <- lapply(phy, runMEDUSA, richness=richness, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
+		results <- lapply(phy, runMEDUSA, richness=richness, multiTree=TRUE, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
 		results <- list(results=results, richness=richness);
 		class(results) <- "multiMedusa";
 	} else {

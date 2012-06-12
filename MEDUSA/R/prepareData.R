@@ -1,7 +1,7 @@
 ## Function to prune tree using 'richness' information, assumed to have minimally two columns, "taxon" and "n.taxa"
 ##   Perhaps relax on these column names, may cause too many problems
 ## May also include 'exemplar' column; in that case, rename relevant tip.label before pruning.
-prepareData <- function (phy, richness, verbose)
+prepareData <- function (phy, richness, verbose, resolveTree)
 {
 	if (is.null(richness)) { # Assume tree represents single species tips and is completely sampled
 		richness <- data.frame(taxon=phy$tip.label, n.taxa=1);
@@ -27,7 +27,7 @@ prepareData <- function (phy, richness, verbose)
 			{
 				colnames(richness) = c("n.taxa", "taxon");
 			} else {
-				stop("MEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
+				stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
 			}
 		}
 	}
@@ -53,7 +53,14 @@ prepareData <- function (phy, richness, verbose)
 	
 # Check the tree
 	if (!is.ultrametric(phy)) {stop("\n\nWARNING: input tree is not ultrametric. Stopping analysis.\n", sep="");}
-	if (!is.binary.tree(phy)) {stop("\n\nWARNING: input tree is not binary (i.e. contains one or more polytomies). Stopping analysis.\n", sep="");}
+	if (!is.binary.tree(phy)) {
+		if (!resolveTree) {
+			stop("\nWARNING: input tree is not binary (i.e. contains one or more polytomies).\nIf you wish to randomly resolve the tree, re-run MEDUSA with option \"resolveTree=TRUE\".\n\nStopping analysis.\n", sep="");
+		} else {
+			cat("\nNOTE: Input tree is not binary (i.e. contains one or more polytomies), but continuing analysis because \"resolveTree\" was set to TRUE.\n\n");
+			phy <- multi2di(phy);
+		}
+	}
 	
 	return(list(phy=phy, richness=richness));
 }
@@ -374,22 +381,10 @@ check.multicore <- function ()
     }
 }
 
-check.colorspace <- function () 
-{
-    tmp = rownames(installed.packages());
-    if ("colorspace" %in% tmp)
-    {
-        require(colorspace);
-        return(TRUE);
-    } else {
-        return(FALSE);
-    }
-}
-
 ## Check that provided arguments are valid
 checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCut, criterion, stepBack,
 	preserveModelFlavour, epsilon, r, b, d, fixThreshold, initialR, initialE,
-	verbose, mc, numCores)
+	verbose, mc, numCores, resolveTree)
 {
 	if (class(phy) != "phylo" && class(phy) != "multiPhylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
 	
@@ -404,6 +399,7 @@ checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCu
 	if (class(preserveModelFlavour) != "logical") {stop("\n\nWARNING: argument \"preserveModelFlavour\"is not of class \"logical\". Stopping.\n");}
 	if (class(verbose) != "logical") {stop("\n\nWARNING: argument \"verbose\"is not of class \"logical\". Stopping.\n");}
 	if (class(mc) != "logical") {stop("\n\nWARNING: argument \"mc\" is not of class \"logical\". Stopping.\n");}
+	if (class(resolveTree) != "logical") {stop("\n\nWARNING: argument \"resolveTree\" is not of class \"logical\". Stopping.\n");}
 	
 	if (mc)
 	{

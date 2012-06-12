@@ -1,3 +1,12 @@
+2012-06-11
+  * bug fixes in multiMedusaSummary from change in output format
+  * added colour legend for rate annotation to tree
+
+2012-06-11
+  * significant change to result caching within MEDUSA step
+	- only bare minimum information, recalculate on best model at end
+	- BIG memory change for large trees
+
 2012-05-29
   * added error-checking for 1) non-binary and 2) non-ultrametric trees
 

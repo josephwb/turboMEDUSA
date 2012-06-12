@@ -6,11 +6,14 @@
 # returns: labelled tree, table with split frequencies, etc.
 # cutOff pertains to displaying shift positions i.e. ignore those below cutOff
 
-# TODO: ladderize tree prior to summary - DONE
+# TODO:
+# 1. ladderize tree prior to summary - DONE
+# 2. rate legend
+# 3. shift proportion legend
 
 
 multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
-	cex=0.5, ...) {
+	plotTree=TRUE, cex=0.5, ...) {
 	richness <- res$richness;
 	results <- res$results;
 	
@@ -30,6 +33,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	con.edge.tip.desc <- lapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips);
 	
 	num.trees <- length(results);
+	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
 	
 # check if all tip labels are in the same order (including consensus tree); makes everything easier
 	pruned.trees <- lapply(results, FUN="[[", "phy"); names(pruned.trees) <- NULL;
@@ -44,7 +48,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 # will anyone ever really want an intermediate model? may be a lot of data to store for very large trees
 	model.sizes <- numeric(num.trees);
 	for (i in 1:length(results)) {
-		model.sizes[i] <- length(results[[i]]$models);
+		model.sizes[i] <- length(results[[i]]$optModel$split.at);
 	}
 	
 # not terribly useful, but perhaps interesultsting (maybe)
@@ -55,10 +59,10 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	if (plotModelSizes) hist(model.sizes, main=NULL, xlab="Number of Piecewise Models");
 	
 # keep only optimal (last) model for each tree; other bits (e.g. phy, desc, etc.) remain
-	cleaned.results <- results;
-	for (i in 1:num.trees) {
-		cleaned.results[[i]]$models <- cleaned.results[[i]]$models[[model.sizes[i]]];
-	}
+	cleaned.results <- results; # this is deprecated, as only best model is now saved
+	# for (i in 1:num.trees) {
+		# cleaned.results[[i]]$models <- cleaned.results[[i]]$optModel;
+	# }
 
 # for each edge in conTree, store associated estimated parameters from replicate MEDUSA results
 	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges); colnames(est.pars) <- rep(c("r", "epsilon"), num.trees)
@@ -66,13 +70,13 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	est.cuts <- NULL; # i.e. stem vs. node
 	
 	for (i in 1:num.trees) {
-		i.z <- cleaned.results[[i]]$models$z;
+		i.z <- cleaned.results[[i]]$optModel$z;
 		i.desc <- cleaned.results[[i]]$desc;
 # get tips descended from each edge in i.z
 		i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=i.desc$stem, n.tips=n.tips);
-		i.par <- cleaned.results[[i]]$models$par;
-		i.splits <- cleaned.results[[i]]$models$split.at;
-		i.cuts <- cleaned.results[[i]]$models$cut.at;
+		i.par <- cleaned.results[[i]]$optModel$par;
+		i.splits <- cleaned.results[[i]]$optModel$split.at;
+		i.cuts <- cleaned.results[[i]]$optModel$cut.at;
 		
 # use this to map edges between replicate trees and consensus tree. some may be NA.
 		idx <- match(con.edge.tip.desc, i.edge.tip.desc);
@@ -154,12 +158,14 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	summary <- list(model.sizes=model.sizes, num.trees=num.trees, shift.summary=shift.summary, summary.tree=conTree);
 	class(summary) <- "multiMedusaSummary";
 	
+	if (plotTree) plotMultiMedusa(summary);
+	
 	invisible(summary);
 }
 
-## Plot tree with summarized summaryults.
-plot.multiMedusaSummary <- function (summary, treeRearrange="up", annotateShift=TRUE, annotateRate="r.mean", plotRate=FALSE,
-	time=TRUE, cex=0.5, shiftScale=1, label.offset=0.5, font=3, shift.leg.pos="bottomleft", power=1, ...) {
+## Plot tree with summarized results.
+plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.mean",
+	time=TRUE, tip.cex=0.5, shiftScale=1, label.offset=0.5, font=3, shift.leg.pos="left", power=1.5, ...) {
 	conTree <- summary$summary.tree;
 	shift.summary <- summary$shift.summary;
 	rates <- summary$summary.tree$rates;
@@ -179,12 +185,12 @@ plot.multiMedusaSummary <- function (summary, treeRearrange="up", annotateShift=
 	rateColours <- diverge_hcl(20, power=power); # might change number of colours here
 	rateSeq <- seq(min(rates), max(rates), length=20);
 	edgeColours <- rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))))))]
+	minMax <- c(min(rateSeq), max(rateSeq));
 	
 # shift positions (with label size proportional to frequency)
-	#dev.new();
 	margin <- FALSE; if (time) margin <- TRUE;
 	
-	plot.phylo(conTree, edge.color=edgeColours, no.margin=!margin, cex=cex, label.offset=label.offset, font=font, ...);
+	plot.phylo(conTree, edge.color=edgeColours, no.margin=!margin, cex=tip.cex, label.offset=label.offset, font=font, ...);
 	if (time) {
 		axisPhylo(cex.axis=0.75);
 		mtext("Divergence Time (MYA)", at=(max(get("last_plot.phylo", envir = .PlotPhyloEnv)$xx)*0.5),
@@ -198,8 +204,12 @@ plot.multiMedusaSummary <- function (summary, treeRearrange="up", annotateShift=
 		}
 		
 		legend(x=shift.leg.pos, c("1.0", "0.5", "0.1"), pch=21, pt.bg=plotcolor, pt.cex=(shiftScale * c(1, 0.5, 0.1)),
-			inset=0.05, cex=(cex * shiftScale), bty="n", title="Shifts");
+			inset=0.05, cex=(0.75 * shiftScale), bty="n", title="Shifts");
 	}
+	
+	colorlegend(posy=c(0.30, 0.55), posx=c(0.05, 0.075), col=rateColours, zlim=minMax,
+		zval=seq(min(rateSeq), max(rateSeq), length=10), dz=0.5, digit=3, cex=0.5, zlevels=NULL,
+		main.cex=0.75, main="Rate");
 }
 
 # this function returns the phy$tip.label indices of tips decended from each edge in z
