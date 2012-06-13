@@ -1,0 +1,16 @@
+MEDUSA                  Fit piecewise diversification models to a
+                        time-calibrated phylogeny
+MEDUSA-package          MEDUSA: Modeling Evolutionary Diversification
+                        Using Stepwise AIC
+fitSisters              Fit piecewise diversification models to sister
+                        clades in a time-calibrated phylogeny
+getBD                   Get per-lineage birth and death rates
+medusaSummary           Summarize the fit of a piecewise
+                        diversification model
+multiMedusaSummary      Summarize the fit of piecewise diversification
+                        models across a distribution of trees
+plotMultiMedusa         Plot the summary tree from a multiMEDUSA
+                        analysis.
+plotPrettyTree          Produce a publication-quality tree figure
+                        indicating the position of rate shifts
+whales                  Whale phylogeny
