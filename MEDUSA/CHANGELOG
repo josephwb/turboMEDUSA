@@ -1,4 +1,7 @@
 2012-06-11
+  * bug fix with summarizing model with fixed b or d
+
+2012-06-11
   * bug fixes in multiMedusaSummary from change in output format
   * added colour legend for rate annotation to tree
 

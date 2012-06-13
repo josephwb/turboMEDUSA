@@ -365,9 +365,9 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 		} else if (model == "fixedB" || model == "fixedD") {
 			par <- NULL;
 			if (model == "fixedB") {
-				par <- getBD(sp)$d;
+				par <- BD(sp)$d;
 			} else {
-				par <- getBD(sp)$b;
+				par <- BD(sp)$b;
 			}
 			maxLik <- lik(par);
 			threshold <- function (x) lik(x) - maxLik + crit; # find roots on either side of maxLik
@@ -412,8 +412,7 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 ## Possibly of use to users wishing to translate results
 ## More general version of the function getBD below
 BD <- function (par1, par2=NULL) {
-	if (is.null(par2))
-	{
+	if (is.null(par2)) {
 		r <- par1[1];
 		epsilon <- par1[2];
 	} else {
