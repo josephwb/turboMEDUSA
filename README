@@ -2,6 +2,6 @@ Development version of an R package.
 
 Will eventually be made available on CRAN (http://cran.r-project.org/) in the Geiger package version 2.0.
 
-'Windows' users unfortunately cannot take advantage of multiple core processing via the R package 'multicore', as it does not yet have a Windows-supported version for recent versions of R (it is possible to use an older version of R together with an older version of multicore, I guess). MEDUSA checks this, and ignores multiple core requests is appropriate.
+'Windows' users unfortunately cannot take advantage of multiple core processing via the R package 'multicore', as it does not yet have a Windows-supported version for recent versions of R (it is possible to use an older version of R together with an older version of multicore, I guess). MEDUSA checks this, and ignores multiple core requests is appropriate. 
 
 PLEASE NOTE: the output format has changed significantly. Instead of saving all models of intermediate size (which is a serious memory burden for large trees on the order of thousands of tips), only the optimal model is now saved. This means that (valid) results from previous MEDUSA instantiations will not be properly summarized (or, er, summarized at all) by the current functions herein. Either re-run through the current version, or contact me to make the proper adjustments to your results.

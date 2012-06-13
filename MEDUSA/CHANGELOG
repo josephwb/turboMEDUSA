@@ -1,5 +1,6 @@
 2012-06-11
   * bug fix with summarizing model with fixed b or d
+  * fixed multiple window plotting problem
 
 2012-06-11
   * bug fixes in multiMedusaSummary from change in output format

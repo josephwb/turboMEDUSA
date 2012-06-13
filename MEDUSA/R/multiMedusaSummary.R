@@ -166,6 +166,8 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 ## Plot tree with summarized results.
 plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.mean",
 	time=TRUE, tip.cex=0.5, shiftScale=1, label.offset=0.5, font=3, shift.leg.pos="left", power=1.5, ...) {
+	
+	dev.new(); # make a new plotting window
 	conTree <- summary$summary.tree;
 	shift.summary <- summary$shift.summary;
 	rates <- summary$summary.tree$rates;
