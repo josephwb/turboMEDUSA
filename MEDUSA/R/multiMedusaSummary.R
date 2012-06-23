@@ -183,10 +183,16 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	
 # discretize rates into some set number
 	rates <- rates[,annotateRate];
+	rates[which(is.nan(rates))] <- NA; # this occurs if edge in conTree occurs in no other tree
 	
 	rateColours <- diverge_hcl(20, power=power); # might change number of colours here
-	rateSeq <- seq(min(rates), max(rates), length=20);
-	edgeColours <- rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))))))]
+	rateSeq <- seq(min(rates, na.rm=T), max(rates, na.rm=T), length=20);
+	
+# suppressWarnings is used in case some edges have no rate estimates
+	edgeColours <- suppressWarnings(rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))), na.rm=T)))]);
+	
+	edgeColours[which(is.na(edgeColours))] <- "#000000"; # set to black those without estimates
+	
 	minMax <- c(min(rateSeq), max(rateSeq));
 	
 # shift positions (with label size proportional to frequency)

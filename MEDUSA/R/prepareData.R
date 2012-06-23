@@ -42,7 +42,7 @@ prepareData <- function (phy, richness, verbose, resolveTree)
 		print(phy$tip.label);
 		cat("\nRichness taxon labels:\n");
 		print(as.character(richness[, "taxon"]));
-		stop;
+		stop("Stopping analysis.\n");
 	}
 	
 	phy <- pruned$phy;

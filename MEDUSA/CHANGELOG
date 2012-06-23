@@ -2,6 +2,7 @@
   * bug fix with summarizing model with fixed b or d
   * fixed multiple window plotting problem
   * fixed problem with missing richness information in multiMEDUSA analyses
+  * fixed error plotting multiMEDUSA when edges in conTree are not in any other tree
 
 2012-06-11
   * bug fixes in multiMedusaSummary from change in output format
