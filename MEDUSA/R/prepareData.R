@@ -3,8 +3,7 @@
 ## May also include 'exemplar' column; in that case, rename relevant tip.label before pruning.
 prepareData <- function (phy, richness, verbose, resolveTree)
 {
-	if (!is.null(richness$exemplar))
-	{
+	if (!is.null(richness$exemplar)) {
 # Change relevant tip.labels in phy; individual 'exemplar' may be NA, use original tip.label.
 # Ordering in richness file should NOT be assumed to match order of tip.labels
 		i.na <- is.na(richness$exemplar);
@@ -12,15 +11,11 @@ prepareData <- function (phy, richness, verbose, resolveTree)
 	}
 	
 # make sure things are in the correct order and of correct format
-	if (length(richness[1,]) == 2)
-	{
-		if (colnames(richness)[1] != "taxon" || colnames(richness)[2] != "n.taxa")
-		{
-			if (class(richness[,1]) == "factor" & class(richness[,2]) == "integer")
-			{
+	if (length(richness[1,]) == 2) {
+		if (colnames(richness)[1] != "taxon" || colnames(richness)[2] != "n.taxa") {
+			if (class(richness[,1]) == "factor" & class(richness[,2]) == "integer") {
 				colnames(richness) = c("taxon", "n.taxa");
-			} else if (class(richness[,1]) == "integer" & class(richness[,2]) == "factor")
-			{
+			} else if (class(richness[,1]) == "integer" & class(richness[,2]) == "factor") {
 				colnames(richness) = c("n.taxa", "taxon");
 			} else {
 				stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
@@ -75,26 +70,22 @@ configureModel <- function (model, epsilon, r, b, d, initialR, initialE)
 {
 	sp <- NULL;
 	fixPar <- NULL;
-	if (!is.null(epsilon)) # user-defined epsilon
-	{
+	if (!is.null(epsilon)) { # user-defined epsilon
 		if (epsilon <= 0 | epsilon >= 1) {stop("\n\nWARNING: value of epsilon (", epsilon, ") is invalid; must be > 0 and < 1. Stopping analysis.\n", sep="");}
 		sp <- c(initialR, epsilon);
 		fixPar <- epsilon;
 		model <- "fixedEpsilon";
-	} else if (!is.null(r)) # user-defined net diversification rate
-	{
+	} else if (!is.null(r)) { # user-defined net diversification rate
 		if (r <= 0) {stop("\n\nWARNING: value of r (", r, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c(r, initialE);
 		fixPar <- r;
 		model <- "fixedR";
-	} else if (!is.null(d)) # user-defined extiction rate
-	{
+	} else if (!is.null(d)) { # user-defined extiction rate
 		if (d <= 0) {stop("\n\nWARNING: value of d (", d, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c(initialR, d);
 		fixPar <- d;
 		model <- "fixedD";
-	} else if (!is.null(b)) # user-defined speciation rate
-	{
+	} else if (!is.null(b)) { # user-defined speciation rate
 		if (b <= 0) {stop("\n\nWARNING: value of b (", b, ") is invalid; must be > 0. Stopping analysis.\n", sep="");}
 		sp <- c((b/2), initialE);
 		fixPar <- b;
@@ -117,15 +108,13 @@ configureModel <- function (model, epsilon, r, b, d, initialR, initialE)
 getMaxModelLimit <- function (richness, modelLimit, model, stop)
 {
 	samp.size <- (2*length(richness[,1]) - 1)
-	if (model == "bd" || model == "mixed")
-	{
+	if (model == "bd" || model == "mixed") {
 		max.modelLimit <- as.integer(samp.size/3) - ((!(samp.size %% 3)) * 1);
 	} else {
 		max.modelLimit <- as.integer(samp.size/2) - ((!(samp.size %% 2)) * 1); # models estimating only one diversification parameter
 	}
 	
-	if (stop == "modelLimit")
-	{
+	if (stop == "modelLimit") {
 		if (modelLimit > max.modelLimit) {modelLimit <- max.modelLimit;}
 		cat("Limiting consideration to ", modelLimit, " piecewise", sep="");
 		if (model == "bd") {
@@ -156,10 +145,8 @@ getThreshold <- function (treeSize, fixThreshold, stop)
 	threshold <- a * (treeSize-b)^c + Offset;
 	if (threshold < 0 || is.nan(threshold)) threshold <- 0;
 	
-	if (!is.null(fixThreshold))
-	{
-		if (is.nan(fixThreshold) || class(fixThreshold) != "numeric" || fixThreshold < 0)
-		{
+	if (!is.null(fixThreshold)) {
+		if (is.nan(fixThreshold) || class(fixThreshold) != "numeric" || fixThreshold < 0) {
 			cat("Provided threshold value of '", fixThreshold, "' is invalid.\n", sep="")
 			cat("Will proceed with value determined from simulations.\n")
 			cat("Appropriate AICc threshold for tree of ", treeSize, " tips is: ", threshold, ".\n", sep="");
@@ -197,8 +184,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	bt <- branching.times(phy);
 	
 # Consider only internal edges first. may be zero if only 2 tips.
-	if (n.int > 0)
-	{
+	if (n.int > 0) {
 		edges.int <- matrix(phy$edge[interior,], nrow=n.int, ncol=2); # force as matrix; screws up if n.int==1 (numeric)
 		colnames(edges.int) <- c("anc", "dec");
 		
@@ -221,8 +207,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	z.pendant <- cbind(edges.pendant, t.0, t.1, t.len=t.0 - t.1,
 		n.0=rep(1, n.tips), n.t=ext.richness);
 	
-	if (n.int > 0)
-	{
+	if (n.int > 0) {
 		z <- rbind(z.internal, z.pendant);
 	} else { # case with only 2 pendant edges.
 		z <- z.pendant;
@@ -240,16 +225,12 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	desc.node <- list();
 	
 	if (verbose) cat("  Gathering descendant node information...");
-	if (mc)
-	{
-		if (shiftCut == "both" || shiftCut == "stem")
-		{
+	if (mc) {
+		if (shiftCut == "both" || shiftCut == "stem") {
 			desc.stem <- mclapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges, mc.cores=numCores);
 		}
-		if (shiftCut == "both" || shiftCut == "node")
-		{
-			if (!is.null(desc.stem))
-			{
+		if (shiftCut == "both" || shiftCut == "node") {
+			if (!is.null(desc.stem)) {
 				root <- min(z[,"anc"]);
 				desc.node <- mclapply(desc.stem, stripStem, mc.cores=numCores);
 				desc.node[root] <- desc.stem[root];
@@ -258,14 +239,11 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 			}
 		}
 	} else {
-		if (shiftCut == "both" || shiftCut == "stem")
-		{
+		if (shiftCut == "both" || shiftCut == "stem") {
 			desc.stem <- lapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges);
 		}
-		if (shiftCut == "both" || shiftCut == "node")
-		{
-			if (!is.null(desc.stem))
-			{
+		if (shiftCut == "both" || shiftCut == "node") {
+			if (!is.null(desc.stem)) {
 				root <- min(z[,"anc"]);
 				desc.node <- lapply(desc.stem, stripStem);
 				desc.node[root] <- desc.stem[root];
@@ -280,8 +258,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
  ## Gives the number of tips associated with an internal node; determines whether a node is 'virgin' or not
 	num.tips <- list()
 	if (verbose) cat("  Gathering tip richness information...");
-	if (mc)
-	{
+	if (mc) {
 		num.tips <- mclapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips, mc.cores=numCores);
 	} else {
 		num.tips <- lapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips);
@@ -312,8 +289,6 @@ getNumTips <- function (node, phy, totalTips=NULL)
 	}
 	return(n);
 }
-
-
 
 
 
@@ -357,8 +332,7 @@ descendantsCutAtNode <- function (node, all.edges)
 	ans <- numeric();
 	repeat {
 		node <- all.edges[all.edges[,1] %in% node,2];
-		if (length(node) > 0)
-		{
+		if (length(node) > 0) {
 			ans <- c(ans, node);
 		} else {break;}
 	}
@@ -377,8 +351,7 @@ descendantsCutAtNode.idx <- function (node.list, all.edges)
 check.multicore <- function () 
 {
     tmp = rownames(installed.packages());
-    if ("multicore" %in% tmp)
-    {
+    if ("multicore" %in% tmp) {
         require(multicore);
         return(TRUE);
     } else {
@@ -406,18 +379,14 @@ checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCu
 	if (class(mc) != "logical") {stop("\n\nWARNING: argument \"mc\" is not of class \"logical\". Stopping.\n");}
 	if (class(resolveTree) != "logical") {stop("\n\nWARNING: argument \"resolveTree\" is not of class \"logical\". Stopping.\n");}
 	
-	if (mc)
-	{
-		if (Sys.info()["sysname"] == "Windows")
-		{
+	if (mc) {
+		if (Sys.info()["sysname"] == "Windows") {
 			stop("\"mc\" argument requested, but package \"multicore\" is not available for Windows. Stopping.\n");
 		}
-		if (!is.na(Sys.getenv()["R_GUI_APP_VERSION"]))
-		{
+		if (!is.na(Sys.getenv()["R_GUI_APP_VERSION"])) {
 			stop("\"mc\" argument requested, but package \"multicore\" cannot be run in a GUI environment. Stopping.\n");
 		}
-		if (!check.multicore())
-		{
+		if (!check.multicore()) {
 			stop("\"mc\" argument requested, but package \"multicore\" is not installed. Stopping.\n");
 		}
 	}

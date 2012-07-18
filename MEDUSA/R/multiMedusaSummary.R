@@ -8,9 +8,10 @@
 
 # TODO:
 # 1. ladderize tree prior to summary - DONE
-# 2. rate legend
-# 3. shift proportion legend
+# 2. rate legend - DONE
+# 3. shift proportion legend - DONE
 
+# get rid of all stem vs. node stuff
 
 multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	plotTree=TRUE, cex=0.5, ...) {
@@ -19,6 +20,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	
 # prune consensus tree with richness information (if possible)
 	conTree <- MEDUSA:::prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
+	conTree <- ladderize(conTree);
 	
 # number of tips/edges should be same for all trees
 	n.tips <- length(conTree$tip.label);
@@ -39,7 +41,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	pruned.trees <- lapply(results, FUN="[[", "phy"); names(pruned.trees) <- NULL;
 	tipLabels <- lapply(pruned.trees, FUN="[[", "tip.label");
 	if (length(unique(tipLabels)) == 1 && identical(tipLabels[[1]], conTree$tip.label)) {
-		cat("All translation tables identical. Summary straighforward.\n\n");
+		cat("All translation tables identical. Summary straightforward.\n\n");
 	} else {
 		stop("Not all translation tables identical. Functionality not yet implemented.\n\n");
 	}
@@ -60,14 +62,13 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	
 # keep only optimal (last) model for each tree; other bits (e.g. phy, desc, etc.) remain
 	cleaned.results <- results; # this is deprecated, as only best model is now saved
-	# for (i in 1:num.trees) {
-		# cleaned.results[[i]]$models <- cleaned.results[[i]]$optModel;
-	# }
-
+	
 # for each edge in conTree, store associated estimated parameters from replicate MEDUSA results
-	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges); colnames(est.pars) <- rep(c("r", "epsilon"), num.trees)
+	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges);
+	colnames(est.pars) <- rep(c("r", "epsilon"), num.trees);
 	est.splits <- NULL; # possible for some not to map to consensus tree (i.e. incompatible)
 	est.cuts <- NULL; # i.e. stem vs. node
+	est.shift.magnitudes <- NULL; # store magnitude of shift changes
 	
 	for (i in 1:num.trees) {
 		i.z <- cleaned.results[[i]]$optModel$z;
@@ -75,42 +76,74 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 # get tips descended from each edge in i.z
 		i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=i.desc$stem, n.tips=n.tips);
 		i.par <- cleaned.results[[i]]$optModel$par;
-		i.splits <- cleaned.results[[i]]$optModel$split.at;
-		i.cuts <- cleaned.results[[i]]$optModel$cut.at;
+		i.splits <- cleaned.results[[i]]$optModel$split.at[-1]; # need to map these
+		i.cuts <- cleaned.results[[i]]$optModel$cut.at[-1]; # -1 gets rid of root 'shift'
 		
-# use this to map edges between replicate trees and consensus tree. some may be NA.
-		idx <- match(con.edge.tip.desc, i.edge.tip.desc);
+# use this to map edges (rows) between consensus tree and replicate trees. some may be NA.
+		idx.conToRep <- match(con.edge.tip.desc, i.edge.tip.desc);
+		idx.repToCon <- match(i.edge.tip.desc, con.edge.tip.desc);
 		
 		temp.par <- matrix(ncol=2, nrow=num.edges); colnames(temp.par) <- c("r", "epsilon");
 		
-		for (j in 1:length(idx)) {
-			part <- i.z[idx[j], "partition"];
+		for (j in 1:length(idx.conToRep)) {
+			part <- i.z[idx.conToRep[j], "partition"]; # put in order of conTree edges
 			
 			#cat("Model membership is: ", part, "\n", sep="");
 			temp.par[j,] <- i.par[part,];
 		}
 		
-		est.pars[, c(((2 * i) - 1), (2 * i))] <- temp.par;
+		est.pars[, c(((2 * i) - 1), (2 * i))] <- temp.par;		
 		
 # now, process shift positions
 # map shifted node to node in consensus tree using tip complements
 		mapped.splits <- rep(NA, length(i.splits));
-		idx.mapped <- which(i.splits <= root.node);
-		mapped.splits[idx.mapped] <- i.splits[idx.mapped];
-		unmapped <- which(is.na(mapped.splits));
 		
-		for(j in 1:length(unmapped)) {
-			x <- which(i.z[,"dec"] == i.splits[unmapped[j]]); # row/edge index
-			if (!length(which(idx == x)) < 1) {
-				mapped.splits[unmapped[j]] <- as.integer(con.z[which(idx == x), "dec"]);
+# all tips (i.e. < root.node) will match identical rows
+		for (d in 1:length(i.splits)) {
+			# shiftNode <- i.splits[d]; # good.
+			# shiftNodePosition <- which(i.z[,"dec"] == i.splits[d]); # good.
+			# mappedShiftEdge <- idx.repToCon[shiftNodePosition]; # now, good.
+			# mappedShiftNode <- con.z[mappedShiftEdge,]; # got it.
+			
+			if (i.cuts[d] == "node") {
+				mapped.splits[d] <- as.integer(con.z[idx.repToCon[which(i.z[,"dec"] == i.splits[d])],"dec"]);
+			} else { # stem shift
+				mapped.splits[d] <- as.integer(con.z[idx.repToCon[which(i.z[,"dec"] == i.splits[d])],"anc"]);
 			}
 		}
+		
 		est.splits <- c(est.splits, mapped.splits);
 		est.cuts <- c(est.cuts, i.cuts);
+		
+		shift.magnitudes <- rep(NA, length(i.splits));
+		for (k in 1:length(i.splits)) {
+			if (!is.na(mapped.splits[k])) {
+				
+				parent.class <- NULL;
+				descendant.class <- NULL;
+				
+				if (i.cuts[k] == "stem") { # grab rate one node up
+					parent.node <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "anc"]);
+					parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
+					descendant.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
+					#descendant.class <- k; # by definition. hmm, maybe not is a stepback occurred...
+		# check above is always true. should be, even if deletion occurs
+				} else { # node cut
+					parent.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
+					descendant.class <- k; # + 1; # the +1 is because the initial 'shift' at the root is removed
+				}
+			# got partition classes. store differences.
+				shift.magnitudes[k] <- as.numeric(i.par[descendant.class, "r"] - i.par[parent.class, "r"]);
+			#	cat("Tree #", i, ": comparing rate ", as.numeric(i.par[descendant.class, "r"]), 
+			#		" and ", as.numeric(i.par[parent.class, "r"]), "\n", sep="");
+			}
+		}
+		est.shift.magnitudes <- c(est.shift.magnitudes, shift.magnitudes);
 	}
 	
 # summarize edge-specific rates across trees
-	rates <- matrix(ncol=7, nrow=num.edges); colnames(rates) <- c("r.mean", "r.median", "r.sd", "eps.mean", "eps.median", "eps.sd", "freq");
+	rates <- matrix(ncol=7, nrow=num.edges);
+	colnames(rates) <- c("r.mean", "r.median", "r.sd", "eps.mean", "eps.median", "eps.sd", "freq");
 	
 	for (i in 1:num.edges) {
 		i.r <- as.numeric(est.pars[i, seq(from=1, to=(num.trees * 2), by=2)]);
@@ -130,21 +163,43 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	}
 	
 # map con.z edges to conTree edges, annotate tree with edge-specific rates
-	mapping <- match(conTree$edge[, 2], con.z[, 2]);
+	mapping <- match(conTree$edge[, 2], con.z[, 2]); # hmm. is this correct?!? yes, should be.
 	#all(conTree$edge[,] == as.integer(con.z[mapping, c(1:2)])); # check
 	conTree$rates <- rates[mapping,];
 	
 # summarize shift positions, mapped to consensus tree
-	shift.pos <- as.data.frame(cbind(est.splits[!is.na(est.splits)], est.cuts[!is.na(est.splits)])); # get rid of shifts that cannot map to consensus tree
+# get rid of stem vs. node shifts
+	idx.valid <- which(!is.na(est.splits));
+	shift.pos <- as.data.frame(cbind(est.splits[idx.valid], est.cuts[idx.valid])); # get rid of shifts that cannot map to consensus tree
 	shift.summary <- data.frame(cbind(shift.node=as.integer(rownames(table(shift.pos))), table(shift.pos)/num.trees));
 	colnames(shift.summary)[2:3] <- c("cut.at.node", "cut.at.stem");
 	
-	#sum.prop <- shift.summary[,"cut.at.node"] + shift.summary[,"cut.at.stem"];
-	shift.summary <- cbind(shift.summary, sum.prop=(shift.summary[,"cut.at.node"] + shift.summary[,"cut.at.stem"]));
+	unique.shifts <- shift.summary[,"shift.node"];
+	num.unique.shifts <- length(unique.shifts);
+	
+	mean.shift <- rep(NA, num.unique.shifts);
+	median.shift <- rep(NA, num.unique.shifts);
+	min.shift <- rep(NA, num.unique.shifts);
+	max.shift <- rep(NA, num.unique.shifts);
+	sd.shift <- rep(NA, num.unique.shifts);
+	
+	for (i in 1:length(unique.shifts)) { # first will always be the root, which is not a shift
+		idx.shift <- which(est.splits == unique.shifts[i])
+		cur.shift.mag <- est.shift.magnitudes[idx.shift];
+		
+		mean.shift[i] <- mean(cur.shift.mag, na.rm=TRUE);
+		median.shift[i] <- median(cur.shift.mag, na.rm=TRUE);
+		min.shift[i] <- min(cur.shift.mag, na.rm=TRUE);
+		max.shift[i] <- max(cur.shift.mag, na.rm=TRUE);
+		sd.shift[i] <- sd(cur.shift.mag, na.rm=TRUE);
+	}
+	
+	shift.summary <- cbind(shift.node=shift.summary[,1], sum.prop=(shift.summary[,"cut.at.node"] + shift.summary[,"cut.at.stem"]),
+		mean.shift=mean.shift, median.shift=median.shift, min.shift=min.shift, max.shift=max.shift, sd.shift=sd.shift);
 	shift.summary  <- shift.summary[order(shift.summary[,"sum.prop"], decreasing=TRUE),]; # reorder by frequency
 	
 # if desired, only keep shifts presultsent above cutOff thresultshold
-	shift.summary <- shift.summary[which(shift.summary["sum.prop"] >= cutOff),];
+	shift.summary <- shift.summary[which(shift.summary[,"sum.prop"] >= cutOff),];
 	rownames(shift.summary) <- NULL;
 	
 	if (cutOff > 0) {
@@ -172,14 +227,15 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	shift.summary <- summary$shift.summary;
 	rates <- summary$summary.tree$rates;
 	
-# rearrange tree for better viewing and placement of legend(s)
-	if (!is.null(treeRearrange)) {
-		if (treeRearrange == "up") {
-			conTree <- ladderize(conTree, FALSE);
-		} else {
-			conTree <- ladderize(conTree);
-		}
-	}
+# rearrange tree for better viewing and placement of legend(s) # THIS IS WHERE IT IS FUCKING UP!
+# need to map between before and after, if this is going to work...
+	# if (!is.null(treeRearrange)) {
+		# if (treeRearrange == "up") {
+			# conTree <- ladderize(conTree, FALSE);
+		# } else {
+			# conTree <- ladderize(conTree);
+		# }
+	# }
 	
 # discretize rates into some set number
 	rates <- rates[,annotateRate];
@@ -206,7 +262,7 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	}
 	
 	if (annotateShift) {
-		plotcolor <- rgb(red=255, green=0, blue=0, alpha=150, max=255);
+		plotcolor <- rgb(red=255, green=0, blue=0, alpha=150, maxColorValue=255);
 		for (i in  1:length(shift.summary[,"shift.node"])) {
 			nodelabels(node = shift.summary[,"shift.node"][i], pch=21, cex=(shift.summary[,"sum.prop"][i]) * shiftScale, bg=plotcolor);
 		}
@@ -223,6 +279,6 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 # this function returns the phy$tip.label indices of tips decended from each edge in z
 # compare this against consensus tree
 getTips <- function (node, z, desc, n.tips) {
-	x <- as.integer(z[desc[[node]], "dec"]) # gives descendant node(s) of a given node
+	x <- as.integer(z[desc[[node]], "dec"]); # gives descendant node(s) of a given node
 	return(x[x <= n.tips]); # only return tip indices
 }
