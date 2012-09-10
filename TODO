@@ -16,7 +16,7 @@
      - update summarizeTurboMEDUSA to consider flavour of model when plotting surfaces - DONE
         - at the moment assume only BD models are to be plotted - FIXED
 
-3. Implement summary function for a results over a distribution of trees
+3. Implement summary function for a results over a distribution of trees - DONE
   - just need to find a efficient way to parse the list of lists
 
 4. Make surface plotting more general - DONE
@@ -25,14 +25,22 @@
 
 5. Pass in user fixed epsilon - DONE
 
-6. Plot tip richnesses next to tree (needs to consider coordinates)
+6. Plot tip richnesses next to tree (needs to consider coordinates) - DONE, but placement a little ugly
 
 7. Fix r (b) optimization interval for extreme clades - DONE
 
 8. Complete documentation
+  - especially for multiMedusa functions
 
-9. Alter output such that only the final optimal model is saved to the results
+9. Alter output such that only the final optimal model is saved to the results - DONE
   - this will require changing summary functions
 
 10. Significant memory problem: intermediate results of lapply over nodes can be several 100s of MB for large trees (e.g. 2000 tips)
   - keep only AICc score and node ID during course of lapply, recalcuate on best node after - DONE
+
+11. Problem with conTree and multiMedusa trees possibly having a different tiplabel ordering
+  - reported by Laurie Sorenson (UCLA)
+  - multiMedusa trees *should* have same ordering, as likely read in using a single translation table (e.g. BEAST)
+    - not sure if this applies to reading in a file (e.g. phylip or nexus) without a translation table
+      - CHECK THIS
+  - for the first part, try reordering conTree tip labels (since multiMedusa should be fine)
