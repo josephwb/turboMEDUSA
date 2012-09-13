@@ -1,3 +1,7 @@
+2012-09-13
+  * bug fix with starting parameter weightings during stepBack function
+	- weighting now according to total path length rather than number of edges
+
 2012-06-11
   * bug fix with summarizing model with fixed b or d
   * fixed multiple window plotting problem

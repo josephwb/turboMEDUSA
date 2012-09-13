@@ -888,10 +888,17 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion) {
 				z.temp <- obj$z[obj$z[,"partition"] == aff,,drop=FALSE];
 				
 		## set par to weighted mean of 2 affected partitions
-				weights <- c(sum(z[,"partition"] == aff), sum(z[,"partition"] == i)); # weight from number of edges involved
+			## updated to reflect total path length rather than number of tips
+			## really only influences weighted parameter starting values
+			
+				weights <- c(sum(z[which(z[,"partition"] == aff),"t.len"]), sum(z[which(z[,"partition"] == i),"t.len"]));
 				sp <- c(weighted.mean(pars[c(aff,i),1], weights), weighted.mean(pars[c(aff,i),2], weights, na.rm=T));
-				
 				fit <- getOptimalModelFlavour(z=z.temp, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+				
+#				weights.old <- c(sum(z[,"partition"] == aff), sum(z[,"partition"] == i)); # weight from number of edges involved
+#				sp.old <- c(weighted.mean(pars[c(aff,i),1], weights.old), weighted.mean(pars[c(aff,i),2], weights.old, na.rm=T));
+#				fit.old <- getOptimalModelFlavour(z=z.temp, sp=sp.old, model=model, fixPar=fixPar, criterion=criterion);
+
 				
 		## Update fit values
 				fitModel$par[aff,] <- fit$par;

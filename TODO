@@ -44,3 +44,6 @@
     - not sure if this applies to reading in a file (e.g. phylip or nexus) without a translation table
       - CHECK THIS
   - for the first part, try reordering conTree tip labels (since multiMedusa should be fine)
+
+12. Fix crashes due to poor initial starting parameters in some tree distributions - DONE
+  - dealt with number of edges vs. total path lengths per partition

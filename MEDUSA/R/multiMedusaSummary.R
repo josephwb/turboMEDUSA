@@ -18,8 +18,35 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	richness <- res$richness;
 	results <- res$results;
 	
-# prune consensus tree with richness information (if possible)
+# prune consensus tree with richness information (if necessary)
+# an issue here is that tip label ordering in conTree may differ from those from the results (which probably used a translation table)
+# NEED to fix this, as it may be a general problem.
 	conTree <- MEDUSA:::prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
+	
+	
+	
+	tmp <- c(results[[1]]$phy, results[[2]]$phy, results[[3]]$phy, results[[4]]$phy);
+	tmp[[5]] <- conTree;
+	
+	num.trees <- length(results);
+	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
+	
+# check if all tip labels are in the same order (including consensus tree); makes everything easier
+	pruned.trees <- lapply(results, FUN="[[", "phy"); names(pruned.trees) <- NULL;
+	tipLabels <- lapply(pruned.trees, FUN="[[", "tip.label");
+	if (length(unique(tipLabels)) == 1 && identical(tipLabels[[1]], conTree$tip.label)) {
+		cat("All translation tables identical. Summary straightforward.\n\n");
+	} else {
+		stop("Not all translation tables identical. Functionality not yet implemented.\n\n");
+	}
+
+	
+	
+	
+	
+	
+	
+# ladderize for plotting purposes
 	conTree <- ladderize(conTree);
 	
 # number of tips/edges should be same for all trees
@@ -34,18 +61,6 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 # store tip descedants for each edge of conTree, ordered as in con.z
 	con.edge.tip.desc <- lapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips);
 	
-	num.trees <- length(results);
-	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
-	
-# check if all tip labels are in the same order (including consensus tree); makes everything easier
-	pruned.trees <- lapply(results, FUN="[[", "phy"); names(pruned.trees) <- NULL;
-	tipLabels <- lapply(pruned.trees, FUN="[[", "tip.label");
-	if (length(unique(tipLabels)) == 1 && identical(tipLabels[[1]], conTree$tip.label)) {
-		cat("All translation tables identical. Summary straightforward.\n\n");
-	} else {
-		stop("Not all translation tables identical. Functionality not yet implemented.\n\n");
-	}
-
 # this will change if I alter MEDUSA output format to keep only final model
 # will anyone ever really want an intermediate model? may be a lot of data to store for very large trees
 	model.sizes <- numeric(num.trees);
@@ -169,6 +184,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	
 # summarize shift positions, mapped to consensus tree
 # get rid of stem vs. node shifts
+# seems to have a problem if the are zero 'node' shifts (same for the opposite?)
 	idx.valid <- which(!is.na(est.splits));
 	shift.pos <- as.data.frame(cbind(est.splits[idx.valid], est.cuts[idx.valid])); # get rid of shifts that cannot map to consensus tree
 	shift.summary <- data.frame(cbind(shift.node=as.integer(rownames(table(shift.pos))), table(shift.pos)/num.trees));
@@ -214,7 +230,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 		summary.tree=conTree, richness=richness);
 	class(summary) <- "multiMedusaSummary";
 	
-	if (plotTree) plotMultiMedusa(summary);
+	if (plotTree) plotMultiMedusa(summary, ...);
 	
 	invisible(summary);
 }
