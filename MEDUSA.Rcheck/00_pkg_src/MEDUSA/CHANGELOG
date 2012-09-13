@@ -1,0 +1,137 @@
+2012-09-13
+  * bug fix with starting parameter weightings during stepBack function
+	- weighting now according to total path length rather than number of edges
+
+2012-06-11
+  * bug fix with summarizing model with fixed b or d
+  * fixed multiple window plotting problem
+  * fixed problem with missing richness information in multiMEDUSA analyses
+  * fixed error plotting multiMEDUSA when edges in conTree are not in any other tree
+
+2012-06-11
+  * bug fixes in multiMedusaSummary from change in output format
+  * added colour legend for rate annotation to tree
+
+2012-06-11
+  * significant change to result caching within MEDUSA step
+	- only bare minimum information, recalculate on best model at end
+	- BIG memory change for large trees
+
+2012-05-29
+  * added error-checking for 1) non-binary and 2) non-ultrametric trees
+
+2012-05-21
+  * added user options to printing summary tree from multiMEDUSA
+	- branch colouring, tree rearrangement ("ladderizing"), etc.
+
+2012-05-11
+  * fixed starting parameter issue when dissolving splits (now weighted mean)
+
+2012-05-08
+  * added summary function for distribution of trees
+
+2012-04-23
+  * fixed problem with small trees (< 4 tips).
+
+2012-02-01
+  * added informative error message when zero-length branches encountered
+
+2012-02-01
+  * fixed a minor bug and got rid of unix-requirement
+
+2012-01-31
+  * made final updates to 'fitSisters' function
+  * implemented checks for multicore dependency; stops if Windows or GUI implementation
+	- removes necessity for separate Windows version. Yay!
+
+2012-01-13
+  * added 'backStep' function which considers removing previously-fit shifts. These may lose significance as more nested shifts are added.
+
+2012-01-11
+  * put better bounds on parameter values for 'optimize'; gets rid of annoying (yet as far as I can tell, harmless) warnings
+
+2012-01-05
+  * added fixed d and fixed b constrained models
+
+2012-01-04
+  * added fixed epsilon and fixed r constrained models
+
+2012-01-03
+  * cleaned up documentation
+
+2012-01-02
+  * added 95% confidence intervals on parameter estimates via profile likelihoods
+
+2012-01-01
+  * added 'preserveModelFlavour' option to mixed models. Default (for now) is TRUE
+  * rearranged code for efficiency and readability
+
+2011-12-29
+  * added ability to fit individual nodes designated by user
+  * whole bunch of speed updates
+
+2011-12-21-29
+  * several setbacks dealt with
+
+2011-12-20
+  * removed annoying requirement that summary had to be directed to an object
+
+2011-12-19
+  * sped up Yule fitting through simplification of equations
+
+2011-12-13
+  * updated plotPrettyTree function
+  * took out AIC weights, as they are meaningless when using a threshold criterion > 0
+	- if desired, can still be calculated using function "calculate.model.weights"
+  * fixed precision problem in Yule model when dealing with large trees.
+
+2011-12-12
+  * re-implemented 'mixed' models
+  * added cutAtStem option; TRUE, FALSE, or 'both'
+  * both 'mixed' and 'both' can be used together
+
+2011-10-09
+  * fixed bug in runMultiMEDUSA
+
+2011-08-02
+  * fixed threshold correction for small trees (set to zero)
+  * updated documentation; added "mixed" model description to help
+  * renamed "summarize.turboMEDUSA" to "summarizeTurboMEDUSA" for consistency
+  * added function "plotPrettyTree"
+	- "summarizeTurboMEDUSA" now returns "treeParameters" for this plotting
+
+2011-08-01
+  * added more error-checking to function "prune.tree.merge.data"
+
+2011-07-28
+  * fixed bug in function "prune.tree.merge.data"
+	- if length(phy$tip.label) == length(richness[,1]), assumed fine (i.e. no pruning)
+	- however, this is a problem if a typo is present
+	- function now checks this
+
+2011-06-07
+  * fixed bug in "summarize.turboMEDUSA"
+	- same typo in termination condition below
+
+2011-06-05
+  * added Yule model as a user choice
+	- eventually allow mixed models (mix of BD and Yule processes)
+
+2011-05-26
+  * fixed bug with threshold criterion (identified by Gavin Thomas)
+	- typo in termination condition
+
+2011-05-24
+  * cleaned up utility functions and put into "turboMEDUSA-utilities.R"
+	- added documentation (internal to file only)
+  * uploaded to GitHub
+
+2011-05-23
+  * fixed threshold stop criterion
+	- if stop="threshold" but number of models hit default then analysis terminated
+	- now stop only if maximum model limit is encountered
+	- will only arise with very large trees
+
+2011-05-19  
+  * created R-package version of original turboMEDUSA script
+
