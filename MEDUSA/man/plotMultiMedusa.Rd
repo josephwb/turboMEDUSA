@@ -7,7 +7,7 @@ Plot the summary tree from a multiMEDUSA analysis.
 Plot a consensus tree annotated with results from a \code{\link{MEDUSA}} analysis across a distribution of trees.
 }
 \usage{
-plotMultiMedusa(summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.mean",
+plotMultiMedusa(summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
 	plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5, font=3,
 	shift.leg.pos="left", power=1.5, ...)
 }

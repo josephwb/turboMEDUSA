@@ -13,7 +13,7 @@
 
 # get rid of all stem vs. node stuff
 
-multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
+multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	plotTree=TRUE, cex=0.5, ...) {
 	richness <- res$richness;
 	results <- res$results;
@@ -21,30 +21,34 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 # prune consensus tree with richness information (if necessary)
 # an issue here is that tip label ordering in conTree may differ from those from the results (which probably used a translation table)
 # NEED to fix this, as it may be a general problem.
-	conTree <- MEDUSA:::prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
+	#conTree <- MEDUSA:::prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
+	conTree <- prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
 	
 	
 	
-	tmp <- c(results[[1]]$phy, results[[2]]$phy, results[[3]]$phy, results[[4]]$phy);
-	tmp[[5]] <- conTree;
+	# tmp <- c(results[[1]]$phy, conTree);
+	# tmp <- .compressTipLabel(tmp);
+	# conTree <- tmp[[2]];
+	
+	
+	
+# reorder tip.labels in conTree to correspond to those in the multiMedusa analyses
+	conTree <- ape:::.compressTipLabel(c(results[[1]]$phy, conTree))[[2]];
 	
 	num.trees <- length(results);
 	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
 	
-# check if all tip labels are in the same order (including consensus tree); makes everything easier
-	pruned.trees <- lapply(results, FUN="[[", "phy"); names(pruned.trees) <- NULL;
-	tipLabels <- lapply(pruned.trees, FUN="[[", "tip.label");
+# check if all tip labels are in the same order (including consensus tree); makes everything easier.
+# tree distribution. This should be checked earlier i.e. prior to analysis.
+	tipLabels <- lapply(lapply(results, FUN="[[", "phy"), FUN="[[", "tip.label")
+	
 	if (length(unique(tipLabels)) == 1 && identical(tipLabels[[1]], conTree$tip.label)) {
 		cat("All translation tables identical. Summary straightforward.\n\n");
 	} else {
 		stop("Not all translation tables identical. Functionality not yet implemented.\n\n");
 	}
 
-	
-	
-	
-	
-	
+	rm(tipLabels);
 	
 # ladderize for plotting purposes
 	conTree <- ladderize(conTree);
@@ -54,7 +58,8 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	num.edges <- length(conTree$edge[,1]);
 	root.node <- n.tips + 1;
 	
-	obj <- MEDUSA:::makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
+	#obj <- MEDUSA:::makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
+	obj <- makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
 	con.desc <- list(stem=obj$desc.stem, node=obj$desc.node);
 	con.z <- obj$z;
 	
@@ -141,7 +146,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 					parent.node <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "anc"]);
 					parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
 					descendant.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
-					#descendant.class <- k; # by definition. hmm, maybe not is a stepback occurred...
+					#descendant.class <- k; # by definition. hmm, maybe not if a stepback occurred...
 		# check above is always true. should be, even if deletion occurs
 				} else { # node cut
 					parent.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
@@ -188,6 +193,19 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	idx.valid <- which(!is.na(est.splits));
 	shift.pos <- as.data.frame(cbind(est.splits[idx.valid], est.cuts[idx.valid])); # get rid of shifts that cannot map to consensus tree
 	shift.summary <- data.frame(cbind(shift.node=as.integer(rownames(table(shift.pos))), table(shift.pos)/num.trees));
+	
+# problem here when either stem or node is never observed
+	if (length(shift.summary[1,]) < 3) {
+		if (is.null(shift.summary$node)) {
+			shift.summary <- cbind(shift.node=shift.summary[,1], node=rep(0, length(shift.summary[,1])),
+				stem=shift.summary$stem);
+		} else if (is.null(shift.summary$stem)) {
+			shift.summary <- cbind(shift.summary[,1:2], stem=rep(0, length(shift.summary[,1])));
+		} else {
+			stop("\nUm, I don't know what is wrong here.\n")
+		}
+	}
+	
 	colnames(shift.summary)[2:3] <- c("cut.at.node", "cut.at.stem");
 	
 	unique.shifts <- shift.summary[,"shift.node"];
@@ -235,14 +253,14 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=FALSE,
 	invisible(summary);
 }
 
+
 ## Plot tree with summarized results.
 
 # TODO:
 # 1. make flexible legend for rate shifts
 # 2. make item placement more general/robust
 
-
-plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.mean",
+plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
 	plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5,
 	font=3, shift.leg.pos="left", power=1.5, ...) {
 	
@@ -251,16 +269,6 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	shift.summary <- summary$shift.summary;
 	rates <- summary$summary.tree$rates;
 	richness <- summary$richness; # use for pplotting species richnesses (if desired)
-	
-# rearrange tree for better viewing and placement of legend(s) # THIS IS WHERE IT IS FUCKING UP!
-# need to map between before and after, if this is going to work...
-	# if (!is.null(treeRearrange)) {
-		# if (treeRearrange == "up") {
-			# conTree <- ladderize(conTree, FALSE);
-		# } else {
-			# conTree <- ladderize(conTree);
-		# }
-	# }
 	
 # discretize rates into some set number
 	rates <- rates[,annotateRate];
@@ -271,7 +279,7 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	
 # suppressWarnings is used in case some edges have no rate estimates
 	edgeColours <- suppressWarnings(rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))), na.rm=T)))]);
-	edgeColours[which(is.na(edgeColours))] <- "#000000"; # set to black those without estimates. shouldn't happen with a good tree
+	edgeColours[which(is.na(edgeColours))] <- "#000000"; # set to black those without estimates. shouldn't happen with a decent tree.
 	
 	minMax <- c(min(rateSeq), max(rateSeq));
 	
@@ -289,9 +297,13 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		mtext("Divergence Time (MYA)", at=(max(lastPP$xx) * 0.5), side=1, line=2, cex=0.75);
 	}
 	
-# plot barplot of extant tip richnesses
+# plot barplot of extant tip richnesses. need to fix the mapping here.
 	if (plotRichnesses) {
-		richness2Plot <- NULL;		
+		richness2Plot <- NULL;
+		
+	# reorder richnesses according to tip.labels
+		richness <- richness[match(conTree$tip.label, richness[,1]),];
+		
 		if (richPlot == "log") {
 			richness2Plot <- log(richness[,2] + 1);
 			names(richness2Plot) <- richness[,1];
@@ -304,17 +316,19 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		longestName <- max(str_length(conTree$tip.label));
 		nTips <- length(conTree$tip.label);
 		
+	# reorder (again) according to edge ordering. results from laddering conTree.
+		richness2Plot <- as.numeric(richness2Plot[conTree$edge[which(conTree$edge[,2] <= length(conTree$tip.label)),2]]);
+		
 	# seems to work for large and small trees
 		startPos <- max(lastPP$xx) + (longestName * fontSize) + lastPP$label.offset + max(lastPP$xx)/20;
 		
+	# adjest segment lengths
 		richMultiplier <- ((maxX - startPos) / maxVal) * 0.75;
 		
-		richnesses <- as.numeric(richness2Plot[conTree$tip.label]);
-		
-		segments(rep(startPos, nTips), 1:nTips, rep(startPos, nTips) + richMultiplier * richnesses,
+		segments(rep(startPos, nTips), 1:nTips, rep(startPos, nTips) + richMultiplier * richness2Plot,
 			1:nTips, lwd=(tip.cex * 2), col="blue");
 		
-		# get max and min to find best labels
+	# get max and min to find best labels
 		prettyVals <- pretty(0:maxVal);
 		plotAt <- startPos + (prettyVals * richMultiplier);
 		axisPlacement <- mean(plotAt);
@@ -322,7 +336,6 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		axis(1, at=plotAt, labels=prettyVals, cex.axis=0.75);
 		mtext("ln(species count + 1)", at=axisPlacement, side = 1, line = 2, cex=0.75);
 	}
-
 	
 	if (annotateShift) {
 		plotcolor <- rgb(red=255, green=0, blue=0, alpha=150, maxColorValue=255);
@@ -333,8 +346,7 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		
 		legend(x=shift.leg.pos, c("1.00", "0.75", "0.50", "0.25"), pch=21, pt.bg=plotcolor,
 			pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
-	}	
-	
+	}
 	
 # the weird position information used here fucks up subsequent positioning
 	colorlegend(posy=c(0.30, 0.55), posx=c(0.05, 0.075), col=rateColours, zlim=minMax,

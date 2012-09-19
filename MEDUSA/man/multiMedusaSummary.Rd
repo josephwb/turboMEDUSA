@@ -7,7 +7,7 @@ Summarize the fit of piecewise diversification models across a distribution of t
 Summarize results from \code{\link{MEDUSA}} analysis across a distribution of trees.
 }
 \usage{
-multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=FALSE, plotTree=TRUE, cex=0.5, ...)
+multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=TRUE, plotTree=TRUE, cex=0.5, ...)
 }
 
 \arguments{
@@ -18,10 +18,10 @@ An object of class \code{"multiMedusa"} produced from a \code{\link{MEDUSA}} ana
 Tree of class \code{"phylo"} on which to summarize results. Although in principle any tree can be used, ideally this tree should share as many edges as possible with those across the distribution of analyzed trees e.g. some sort of consensus or maximum clade credibility tree. Rate shift positons and average edge-specific rates are mapped onto this tree. May be pruned using richness information (a component of \code{results}) to correspond with tip sampling of trees that were analyzed. 
 }
   \item{cutOff}{
-Determines the threshold (expressed as a proportion) for which splits are recorded on \code{conTree}. Default is to keep shifts that occur in > 5% of trees.
+Determines the threshold (expressed as a proportion) for which splits are recorded on \code{conTree}. Default is to keep shifts that occur in > 5 percent of trees.
 }
   \item{plotModelSizes}{
-Boolean value that determines whether a histogram of the number of piecewise diversification models per tree is plotted. Default is no plot.
+Boolean value that determines whether a histogram of the number of piecewise diversification models per tree is plotted. Default is to plot.
 }
   \item{plotTree}{
 Boolean value that determines whether an annotated tree is plotted. Default is to plot. A possible reason to set \code{plotTree=FALSE} is that the \code{\link{plotMultiMedusa}} function gives greater flexibility.

@@ -2,10 +2,10 @@
 \alias{MEDUSA}
 \alias{print.medusa}
 \title{
-Fit piecewise diversification models to a time-calibrated phylogeny
+Fit piecewise diversification models to time-calibrated phylogenies
 }
 \description{
-Fits piecewise birth-death models to an ultrametric phylogenetic tree according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. Optimal model size is determined via a stepwise AIC approach.
+Fits piecewise birth-death models to ultrametric phylogenetic tree(s) according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. Optimal model size is determined via a stepwise AIC approach.
 }
 
 \usage{
@@ -17,7 +17,7 @@ MEDUSA(phy, richness=NULL, model="mixed", modelLimit=20, stop="threshold",
 
 \arguments{
   \item{phy}{
-Ultrametric phylogenetic tree. Assumed to be of class \code{phylo} or (if multiple trees) \code{multiPhylo}.
+Ultrametric phylogenetic tree(s). Could be a single tree or a distribution thereof. Assumed to be of class \code{phylo} or (if multiple trees) \code{multiPhylo}.
 }
   \item{richness}{
 Optional; only required if tree is NOT completely sampled. A dataframe with minimally two columns \code{taxon} and \code{n.taxa}. The identifier \code{taxon} must match exactly with a tip.label in the phylogeny \code{phy}; this is checked. May also include an \code{exemplar} column, used for renaming incompletely-sampled clades that require collapsing; in this case, \code{exemplar} must match exactly with a tip label and \code{taxon} will be the name for that clade (say, genus, family, etc.). If no richness information is provided then it is assumed tips represent single species with complete sampling.
@@ -123,4 +123,6 @@ Maintainer: Joseph W. Brown <josephwb@uidaho.edu>}
 \seealso{
 \code{\link{medusaSummary}}
 \code{\link{plotPrettyTree}}
+\code{\link{multiMedusaSummary}}
+\code{\link{plotMultiMedusa}}
 }

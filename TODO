@@ -36,9 +36,9 @@
   - this will require changing summary functions
 
 10. Significant memory problem: intermediate results of lapply over nodes can be several 100s of MB for large trees (e.g. 2000 tips)
-  - keep only AICc score and node ID during course of lapply, recalcuate on best node after - DONE
+  - keep only AICc score and node ID during course of lapply, recalculate on best node after - DONE
 
-11. Problem with conTree and multiMedusa trees possibly having a different tiplabel ordering
+11. Problem with conTree and multiMedusa trees possibly having a different tip.label ordering
   - reported by Laurie Sorenson (UCLA)
   - multiMedusa trees *should* have same ordering, as likely read in using a single translation table (e.g. BEAST)
     - not sure if this applies to reading in a file (e.g. phylip or nexus) without a translation table
@@ -47,3 +47,5 @@
 
 12. Fix crashes due to poor initial starting parameters in some tree distributions - DONE
   - dealt with number of edges vs. total path lengths per partition
+
+13. multiMedusaSummary dies when some shift types are not observed in the distribution (e.g. stem or node)
