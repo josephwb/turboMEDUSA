@@ -1,3 +1,7 @@
+2012-09-19
+  * fixed bug plotting log(richness) information in multiMedusaSummary.
+	- ordering was incorrect due to tree ladderization
+
 2012-09-13
   * bug fix with starting parameter weightings during stepBack function
 	- weighting now according to total path length rather than number of edges
