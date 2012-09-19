@@ -48,4 +48,6 @@
 12. Fix crashes due to poor initial starting parameters in some tree distributions - DONE
   - dealt with number of edges vs. total path lengths per partition
 
-13. multiMedusaSummary dies when some shift types are not observed in the distribution (e.g. stem or node)
+13. multiMedusaSummary dies when some shift types are not observed in the distribution (e.g. stem or node) - DONE
+
+14. Error mapping richnesses to re-ladderized tree when plotting - DONE
