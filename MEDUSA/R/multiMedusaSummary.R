@@ -21,16 +21,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 # prune consensus tree with richness information (if necessary)
 # an issue here is that tip label ordering in conTree may differ from those from the results (which probably used a translation table)
 # NEED to fix this, as it may be a general problem.
-	#conTree <- MEDUSA:::prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
 	conTree <- prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
-	
-	
-	
-	# tmp <- c(results[[1]]$phy, conTree);
-	# tmp <- .compressTipLabel(tmp);
-	# conTree <- tmp[[2]];
-	
-	
 	
 # reorder tip.labels in conTree to correspond to those in the multiMedusa analyses
 	conTree <- ape:::.compressTipLabel(c(results[[1]]$phy, conTree))[[2]];
@@ -58,7 +49,6 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	num.edges <- length(conTree$edge[,1]);
 	root.node <- n.tips + 1;
 	
-	#obj <- MEDUSA:::makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
 	obj <- makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
 	con.desc <- list(stem=obj$desc.stem, node=obj$desc.node);
 	con.z <- obj$z;
