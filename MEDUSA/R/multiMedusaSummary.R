@@ -14,14 +14,14 @@
 # get rid of all stem vs. node stuff
 
 multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
-	plotTree=TRUE, cex=0.5, ...) {
+	plotTree=TRUE, cex=0.5, resolveConTree=FALSE, ...) {
 	richness <- res$richness;
 	results <- res$results;
 	
 # prune consensus tree with richness information (if necessary)
 # an issue here is that tip label ordering in conTree may differ from those from the results (which probably used a translation table)
 # NEED to fix this, as it may be a general problem.
-	conTree <- prepareData(phy=conTree, richness=richness, verbose=FALSE)$phy;
+	conTree <- prepareData(phy=conTree, richness=richness, verbose=FALSE, resolveTree=resolveConTree)$phy;
 	
 # reorder tip.labels in conTree to correspond to those in the multiMedusa analyses
 	conTree <- ape:::.compressTipLabel(c(results[[1]]$phy, conTree))[[2]];

@@ -7,7 +7,8 @@ Summarize the fit of piecewise diversification models across a distribution of t
 Summarize results from \code{\link{MEDUSA}} analysis across a distribution of trees.
 }
 \usage{
-multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=TRUE, plotTree=TRUE, cex=0.5, ...)
+multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=TRUE, plotTree=TRUE,
+	cex=0.5, resolveConTree=FALSE, ...)
 }
 
 \arguments{
@@ -28,6 +29,9 @@ Boolean value that determines whether an annotated tree is plotted. Default is t
 }
   \item{cex}{
 Specifies the font size for printing tip labels. Default is \code{cex=0.5}; may need to decrease for larger trees. Only has meaning if \code{plotTree=TRUE}.
+}
+  \item{resolveConTree}{
+Boolean value specifying whether the \code{conTree} passed in should be randomly resolved (as a fully-resolved tree is required for \code{\link{MEDUSA}} summary). Only relevant if \code{conTree} passed in is not fully bifurcating.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.
