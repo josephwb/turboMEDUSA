@@ -1,6 +1,9 @@
 2012-09-19
   * fixed bug plotting log(richness) information in multiMedusaSummary.
 	- ordering was incorrect due to tree ladderization
+  * added option to randomly resolve a non-fully bifurcating consensus tree for multiMedusa summary.
+  * removed draconian requirement of labelling richness file columns with c("taxon", "n.taxa")
+	- this is now done by MEDUSA itself
 
 2012-09-13
   * bug fix with starting parameter weightings during stepBack function

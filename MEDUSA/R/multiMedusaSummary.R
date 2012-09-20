@@ -18,6 +18,8 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	richness <- res$richness;
 	results <- res$results;
 	
+	richness <- formatRichness(richness); # for older data sets that may have used different colnames
+	
 # prune consensus tree with richness information (if necessary)
 # an issue here is that tip label ordering in conTree may differ from those from the results (which probably used a translation table)
 # NEED to fix this, as it may be a general problem.
@@ -132,7 +134,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 				parent.class <- NULL;
 				descendant.class <- NULL;
 				
-				if (i.cuts[k] == "stem") { # grab rate one node up
+				if (i.cuts[k] == "stem" && mapped.splits[k] != root.node) { # grab rate one node up
 					parent.node <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "anc"]);
 					parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
 					descendant.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);

@@ -3,24 +3,11 @@
 ## May also include 'exemplar' column; in that case, rename relevant tip.label before pruning.
 prepareData <- function (phy, richness, verbose, resolveTree)
 {
-	if (!is.null(richness$exemplar)) {
+	if (!is.null(richness$exemplar)) { # leave this for now, as people do not use it
 # Change relevant tip.labels in phy; individual 'exemplar' may be NA, use original tip.label.
 # Ordering in richness file should NOT be assumed to match order of tip.labels
 		i.na <- is.na(richness$exemplar);
 		phy$tip.label[match(richness$exemplar[!i.na], phy$tip.label)] <- as.character(richness$taxon[!i.na]);
-	}
-	
-# make sure things are in the correct order and of correct format
-	if (length(richness[1,]) == 2) {
-		if (colnames(richness)[1] != "taxon" || colnames(richness)[2] != "n.taxa") {
-			if (class(richness[,1]) == "factor" & class(richness[,2]) == "integer") {
-				colnames(richness) = c("taxon", "n.taxa");
-			} else if (class(richness[,1]) == "integer" & class(richness[,2]) == "factor") {
-				colnames(richness) = c("n.taxa", "taxon");
-			} else {
-				stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
-			}
-		}
 	}
 	
 	if (class(phy) != "phylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
@@ -54,6 +41,39 @@ prepareData <- function (phy, richness, verbose, resolveTree)
 	}
 	
 	return(list(phy=phy, richness=richness));
+}
+
+# make sure things are in the correct order and of correct format
+formatRichness <- function (richness, phy=NULL) {
+	if (is.null(richness)) {
+		richness <- getRichness(phy);
+		return(richness);
+	}
+	
+	if (length(richness[1,]) == 2) {
+		if (all(c("taxon", "n.taxa") %in% colnames(richness))) { # already formatted correctly
+			return(richness);
+		}
+		
+		if (colnames(richness)[1] != "taxon" || colnames(richness)[2] != "n.taxa") {
+			if (class(richness[,1]) == "factor" & class(richness[,2]) == "integer") {
+				colnames(richness) = c("taxon", "n.taxa");
+			} else if (class(richness[,1]) == "integer" & class(richness[,2]) == "factor") {
+				colnames(richness) = c("n.taxa", "taxon");
+			} else {
+				stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
+			}
+		}
+		return(richness);
+	} else if (length(richness[1,]) == 3) { # make this more general later
+		if (all(c("taxon", "n.taxa", "exemplar") %in% colnames(richness))) {
+			return(richness);
+		} else {
+			stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
+		}
+	} else {
+		stop("\nMEDUSA thinks your richness data is in an incorrect format (too many columns). See ?MEDUSA.\n");
+	}
 }
 
 # Generate species richness information if none passed in

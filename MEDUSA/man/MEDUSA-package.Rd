@@ -11,7 +11,7 @@ Fits piecewise birth-death models to an ultrametric phylogenetic tree according 
 \tabular{ll}{
 Package: \tab MEDUSA\cr
 Type: \tab Package\cr
-Version: \tab 0.93-4-13\cr
+Version: \tab 0.93-4-14\cr
 Date: \tab 2012-09-19\cr
 License: \tab GPL version 2 or greater\cr
 LazyLoad: \tab yes\cr

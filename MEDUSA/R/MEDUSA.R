@@ -11,7 +11,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	sp <- conf$sp;
 	model <- conf$model;
 	fixPar <- conf$fixPar;
-	if (is.null(richness)) richness <- getRichness(phy);
+	richness <- formatRichness(richness, phy); # do this once, instead of once per tree
 	
 	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) {
 		
