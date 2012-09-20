@@ -241,8 +241,8 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	
 # Used for identifying descendant nodes below i.e. tracking breakpoints
 	all.edges <- as.matrix(z[,c("anc","dec")]);
-	desc.stem <- list();
-	desc.node <- list();
+	desc.stem <- NULL;
+	desc.node <- NULL;
 	
 	if (verbose) cat("  Gathering descendant node information...");
 	if (mc) {
@@ -263,7 +263,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 			desc.stem <- lapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges);
 		}
 		if (shiftCut == "both" || shiftCut == "node") {
-			if (!is.null(desc.stem)) {
+			if (!is.null(desc.stem)) { # Ugh. Even if empty, will not be null as initialized as list(). Fixed above.
 				root <- min(z[,"anc"]);
 				desc.node <- lapply(desc.stem, stripStem);
 				desc.node[root] <- desc.stem[root];

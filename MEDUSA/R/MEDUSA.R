@@ -63,7 +63,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			
 	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
 	 # Remain useful until a spilt is accepted within the clade
-			if (length(int.nodes) > 0) {
+			if (length(int.nodes) > 0) { # hmm, when would this be false?
 				cat("Pre-calculating parameters for internal nodes... ");
 				virgin.stem <- list(); virgin.node <- list();
 				if (mc) {

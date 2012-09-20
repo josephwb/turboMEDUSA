@@ -53,3 +53,5 @@
 14. Error mapping richnesses to re-ladderized tree when plotting - DONE
 
 15. Remove draconian requirement of labelling richness file columns with c("taxon", "n.taxa") - DONE
+
+16. "subscript out of bounds" error when setting shiftCut="node"
