@@ -1,3 +1,7 @@
+2012-09-20
+  * fixed bug with pre-fitting while shiftCut="node" (or shiftCut="both")
+	- potentially important
+
 2012-09-19
   * fixed bug plotting log(richness) information in multiMedusaSummary.
 	- ordering was incorrect due to tree ladderization
