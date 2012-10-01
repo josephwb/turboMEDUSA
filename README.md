@@ -45,7 +45,9 @@ To run MEDUSA, you will need:
 1. An ultrametric tree (ideally tim-calibrated). Can be a single tree or a distribution. Read in as (depending on tree format):
 
 	phy <- read.tree("treeFileName"); # for newick-formatted tree(s)
+
 or
+
 	phy <- read.nexus("treeFileName"); # for nexus-formatted tree(s)
 
 2. Richness information. Optional. Only required if your tree(s) has incomplete sampling. If so, tips will represent sampled species + unsampled species. I gather you know this, but let me know if you require further explanation. The richness file (I prefer comma-delimited myself) should contain two columns, with the column names of "taxon" and "n.taxa". Read in as:
