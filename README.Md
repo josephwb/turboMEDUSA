@@ -2,7 +2,7 @@ MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ===============
 Overview
 ---------------
-Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Will eventually be made available on CRAN (http://cran.r-project.org/) in the Geiger package version 2.0.
+Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Will eventually be made available on CRAN (http://cran.r-project.org/) in the Geiger package version 2.0 (http://cran.r-project.org/web/packages/geiger/index.html).
 
 ### Confusing Name Genealogy
 MEDUSA was formerly named "turboMEDUSA" (previously distributed as both scripts and R packages); these are the same method, although the current version is much more general. The previous version of MEDUSA available in the current version Geiger (published in Alfaro et al. 2009. PNAS) is an earlier implementation. Yes, I know this is confusing!
