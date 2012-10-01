@@ -1,3 +1,7 @@
+2012-10-01
+  * removed deprecated dependency 'stringr'
+  * updated README with installation/usage information including byte-compiling
+
 2012-09-20
   * fixed bug with pre-fitting while shiftCut="node" (or shiftCut="both")
 	- potentially important

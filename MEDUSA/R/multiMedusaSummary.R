@@ -305,7 +305,10 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		}
 		maxVal <- max(as.numeric(richness2Plot[conTree$tip.label]));
 		fontSize <- lastPP$cex;
-		longestName <- max(str_length(conTree$tip.label));
+		#longestName <- max(str_length(conTree$tip.label));
+		
+		longestName <- max(nchar(conTree$tip.label));
+		
 		nTips <- length(conTree$tip.label);
 		
 	# reorder (again) according to edge ordering. results from laddering conTree.
