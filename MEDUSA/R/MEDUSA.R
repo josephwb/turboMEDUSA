@@ -221,7 +221,9 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	}
 	
 	if (class(phy) == "multiPhylo") {
+		cat("\nManaging tip label ordering across trees...");
 		phy <- ape:::.compressTipLabel(phy); # makes things easier downstream
+		cat(" done.\n\n");
 		results <- lapply(phy, runMEDUSA, richness=richness, multiTree=TRUE, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
 		results <- list(results=results, richness=richness);
 		class(results) <- "multiMedusa";
