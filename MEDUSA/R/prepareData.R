@@ -196,8 +196,11 @@ getMaxModelLimit <- function (richness, modelLimit, model, stop)
 ## Fitted curve from random b-d simulations
 ## Value corresponds to 95th percentile of AICc(split) - AICc(no-split) for no-split simulations
 ## x-shifted power function
-getThreshold <- function (treeSize, fixThreshold, stop)
+getThreshold <- function (phy, fixThreshold, stop)
 {
+	if (class(phy) == "multiPhylo") phy <- phy[[1]];
+	treeSize <- length(phy$tip.label);
+	
 	a = -3.5941052380332650E+01;
 	b =  6.7372587299747000E+00;
 	c = -1.0061508340754866E-01;

@@ -13,19 +13,19 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	fixPar <- conf$fixPar;
 	richness <- formatRichness(richness, phy); # do this once, instead of once per tree
 	
+	# Determine correct AICc threshold from tree size (based on simulations)
+	 # Should be used for interpreting model-fit
+	threshold <- getThreshold(phy, fixThreshold=fixThreshold, stop=stop);
+		
+	# Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
+	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
+	modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
+	
 	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) {
 		
 		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose, resolveTree);
 		phy <- phyData$phy;
 		richness <- phyData$richness;
-		
-	# Determine correct AICc threshold from tree size (based on simulations)
-	 # Should be used for interpreting model-fit
-		threshold <- getThreshold(treeSize=length(phy$tip.label), fixThreshold=fixThreshold, stop=stop);
-		
-	# Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
-	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
-		modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
 		
 	# Store pertinent information: branch times, richness, descendants
 		cat("Preparing data for analysis:\n");
