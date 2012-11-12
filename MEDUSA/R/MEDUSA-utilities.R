@@ -899,7 +899,6 @@ backStep <- function (currentModel, z, step, model, fixPar, criterion) {
 #				sp.old <- c(weighted.mean(pars[c(aff,i),1], weights.old), weighted.mean(pars[c(aff,i),2], weights.old, na.rm=T));
 #				fit.old <- getOptimalModelFlavour(z=z.temp, sp=sp.old, model=model, fixPar=fixPar, criterion=criterion);
 
-				
 		## Update fit values
 				fitModel$par[aff,] <- fit$par;
 				fitModel$par <- fitModel$par[-i,];

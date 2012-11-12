@@ -76,6 +76,46 @@ formatRichness <- function (richness, phy=NULL) {
 	}
 }
 
+# rearrange tip labels so they are consistent with some ordering, either first tree or from 'refTree'
+# taken from ape:::.compressTipLabel
+manageTipLabels <- function (phy, refTree=NULL, mc=F) {
+	cat("\nManaging tip label ordering across trees...");
+	
+	if (!is.null(attr(phy, "TipLabel"))) return(phy);
+	
+	if (is.null(refTree)) ref <- phy[[1]]$tip.label
+	else ref <- refTree$tip.label;
+	
+	if (any(table(ref) != 1)) stop("some tip labels are duplicated in tree no. 1");
+	
+	n <- length(ref);
+	Ntree <- length(phy);
+	
+	relabel <- function (y) {
+		label <- y$tip.label;
+		if (!identical(label, ref)) {
+			if (length(label) != length(ref)) stop(paste("tree ", y, "has a different number of tips"));
+			ilab <- match(label, ref);
+			if (any(is.na(ilab))) stop(paste("tree ", y, "has different tip labels"));
+			ie <- match(1:n, y$edge[, 2]);
+			y$edge[ie, 2] <- ilab;
+		}
+		y$tip.label <- NULL;
+		y;
+	}
+	
+	if (mc) {
+		phy <- mclapply(phy, relabel);
+	} else {
+		phy <- lapply(phy, relabel);
+	}
+	attr(phy, "TipLabel") <- ref;
+	class(phy) <- "multiPhylo";
+	
+	cat(" done.\n\n");
+	return(phy);
+}
+
 # Generate species richness information if none passed in
 getRichness <- function (phy) {
 	if (class(phy) == "multiPhylo") phy <- phy[[1]]; # take first tree
