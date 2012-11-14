@@ -87,7 +87,7 @@ The algorithm first fits a single diversification model to the entire dataset. T
 
 If \code{phy} is of class \code{multiPhylo} then the analysis will be carried out on each tree in succession.
 
-Summarize results with \code{\link{medusaSummary}}.
+Summarize results for a single tree with \code{\link{medusaSummary}}. For multiple trees, use \code{\link{multiMedusaSummary}}
 }
 
 \value{

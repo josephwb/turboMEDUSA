@@ -1,5 +1,8 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ===============
+Recent Changes
+---------------
+14 November 2012: Running multi-tree analyses require that tip.labels ordering is consistent across all trees. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
 Overview
 ---------------
 Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Will eventually be made available on CRAN (http://cran.r-project.org/) in the Geiger package version 2.0.
@@ -21,7 +24,7 @@ Besides being faster and more efficient, the current version of MEDUSA does a nu
 
 Installation
 ---------------
-To install, put the non-decompressed *.tar.gz file in your R working directory. You will need to install some R dependencies first.
+At the moment, MEDUSA is not available on CRAN, although it will be, as a component of GEIGER 2.0. To install, put the non-decompressed *.tar.gz file in your R working directory. You will need to install some R dependencies first.
 
 In R, type:
 
