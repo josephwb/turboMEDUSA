@@ -1,7 +1,6 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ===============
-Recent Changes To Note
----------------
+### Recent Changes To Note
 **14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
 Overview
 ---------------
