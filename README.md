@@ -40,7 +40,7 @@ The "--byte-compile" option is optional and regards performance. In order to use
 
 	install.packages("MEDUSA_0.93-4-15.tar.gz", repos=NULL, type="source");
 
-If you are having problems, please look at 'Issues' below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that I can make such problems go away.
+If you are having problems, please look at 'Issues' below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
 Usage
 --------------
@@ -54,7 +54,7 @@ or
 
 	phy <- read.nexus("treeFileName"); # for nexus-formatted tree(s)
 
-Richness information. Optional. Only required if your tree(s) has incomplete sampling. If so, tips will represent sampled species + unsampled species. I gather you know this, but let me know if you require further explanation. The richness file (I prefer comma-delimited myself) should contain two columns, with the column names of "taxon" and "n.taxa". Read in as:
+Richness information. Optional. Only required if your tree(s) has incomplete sampling. If so, tips will represent sampled species + unsampled species. I gather you know this, but let me know if you require further explanation (and see [these slides](https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf)). The richness file (I prefer comma-delimited myself) should contain two columns, with the column names of "taxon" and "n.taxa". Read in as:
 
 	richness <- read.csv("richnessFileName"); # for comma-delimited data
 or
