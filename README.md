@@ -44,7 +44,7 @@ The "--byte-compile" option is optional and regards performance. In order to use
 
 	install.packages("MEDUSA_0.93-4-15.tar.gz", repos=NULL, type="source");
 
-If you are having problems, please look at 'Issues' below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
+If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
 Usage
 --------------
@@ -99,7 +99,7 @@ To learn more, there are some slides here:
 
 https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf
 
-Issues (Windows)
+Issues
 --------------
 MEDUSA installation seems to have some problems with some flavour(s?) of Windows. While I have not yet found the source of the problem, the following seems to help. First, download the most recent version of MEDUSA from the 'Stable' directory. Double-click on the *.tar.gz file you downloaded. This should expand to a directory called simply 'MEDUSA'; this contains all of the code in uncompressed form. Using your Windows command prompt, navigate to the directory containing 'MEDUSA', and type the following:
 
