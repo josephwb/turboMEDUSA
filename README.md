@@ -103,14 +103,14 @@ Issues
 --------------
 MEDUSA installation seems to have some problems with some flavour(s?) of Windows. While I have not yet found the source of the problem, the following seems to help. First, download the most recent version of MEDUSA from the 'Stable' directory. Double-click on the *.tar.gz file you downloaded. This should expand to a directory called simply 'MEDUSA'; this contains all of the code in uncompressed form. Using your Windows command prompt, navigate to the directory containing 'MEDUSA', and type the following:
 
-R CMD build MEDUSA
+	R CMD build MEDUSA
 
 This should remake the *.tar.gz file "MEDUSA_0.93-4-6.tar.gz" (or whatever version you have). Now, type:
 
-R CMD check MEDUSA_0.93-4-6.tar.gz
+	R CMD check MEDUSA_0.93-4-6.tar.gz
 
 This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
 
-R CMD install --byte-compile MEDUSA_0.93-4-6.tar.gz
+	R CMD install --byte-compile MEDUSA_0.93-4-6.tar.gz
 
 Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-6.tar.gz command.
