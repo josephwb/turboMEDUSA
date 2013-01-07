@@ -40,11 +40,13 @@ The "--byte-compile" option is optional and regards performance. In order to use
 
 	install.packages("MEDUSA_0.93-4-15.tar.gz", repos=NULL, type="source");
 
+If you are having problems, please look at 'Issues' below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that I can make such problems go away.
+
 Usage
 --------------
 To run MEDUSA, you will need:
 
-An ultrametric tree (ideally tim-calibrated). Can be a single tree or a distribution. Read in as (depending on tree format):
+An ultrametric tree (ideally time-calibrated). Can be a single tree or a distribution. Read in as (depending on tree format):
 
 	phy <- read.tree("treeFileName"); # for newick-formatted tree(s)
 
@@ -92,3 +94,19 @@ To save stuff, type:
 To learn more, there are some slides here:
 
 https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf
+
+Issues (Windows)
+--------------
+MEDUSA installation seems to have some problems with some flavour(s?) of Windows. While I have not yet found the source of the problem, the following seems to help. First, download the most recent version of MEDUSA from the 'Stable' directory. Double-click on the *.tar.gz file you downloaded. This should expand to a directory called simply 'MEDUSA'; this contains all of the code in uncompressed form. Using your Windows command prompt, navigate to the directory containing 'MEDUSA', and type the following:
+
+R CMD build MEDUSA
+
+This should remake the *.tar.gz file "MEDUSA_0.93-4-6.tar.gz" (or whatever version you have). Now, type:
+
+R CMD check MEDUSA_0.93-4-6.tar.gz
+
+This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
+
+R CMD install MEDUSA_0.93-4-6.tar.gz
+
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-6.tar.gz command.
