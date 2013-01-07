@@ -58,7 +58,7 @@ or
 
 	phy <- read.nexus("treeFileName"); # for nexus-formatted tree(s)
 
-Richness information. Optional. Only required if your tree(s) has incomplete sampling. If so, tips will represent sampled species + unsampled species. I gather you know this, but let me know if you require further explanation (and see [these slides](https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf)). The richness file (I prefer comma-delimited myself) should contain two columns, with the column names of "taxon" and "n.taxa". Read in as:
+Richness information. Optional. Only required if your tree(s) has incomplete sampling. If so, tips will represent sampled species + unsampled species. I gather you know this, as this was a focal impetus for the development of MEDUSA in the first place, but let me know if you require further explanation (and see [these slides](https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf)). The richness file (I prefer comma-delimited myself) should contain two columns, with the column names of "taxon" and "n.taxa". Read in as:
 
 	richness <- read.csv("richnessFileName"); # for comma-delimited data
 or
