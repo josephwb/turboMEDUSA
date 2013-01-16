@@ -1,5 +1,6 @@
 \name{multiMedusaSummary}
 \alias{multiMedusaSummary}
+\alias{print.multiMedusaSummary}
 \title{
 Summarize the fit of piecewise diversification models across a distribution of trees
 }
