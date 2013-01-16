@@ -456,12 +456,7 @@ print.medusa <- function(x, ...) {
 
 print.multiMedusa <- function(x, ...) {
 	cat("\n");
-	cat("MEDUSA results for ", length(x), " trees.\n", sep="")
-	
-	for (i in 1:length(x)) {
-		cat("\n");
-		print(x[[i]]$modelSummary);
-	}
+	cat("MEDUSA results for ", length(x$results), " trees.\n\n", sep="");
 }
 
 print.multiMedusaSummary <- function(x, ...) {
