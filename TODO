@@ -38,12 +38,13 @@
 10. Significant memory problem: intermediate results of lapply over nodes can be several 100s of MB for large trees (e.g. 2000 tips)
   - keep only AICc score and node ID during course of lapply, recalculate on best node after - DONE
 
-11. Problem with conTree and multiMedusa trees possibly having a different tip.label ordering
+11. Problem with conTree and multiMedusa trees possibly having a different tip.label ordering - DONE
   - reported by Laurie Sorenson (UCLA)
   - multiMedusa trees *should* have same ordering, as likely read in using a single translation table (e.g. BEAST)
     - not sure if this applies to reading in a file (e.g. phylip or nexus) without a translation table
       - CHECK THIS
   - for the first part, try reordering conTree tip labels (since multiMedusa should be fine)
+  - now, explicitly manage tip label ordering upon input (suped-up version of ape:::.compressTipLabel())
 
 12. Fix crashes due to poor initial starting parameters in some tree distributions - DONE
   - dealt with number of edges vs. total path lengths per partition
@@ -57,3 +58,12 @@
 16. "subscript out of bounds" error when setting shiftCut="node" - DONE
 
 17. Post installation/usage instructions - DONE
+
+18. Tag results with MEDUSA version number - DONE
+
+19. Fix multiMedusa summary error - DONE
+  - involved trees with no (mapped) shifts
+
+20. Fix general plotting.
+  - text size and plot positioning should depend on tree size
+  - remove species richness plot when all tips == 1 - DONE

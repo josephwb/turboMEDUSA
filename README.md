@@ -1,6 +1,12 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ===============
 ### Recent Changes To Note
+**7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
+
+	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
+
+after which MEDUSA would stubbornly refuse to continue. The function now works, although it is not exceedingly fast.
+
 **14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
 Overview
 ---------------
@@ -34,15 +40,15 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
-	install.packages("MEDUSA_0.93-4-16.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
+	install.packages("MEDUSA_0.93-4-19.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
 
-	R CMD install --byte-compile MEDUSA_0.93-4-16.tar.gz
+	R CMD install --byte-compile MEDUSA_0.93-4-19.tar.gz
 
 The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
 
-	install.packages("MEDUSA_0.93-4-15.tar.gz", repos=NULL, type="source");
+	install.packages("MEDUSA_0.93-4-19.tar.gz", repos=NULL, type="source");
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
@@ -105,12 +111,12 @@ MEDUSA installation seems to have some problems with some flavour(s?) of Windows
 
 	R CMD build MEDUSA
 
-This should remake the *.tar.gz file "MEDUSA_0.93-4-6.tar.gz" (or whatever version you have). Now, type:
+This should remake the *.tar.gz file "MEDUSA_0.93-4-19.tar.gz" (or whatever version you have). Now, type:
 
-	R CMD check MEDUSA_0.93-4-6.tar.gz
+	R CMD check MEDUSA_0.93-4-19.tar.gz
 
 This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
 
-	R CMD install --byte-compile MEDUSA_0.93-4-6.tar.gz
+	R CMD install --byte-compile MEDUSA_0.93-4-19.tar.gz
 
-Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-6.tar.gz command.
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-19.tar.gz command.

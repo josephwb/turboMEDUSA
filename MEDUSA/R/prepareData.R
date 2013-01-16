@@ -1,8 +1,7 @@
 ## Function to prune tree using 'richness' information, assumed to have minimally two columns, "taxon" and "n.taxa"
 ##   Perhaps relax on these column names, may cause too many problems
 ## May also include 'exemplar' column; in that case, rename relevant tip.label before pruning.
-prepareData <- function (phy, richness, verbose, resolveTree)
-{
+prepareData <- function (phy, richness, verbose, resolveTree) {
 	if (!is.null(richness$exemplar)) { # leave this for now, as people do not use it
 # Change relevant tip.labels in phy; individual 'exemplar' may be NA, use original tip.label.
 # Ordering in richness file should NOT be assumed to match order of tip.labels
@@ -78,7 +77,7 @@ formatRichness <- function (richness, phy=NULL) {
 
 # rearrange tip labels so they are consistent with some ordering, either first tree or from 'refTree'
 # taken from ape:::.compressTipLabel
-manageTipLabels <- function (phy, refTree=NULL, mc=F) {
+manageTipLabels <- function (phy, refTree=NULL, mc=F, numCores=NULL) {
 	cat("\nManaging tip label ordering across trees...");
 	
 	if (!is.null(attr(phy, "TipLabel"))) return(phy);
@@ -105,7 +104,7 @@ manageTipLabels <- function (phy, refTree=NULL, mc=F) {
 	}
 	
 	if (mc) {
-		phy <- mclapply(phy, relabel);
+		phy <- mclapply(phy, relabel, num.cores=numCores);
 	} else {
 		phy <- lapply(phy, relabel);
 	}
@@ -126,8 +125,7 @@ getRichness <- function (phy) {
 }
 
 # Determine desired model from passed in fixed parameters (if present)
-configureModel <- function (model, epsilon, r, b, d, initialR, initialE)
-{
+configureModel <- function (model, epsilon, r, b, d, initialR, initialE) {
 	sp <- NULL;
 	fixPar <- NULL;
 	if (!is.null(epsilon)) { # user-defined epsilon
@@ -165,8 +163,7 @@ configureModel <- function (model, epsilon, r, b, d, initialR, initialE)
 ## n <- (2*num.taxa - 1) == (2*length(richness[,1]) - 1) # i.e. total number of nodes in tree (internal + pendant)
 ## Alternatively use aicc threshold itself as a stopping criterion (stop="threshold").
 # AICc = AIC + 2*k*(k+1)/(n-k-1);
-getMaxModelLimit <- function (richness, modelLimit, model, stop)
-{
+getMaxModelLimit <- function (richness, modelLimit, model, stop) {
 	samp.size <- (2*length(richness[,1]) - 1)
 	if (model == "bd" || model == "mixed") {
 		max.modelLimit <- as.integer(samp.size/3) - ((!(samp.size %% 3)) * 1);
@@ -196,8 +193,7 @@ getMaxModelLimit <- function (richness, modelLimit, model, stop)
 ## Fitted curve from random b-d simulations
 ## Value corresponds to 95th percentile of AICc(split) - AICc(no-split) for no-split simulations
 ## x-shifted power function
-getThreshold <- function (phy, fixThreshold, stop)
-{
+getThreshold <- function (phy, fixThreshold, stop) {
 	if (class(phy) == "multiPhylo") phy <- phy[[1]];
 	treeSize <- length(phy$tip.label);
 	
@@ -236,8 +232,7 @@ getThreshold <- function (phy, fixThreshold, stop)
 ## In addition, every node's descendants are also calculated.  The element 'desc' is a list.
 ## $desc[i] contains the indices within $edge, $t.start, etc., of all descendants of node 'i'
 ## (in ape node numbering format).
-makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, verbose=TRUE)
-{
+makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, verbose=TRUE) {
 	n.tips <- length(phy$tip.label);
 	n.int <- nrow(phy$edge) - n.tips;
 	
@@ -336,8 +331,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 ## Get the number of tips descended from internal node 'node'.
 ## Needed for determining whether nodes are virgin nodes.
 ## Uses code from geiger functions 'node.sons' and 'node.leaves'.
-getNumTips <- function (node, phy, totalTips=NULL)
-{
+getNumTips <- function (node, phy, totalTips=NULL) {
 	if (is.null(totalTips)) totalTips <- length(phy$tip.label);
 	if (node <= totalTips) return(1);
 	
@@ -359,8 +353,7 @@ getNumTips <- function (node, phy, totalTips=NULL)
 
 ## This generates the indices of all descendants of a node, using a reordered version ape's edge matrix (z).
 ## Deals with row numbers of z rather than node numbers of the tree.
-descendantsCutAtStem <- function (node, all.edges)
-{
+descendantsCutAtStem <- function (node, all.edges) {
 	ans <- numeric();
 	ans <- node;
 	repeat {
@@ -374,15 +367,13 @@ descendantsCutAtStem <- function (node, all.edges)
 
 
 ## The function 'descendants' returns the indices of all descendants within the edge matrix.
-descendantsCutAtStem.idx <- function (node.list, all.edges)
-{
+descendantsCutAtStem.idx <- function (node.list, all.edges) {
 	which(all.edges[,1] == node.list | all.edges[,2] %in% descendantsCutAtStem(node.list, all.edges));
 }
 
 
 # Remove stem node from previously calculated set of descendants; about a billion times faster than descendantsCutAtNode
-stripStem <- function (x)
-{
+stripStem <- function (x) {
 	y <- unlist(x);
 	return(y[-1]);
 }
@@ -390,8 +381,7 @@ stripStem <- function (x)
 
 ## This generates the indices of all descendants of a node, using a reordered version ape's edge matrix (z).
 ## Deals with row numbers of z than node numbers of the tree.
-descendantsCutAtNode <- function (node, all.edges)
-{
+descendantsCutAtNode <- function (node, all.edges) {
 	ans <- numeric();
 	repeat {
 		node <- all.edges[all.edges[,1] %in% node,2];
@@ -404,15 +394,13 @@ descendantsCutAtNode <- function (node, all.edges)
 
 
 ## The function 'descendants' returns the indices of all descendants within the edge matrix.
-descendantsCutAtNode.idx <- function (node.list, all.edges)
-{
+descendantsCutAtNode.idx <- function (node.list, all.edges) {
 	which(all.edges[,1] == node.list | all.edges[,2] %in% descendantsCutAtNode(node.list, all.edges));
 }
 
 
 ## via Jon Eastman
-check.multicore <- function () 
-{
+check.multicore <- function ()  {
     tmp = rownames(installed.packages());
     if ("multicore" %in% tmp) {
         require(multicore);
@@ -425,8 +413,7 @@ check.multicore <- function ()
 ## Check that provided arguments are valid
 checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCut, criterion, stepBack,
 	preserveModelFlavour, epsilon, r, b, d, fixThreshold, initialR, initialE,
-	verbose, mc, numCores, resolveTree)
-{
+	verbose, mc, numCores, resolveTree) {
 	if (class(phy) != "phylo" && class(phy) != "multiPhylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
 	
 ## String arguments

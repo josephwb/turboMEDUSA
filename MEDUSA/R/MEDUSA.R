@@ -221,13 +221,14 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	}
 	
 	if (class(phy) == "multiPhylo") {
-		phy <- manageTipLabels(phy, mc=mc);
+		phy <- manageTipLabels(phy, mc=mc, numCores=numCores);
 		results <- lapply(phy, runMEDUSA, richness=richness, multiTree=TRUE, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
-		results <- list(results=results, richness=richness);
+		results <- list(results=results, richness=richness, medusaVersion=packageVersion("MEDUSA"));
 		class(results) <- "multiMedusa";
 	} else {
 		results <- runMEDUSA(phy=phy, richness=richness, verbose=verbose, ...);
 		results$richness <- richness;
+		results$medusaVersion <- packageVersion("MEDUSA");
 	}
 	
 	invisible(results);

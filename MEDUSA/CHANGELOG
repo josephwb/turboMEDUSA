@@ -1,3 +1,8 @@
+2013-01-07
+  * fixed problem in multiMedusa summary when a tree exhibited no (mapped) shifts
+  * because of ongoing development, tag results with MEDUSA version
+  * minor memory tweak in multiMedusa summary (regarding tip label ordering)
+
 2012-11-12
   * sped up relabelled or trees during initial stage of multiMEDUSA analysis
 
