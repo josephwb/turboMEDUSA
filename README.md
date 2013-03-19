@@ -42,7 +42,6 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
-<<<<<<< HEAD
 	install.packages("MEDUSA_0.93-4-21.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
