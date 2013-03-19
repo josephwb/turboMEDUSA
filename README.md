@@ -133,8 +133,6 @@ This will give semi-detailed error reports (if present). The hope is that someth
 
 	R CMD install --byte-compile MEDUSA_0.93-4-21.tar.gz
 
-Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-21.tar.gz command.
-=======
 This should remake the *.tar.gz file "MEDUSA_0.93-4-21.tar.gz" (or whatever version you have). Now, type:
 
 	R CMD check MEDUSA_0.93-4-21.tar.gz
