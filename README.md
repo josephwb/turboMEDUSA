@@ -2,6 +2,7 @@ MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ===============
 ### Recent Changes To Note
 **19 March 2013:** Replaced apparently corrupted code from last push.
+
 **7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
 
 	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
