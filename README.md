@@ -40,6 +40,7 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
+<<<<<<< HEAD
 	install.packages("MEDUSA_0.93-4-21.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
@@ -49,6 +50,17 @@ If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), n
 The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
 
 	install.packages("MEDUSA_0.93-4-21.tar.gz", repos=NULL, type="source");
+=======
+	install.packages("MEDUSA_0.93-4-20.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
+
+If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
+
+	R CMD install --byte-compile MEDUSA_0.93-4-20.tar.gz
+
+The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
+
+	install.packages("MEDUSA_0.93-4-20.tar.gz", repos=NULL, type="source");
+>>>>>>> 27e65816c0b3ade260b57bd780e8db47944f68d2
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
@@ -113,6 +125,7 @@ MEDUSA installation seems to have some problems with some flavour(s?) of Windows
 
 	R CMD build MEDUSA
 
+<<<<<<< HEAD
 This should remake the *.tar.gz file "MEDUSA_0.93-4-21.tar.gz" (or whatever version you have). Now, type:
 
 	R CMD check MEDUSA_0.93-4-21.tar.gz
@@ -122,3 +135,14 @@ This will give semi-detailed error reports (if present). The hope is that someth
 	R CMD install --byte-compile MEDUSA_0.93-4-21.tar.gz
 
 Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-21.tar.gz command.
+=======
+This should remake the *.tar.gz file "MEDUSA_0.93-4-20.tar.gz" (or whatever version you have). Now, type:
+
+	R CMD check MEDUSA_0.93-4-20.tar.gz
+
+This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
+
+	R CMD install --byte-compile MEDUSA_0.93-4-20.tar.gz
+
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-20.tar.gz command.
+>>>>>>> 27e65816c0b3ade260b57bd780e8db47944f68d2
