@@ -8,7 +8,6 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 		i.na <- is.na(richness$exemplar);
 		phy$tip.label[match(richness$exemplar[!i.na], phy$tip.label)] <- as.character(richness$taxon[!i.na]);
 	}
-	
 	if (class(phy) != "phylo") {stop("\n\nWARNING: tree is not of class \"phylo\". Stopping.\n");}
 	
 # Prune tree down to lineages with assigned richnesses
@@ -80,11 +79,13 @@ formatRichness <- function (richness, phy=NULL) {
 manageTipLabels <- function (phy, refTree=NULL, mc=F, numCores=NULL) {
 	cat("\nManaging tip label ordering across trees...");
 	
-	if (!is.null(attr(phy, "TipLabel"))) return(phy);
+	if (!is.null(attr(phy, "TipLabel"))) return(phy); # trees have already been processed
 	
-	if (is.null(refTree)) ref <- phy[[1]]$tip.label
-	else ref <- refTree$tip.label;
-	
+	if (is.null(refTree)) {
+		ref <- phy[[1]]$tip.label
+	} else {
+		ref <- refTree$tip.label;
+	}
 	if (any(table(ref) != 1)) stop("some tip labels are duplicated in tree no. 1");
 	
 	n <- length(ref);
@@ -104,7 +105,7 @@ manageTipLabels <- function (phy, refTree=NULL, mc=F, numCores=NULL) {
 	}
 	
 	if (mc) {
-		phy <- mclapply(phy, relabel, num.cores=numCores);
+		phy <- mclapply(phy, relabel, mc.cores=numCores);
 	} else {
 		phy <- lapply(phy, relabel);
 	}

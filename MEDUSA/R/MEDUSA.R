@@ -21,7 +21,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
 	modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
 	
-	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) {
+	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) { # wtf is multiTree?!?
 		
 		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose, resolveTree);
 		phy <- phyData$phy;
@@ -95,11 +95,9 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
 		}
 		
-		stopOnLimit <- function(fit) {
+		stopOnLimit <- function(fit) { # not likely to be used. get rid of it?
 			optModel <- fit;
 			
-			#cat("Step 1 (of ", modelLimit, "): lnLik=", models[[1]]$lnLik, "; AICc=", models[[1]]$aicc,
-			#	"; model=", models[[1]]$model, "\n", sep="");
 			cat("Step 1 (of ", modelLimit, "): lnLik=", optModel$lnLik, "; AICc=", optModel$aicc,
 				"; model=", optModel$model, "\n", sep="");
 			
@@ -221,7 +219,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	}
 	
 	if (class(phy) == "multiPhylo") {
-		phy <- manageTipLabels(phy, mc=mc, numCores=numCores);
+		phy <- manageTipLabels(phy=phy, mc=mc, numCores=numCores);
 		results <- lapply(phy, runMEDUSA, richness=richness, multiTree=TRUE, verbose=FALSE, ...); # prevent extraneous bits from being printed to screen
 		results <- list(results=results, richness=richness, medusaVersion=packageVersion("MEDUSA"));
 		class(results) <- "multiMedusa";
