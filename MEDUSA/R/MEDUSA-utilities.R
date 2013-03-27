@@ -518,19 +518,36 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL) {
 # use different intervals based on model flavour
 	if (model == "yule") {
 		
-		maxVal <- (log(node.richness) / depth) * 5;
-		if (node.richness <= 1) {maxVal <- 1e-5;}
-		
-		suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
-		par <- c(exp(fit$minimum), NA);
-		
-		while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
-			maxVal <- par[1] * 3;
-#			cat("Hit boundary\n")
-			suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
+		if (all(new.part[,"n.t"] == 1, na.rm = TRUE)) { # solution known; don't bother optimizing
+			n.int <- sum(is.na(new.part[,"n.t"]));
+			
+			if (n.int <= 1) {
+				return(list(par=c(0, NA), lnLik=-Inf));
+			}
+			
+			sum.t <- sum(new.part[,"t.len"]);
+			r <- (n.int - 1) / sum.t;
+			lik <- n.int * (log(r) - 1) + 1;
+			par <- c(r, NA);
+			#cat("r =", r, "; lik =", lik, "\n");
+
+			return(list(par=par, lnLik=lik));
+			
+		} else {
+			maxVal <- (log(node.richness) / depth) * 5;
+			if (node.richness <= 1) {maxVal <- 1e-5;}
+			
+			suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
 			par <- c(exp(fit$minimum), NA);
+			
+			while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
+				maxVal <- par[1] * 3;
+#				cat("Hit boundary\n")
+				suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
+				par <- c(exp(fit$minimum), NA);
+			}
+			return(list(par=par, lnLik=-fit$objective));
 		}
-		return(list(par=par, lnLik=-fit$objective));
 		
 	} else if (model == "fixedD") {
 ## this is the messiest model flavour; reasonable range depends on magnitude of fixD
@@ -620,8 +637,8 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL) {
 
 ## makePartitionLikelihood: generate a likelihood function for a single partition.
 makePartitionLikelihood <- function (partition, model, fixPar) {
-	i.int <- is.na(partition[,"n.t"])
-	i.pend <- !(i.int)
+	i.int <- is.na(partition[,"n.t"]);
+	i.pend <- !(i.int);
 	n.int <- sum(i.int);
 	
 	simple <- FALSE;
@@ -697,7 +714,7 @@ makePartitionLikelihood <- function (partition, model, fixPar) {
 			}
 			return(f)
 		}
-	} else {
+	} else { # not simple: one or more tips represent > 1 extant species
 		sum.int.t.len <- sum(partition[i.int,"t.len"]);
 		pend.t.len <- partition[i.pend,"t.len"];
 		pend.n.t.minus.1 <- partition[i.pend,"n.t"] - 1;

@@ -17,7 +17,7 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 	
 # checking for typos
 	if (length(pruned$phy$tip.label) == 0) {
-		cat("\n\nWARNING: MEDUSA encountered a serious error. Tree has no tips after processing richness information! \nIt is likely that an incorrect richness file is being used. \nAnalysis cannot proceed. Please examine the information below to identify the error.\\nn");
+		cat("\n\nWARNING: MEDUSA encountered a serious error. Tree has no tips after processing richness information! \nIt is likely that an incorrect richness file is being used. \nAnalysis cannot proceed. Please examine the information below to identify the error.\n\n");
 		cat("\nTree tip labels:\n");
 		print(phy$tip.label);
 		cat("\nRichness taxon labels:\n");
@@ -28,14 +28,18 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 	phy <- pruned$phy;
 	
 # Check the tree
-	if (!is.ultrametric(phy)) {stop("\n\nWARNING: input tree is not ultrametric. Stopping analysis.\n", sep="");}
+	if (!is.ultrametric(phy)) {stop("\n\nWARNING: input tree is not ultrametric. Stopping analysis.\n");}
 	if (!is.binary.tree(phy)) {
 		if (!resolveTree) {
-			stop("\nWARNING: input tree is not binary (i.e. contains one or more polytomies).\nIf you wish to randomly resolve the tree, re-run MEDUSA with option \"resolveTree=TRUE\".\n\nStopping analysis.\n", sep="");
+			stop("\nWARNING: input tree is not binary (i.e. contains one or more polytomies).\nIf you wish to randomly resolve the tree, re-run MEDUSA with option \"resolveTree=TRUE\".\n\nStopping analysis.\n");
 		} else {
 			cat("\nNOTE: Input tree is not binary (i.e. contains one or more polytomies), but continuing analysis because \"resolveTree\" was set to TRUE.\n\n");
 			phy <- multi2di(phy);
 		}
+	}
+	if (any(phy$edge.length == 0)) {
+		cat("\nWARNING: input tree contains ", length(which(phy$edge.length == 0)), " zero-length branches.\n", sep="");
+		stop("Stopping analysis.\n");
 	}
 	
 	return(list(phy=phy, richness=richness));

@@ -67,3 +67,6 @@
 20. Fix general plotting.
   - text size and plot positioning should depend on tree size
   - remove species richness plot when all tips == 1 - DONE
+
+21. Test for zero-length pendant edges - DONE
+  - ape considers these binary and ultrametric

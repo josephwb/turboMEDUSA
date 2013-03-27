@@ -1,3 +1,6 @@
+2013-03-27
+  * now checks for zero-length edges
+
 2013-01-07
   * fixed problem in multiMedusa summary when a tree exhibited no (mapped) shifts
   * because of ongoing development, tag results with MEDUSA version
