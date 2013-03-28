@@ -1,3 +1,6 @@
+2013-03-28
+  * fixed multiMedusaSummary error when only 1 (or 0) node shifts occur > cutOff
+
 2013-03-27
   * now checks for zero-length edges
 

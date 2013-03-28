@@ -211,9 +211,13 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 		mean.shift=mean.shift, median.shift=median.shift, min.shift=min.shift, max.shift=max.shift, sd.shift=sd.shift);
 	shift.summary  <- shift.summary[order(shift.summary[,"sum.prop"], decreasing=TRUE),]; # reorder by frequency
 	
-# if desired, only keep shifts presultsent above cutOff thresultshold
-	shift.summary <- shift.summary[which(shift.summary[,"sum.prop"] >= cutOff),];
+# if desired, only keep shifts presultsent above cutOff threshold
+	shift.summary <- shift.summary[which(shift.summary[,"sum.prop"] >= cutOff),,drop=FALSE];
 	rownames(shift.summary) <- NULL;
+	
+	if (length(shift.summary) == 0) {
+		cat("WARNING: no node shifts occur above cutoff of ", cutOff, ". Try setting lower cutoff.\n", sep="");
+	}
 	
 	if (cutOff > 0) {
 		cat("Mapped rate shift positions present in at least ", cutOff * 100, "% (of ", num.trees, " total) trees:\n\n", sep="");
@@ -323,7 +327,7 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		mtext("ln(species count + 1)", at=axisPlacement, side = 1, line = 2, cex=0.75);
 	}
 	
-	if (annotateShift) {
+	if (annotateShift && (length(shift.summary) > 0)) {
 		plotcolor <- rgb(red=255, green=0, blue=0, alpha=150, maxColorValue=255);
 		for (i in  1:length(shift.summary[,"shift.node"])) {
 			nodelabels(node=shift.summary[,"shift.node"][i], pch=21, cex=(shift.summary[,"sum.prop"][i]) * shiftScale,
