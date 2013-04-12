@@ -76,9 +76,15 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 # for each edge in conTree, store associated estimated parameters from replicate MEDUSA results
 	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges); # important to preallocate size
 	colnames(est.pars) <- rep(c("r", "epsilon"), num.trees);
-	est.splits <- NULL; # possible for some not to map to consensus tree (i.e. incompatible)
-	est.cuts <- NULL; # i.e. stem vs. node
-	est.shift.magnitudes <- NULL; # store magnitude of shift changes
+	#est.splits <- NULL; # possible for some not to map to consensus tree (i.e. incompatible)
+	#est.cuts <- NULL; # i.e. stem vs. node
+	#est.shift.magnitudes <- NULL; # store magnitude of shift changes
+	
+	est.splits <- rep(NA, sum(model.sizes)); # possible for some not to map to consensus tree (i.e. incompatible)
+	est.cuts <- rep(NA, sum(model.sizes)); # i.e. stem vs. node
+	est.shift.magnitudes <- rep(NA, sum(model.sizes)); # store magnitude of shift changes
+	
+	indx.pos <- 1;
 	
 	for (i in 1:num.trees) {
 		i.z <- results[[i]]$optModel$z;
@@ -113,28 +119,39 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 				}
 			}
 			
-			est.splits <- c(est.splits, mapped.splits);
-			est.cuts <- c(est.cuts, i.cuts);
-			
 			shift.magnitudes <- rep(NA, length(i.splits));
 			for (k in 1:length(i.splits)) {
 				if (!is.na(mapped.splits[k])) {
 					parent.class <- NULL;
 					descendant.class <- NULL;
+					mappable.magnitude <- TRUE;
 					if (i.cuts[k] == "stem" && mapped.splits[k] != root.node) { # grab rate one node up
 						parent.node <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "anc"]);
-						parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
-						descendant.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
+						if (parent.node != root.node) {
+							parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
+							descendant.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
+						} else {
+							mappable.magnitude <- FALSE;
+						}
 			# check above is always true. should be, even if deletion occurs
 					} else { # node cut
 						parent.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
 						descendant.class <- k; # + 1; # the +1 is because the initial 'shift' at the root is removed
 					}
 				# got partition classes. store differences.
-					shift.magnitudes[k] <- as.numeric(i.par[descendant.class, "r"] - i.par[parent.class, "r"]);
+					if (mappable.magnitude) {
+						shift.magnitudes[k] <- as.numeric(i.par[descendant.class, "r"] - i.par[parent.class, "r"]);
+					}
 				}
 			}
-			est.shift.magnitudes <- c(est.shift.magnitudes, shift.magnitudes);
+			
+			# preallocate all of these vectors! done.
+			for (j in 1:length(i.splits)) {
+				est.shift.magnitudes[indx.pos] <- shift.magnitudes[j];
+				est.splits[indx.pos] <- mapped.splits[j]; # maybe preallocate est.splits vector? probably faster!
+				est.cuts[indx.pos] <- i.cuts[j];
+				indx.pos <- indx.pos + 1;
+			}
 		}
 	}
 	

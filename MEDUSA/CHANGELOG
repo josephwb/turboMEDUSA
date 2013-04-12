@@ -1,3 +1,6 @@
+2013-04-12
+  * fixed mapping error in multiMedusaSummary
+
 2013-03-28
   * fixed multiMedusaSummary error when only 1 (or 0) node shifts occur > cutOff
 
