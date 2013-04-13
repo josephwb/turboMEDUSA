@@ -1,5 +1,5 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
-===============
+---------------
 ### Recent Changes To Note
 **19 March 2013:** Replaced apparently corrupted code from last push.
 
