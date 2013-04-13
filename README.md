@@ -51,16 +51,6 @@ If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), n
 The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
 
 	install.packages("MEDUSA_0.93-4-25.tar.gz", repos=NULL, type="source");
-=======
-	install.packages("MEDUSA_0.93-4-25.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
-
-If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
-
-	R CMD install --byte-compile MEDUSA_0.93-4-25.tar.gz
-
-The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
-
-	install.packages("MEDUSA_0.93-4-25.tar.gz", repos=NULL, type="source");
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
