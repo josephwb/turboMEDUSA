@@ -1,21 +1,11 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
-### Recent Changes To Note
-**19 March 2013:** Replaced apparently corrupted code from last push.
-
-**7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
-
-	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
-
-after which MEDUSA would stubbornly refuse to continue. The function now works, although it is not exceedingly fast.
-
-**14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
 Overview
 ---------------
-Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Will eventually be made available on CRAN (http://cran.r-project.org/) in the Geiger package version 2.0.
+Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Uses likelihood equations from [Rabosky et al. 2007. Proc. Roy. Soc.](http://rspb.royalsocietypublishing.org/content/274/1628/2915.short). PLEASE NOTE: the returned MEDUSA likelihood for a completely-sampled unpartitioned Yule or Birth-Death model will be different than those provided by [APE](http://cran.r-project.org/web/packages/ape/) or [LASER](http://cran.r-project.org/web/packages/laser/index.html) (which use only information from branching times), but inferred parameter values should be identical. Unfortunately, this means that MEDUSA/non-MEDUSA models can not be compared in a model-selection framework.
 
 ### Confusing Name Genealogy
-MEDUSA was formerly named "turboMEDUSA" (previously distributed as both scripts and R packages); these are the same method, although the current version is much more general. The previous version of MEDUSA available in the current version Geiger (published in Alfaro et al. 2009. PNAS) is an earlier implementation. Yes, I know this is confusing!
+MEDUSA was formerly named "turboMEDUSA" (previously distributed as both scripts and R packages); these are the same method, although the current version is much more general. The previous version of MEDUSA [Alfaro et al. 2009. PNAS](http://www.pnas.org/content/106/32/13410.short) available in Geiger version 1.0 [Harmon et al. 2008. Bioinf.](http://bioinformatics.oxfordjournals.org/content/24/1/129.short) is an earlier implementation. Yes, I know this is confusing!
 
 ### The Current Method
 Besides being faster and more efficient, the current version of MEDUSA does a number things the older versions cannot:
@@ -31,7 +21,7 @@ Besides being faster and more efficient, the current version of MEDUSA does a nu
 
 Installation
 ---------------
-At the moment, MEDUSA is not available on CRAN, although it will be, as a component of GEIGER 2.0. To install, put the non-decompressed *.tar.gz file (from the 'Stable' directory) in your R working directory. You will need to install some R dependencies first.
+At the moment, MEDUSA itself is not available on CRAN, although it will be a component of the forthcoming [GEIGER version 2.0](http://cran.r-project.org/web/packages/geiger/). For now, to install, put the non-decompressed *.tar.gz file (from the 'Stable' directory) in your R working directory. You will need to install some R dependencies first.
 
 In R, type:
 
@@ -84,7 +74,7 @@ At the simplest (i.e. using all default options), with your tree(s) 'phy' and ri
 
 If you have a particularly difficult problem (i.e. large tree, or large number of trees), you will benefit from using multiple processing cores, using the R package "multicore". Unfortunately, however, multicore has some strong restrictions. In addition to requiring a POSIX-compliant OS (i.e NOT Windows), it also won't work if you are using graphical devices (e.g. some form of R console). So multi-core processing can only be done in a strictly command-line environment (e.g. Terminal in Mac). There is negligible overhead involved using multiple cores, so scaling is (as far as I can see it) linear with the number of processors. If compatible to your system, install multicore as:
 
-	install.packages("multicore");
+	install.packages("multicore", INSTALL_opts="--byte-compile");
 
 and run MEDUSA as:
 
@@ -104,10 +94,21 @@ To save stuff, type:
 
 	save(phy, richness, res, summ, file="My_MEDUSA_results.RData");
 
-
 To learn more, there are some slides here:
 
 https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf
+
+Recent Changes To Note
+--------------
+**19 March 2013:** Replaced apparently corrupted code from last push.
+
+**7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
+
+	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
+
+after which MEDUSA would stubbornly refuse to continue. The function now works, although it is not exceedingly fast.
+
+**14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
 
 Issues
 --------------
