@@ -25,22 +25,17 @@ At the moment, MEDUSA itself is not available on CRAN, although it will be a com
 
 In R, type:
 
-	install.packages("colorspace");
-	install.packages("shape");
+	install.packages(c("shape","colorspace"), INSTALL_opts="--byte-compile", dependencies=TRUE);
 
 You may need to specify a download location if you have not previously set up a default location.
 
 To install MEDUSA proper, type in R:
 
-	install.packages("MEDUSA_0.93-4-25.tar.gz", repos=NULL, type="source", INSTALL_opts="--byte-compile");
+	install.packages("MEDUSA_0.93-4-26.tar.gz", repos=NULL, type="source");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
 
-	R CMD install --byte-compile MEDUSA_0.93-4-25.tar.gz
-
-The "--byte-compile" option is optional and regards performance. In order to use this option, you must have a fortran compiler. Compilers are available on the CRAN homepage (e.g. for Mac: http://cran.r-project.org/bin/macosx/tools/). If you cannot be bothered with this, just omit the option:
-
-	install.packages("MEDUSA_0.93-4-25.tar.gz", repos=NULL, type="source");
+	R CMD install MEDUSA_0.93-4-26.tar.gz
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
@@ -116,12 +111,12 @@ MEDUSA installation seems to have some problems with some flavour(s?) of Windows
 
 	R CMD build MEDUSA
 
-This should remake the *.tar.gz file "MEDUSA_0.93-4-25.tar.gz" (or whatever version you have). Now, type:
+This should remake the *.tar.gz file "MEDUSA_0.93-4-26.tar.gz" (or whatever version you have). Now, type:
 
-	R CMD check MEDUSA_0.93-4-25.tar.gz
+	R CMD check MEDUSA_0.93-4-26.tar.gz
 
 This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
 
-	R CMD install --byte-compile MEDUSA_0.93-4-25.tar.gz
+	R CMD install MEDUSA_0.93-4-26.tar.gz
 
-Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-25.tar.gz command.
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-26.tar.gz command.
