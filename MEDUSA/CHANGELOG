@@ -1,3 +1,6 @@
+2013-05-23
+  * make byte-compilation default
+
 2013-04-12
   * fixed mapping error in multiMedusaSummary
 
