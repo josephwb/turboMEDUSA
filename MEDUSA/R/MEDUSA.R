@@ -104,7 +104,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			for (i in seq_len(modelLimit-1)) {
 				node.list <- all.nodes[-fit$split.at];
 				
-				if (mc) { # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
+				if (mc) { # parallel (i.e. multithreaded) processing. No GUI, and not at all on Windows
 					
 					res <- mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour, mc.cores=numCores);
@@ -155,7 +155,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			
 			while (!done && i) {
 				node.list <- all.nodes[-fit$split.at];
-				if (mc)  # multicore (i.e. multithreaded) processing. No GUI, and not at all on Windows
+				if (mc)  # parallel (i.e. multithreaded) processing. No GUI, and not at all on Windows
 				{
 					res <- mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour,

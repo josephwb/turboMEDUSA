@@ -406,10 +406,11 @@ descendantsCutAtNode.idx <- function (node.list, all.edges) {
 
 
 ## via Jon Eastman
-check.multicore <- function ()  {
+## update to 'parallel'
+check.parallel <- function ()  {
     tmp = rownames(installed.packages());
-    if ("multicore" %in% tmp) {
-        require(multicore);
+    if ("parallel" %in% tmp) {
+        require(parallel);
         return(TRUE);
     } else {
         return(FALSE);
@@ -437,13 +438,13 @@ checkValidArguments <- function (phy, richness, model, modelLimit, stop, shiftCu
 	
 	if (mc) {
 		if (Sys.info()["sysname"] == "Windows") {
-			stop("\"mc\" argument requested, but package \"multicore\" is not available for Windows. Stopping.\n");
+			stop("\"mc\" argument requested, but package \"parallel\" is not available for Windows. Stopping.\n");
 		}
 		if (!is.na(Sys.getenv()["R_GUI_APP_VERSION"])) {
-			stop("\"mc\" argument requested, but package \"multicore\" cannot be run in a GUI environment. Stopping.\n");
+			stop("\"mc\" argument requested, but package \"parallel\" cannot be run in a GUI environment. Stopping.\n");
 		}
-		if (!check.multicore()) {
-			stop("\"mc\" argument requested, but package \"multicore\" is not installed. Stopping.\n");
+		if (!check.parallel()) {
+			stop("\"mc\" argument requested, but package \"parallel\" is not installed. Stopping.\n");
 		}
 	}
 	

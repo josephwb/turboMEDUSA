@@ -10,6 +10,6 @@ License: GPL (>= 2)
 LazyLoad: yes
 ByteCompile: yes
 Depends: ape (>= 3.0-3), geiger, colorspace, shape
-Suggests: multicore (>= 0.1-3)
+Suggests: parallel
 Enhances: geiger
 Packaged: 2013-06-18; josephwb
