@@ -307,15 +307,14 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		richness2Plot <- NULL;
 		
 	# reorder richnesses according to tip.labels
-		richness <- richness[match(conTree$tip.label, richness[,1]),];
+		richness <- richness[match(conTree$tip.label, richness$taxon),];
 		
 		if (richPlot == "log") {
-			richness2Plot <- log(richness[,2] + 1);
-			names(richness2Plot) <- richness[,1];
+			richness2Plot <- log(richness$n.taxa + 1);
 		} else {
-			richness2Plot <- richness[,2];
-			names(richness2Plot) <- richness[,1];
+			richness2Plot <- richness$n.taxa;
 		}
+		names(richness2Plot) <- richness$taxon;
 		maxVal <- max(as.numeric(richness2Plot[conTree$tip.label]));
 		fontSize <- lastPP$cex;
 		
