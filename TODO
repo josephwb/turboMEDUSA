@@ -70,3 +70,6 @@
 
 21. Test for zero-length pendant edges - DONE
   - ape considers these binary and ultrametric
+
+22. fix problem in threshold setting. using initial tree rather than pruned tree - DONE
+  - will result in overly conservative models

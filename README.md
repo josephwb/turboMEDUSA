@@ -1,5 +1,19 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
+Recent Changes To Note
+--------------
+**18 June 2013:** For incompletely-sampled trees (i.e. those requiring a 'richness' file), the AIC-threshold was set incorrectly (i.e. based on the size of the initial tree, and not the tree pruned with the richness information). This error will result in overly conservative models. This is now fixed in version 0.93-4-27.
+
+**19 March 2013:** Replaced apparently corrupted code from last push.
+
+**7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
+
+	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
+
+after which MEDUSA would stubbornly refuse to continue. The function now works, although it is not exceedingly fast.
+
+**14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
+
 Overview
 ---------------
 Fits piecewise diversification models from time-calibrated phylogenetic tree(s) and complete extant species richness. Uses likelihood equations from [Rabosky et al. 2007. Proc. Roy. Soc.](http://rspb.royalsocietypublishing.org/content/274/1628/2915.short) PLEASE NOTE: the returned MEDUSA likelihood for a completely-sampled unpartitioned Yule or Birth-Death model will be different than those provided by [APE](http://cran.r-project.org/web/packages/ape/) or [LASER](http://cran.r-project.org/web/packages/laser/index.html) (which use only information from branching times), but inferred parameter values should be identical. Unfortunately, this means that MEDUSA/non-MEDUSA models cannot be compared in a model-selection framework.
@@ -31,11 +45,11 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
-	install.packages("MEDUSA_0.93-4-26.tar.gz", repos=NULL, type="source");
+	install.packages("MEDUSA_0.93-4-27.tar.gz", repos=NULL, type="source");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
 
-	R CMD install MEDUSA_0.93-4-26.tar.gz
+	R CMD install MEDUSA_0.93-4-27.tar.gz
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
@@ -93,30 +107,18 @@ To learn more, there are some slides here:
 
 https://sites.google.com/site/macroevolutioninr/course-materials/MEDUSA_intro.pdf
 
-Recent Changes To Note
---------------
-**19 March 2013:** Replaced apparently corrupted code from last push.
-
-**7 January 2013:** Fixed a bug in multiMedusaSummary when any individual analyzed tree exhibited no significant rate shifts. Those affected may have seen an error along the lines of:
-
-	Error in if (i.cuts[d] == "node") { :  missing value where TRUE/FALSE needed
-
-after which MEDUSA would stubbornly refuse to continue. The function now works, although it is not exceedingly fast.
-
-**14 November 2012:** Running multi-tree analyses require that tip.labels ordering is consistent across all trees. [This is, I believe, ensured when reading in Nexus files possessing a translation table, but not otherwise.]. I have been using ape's ape:::.compressTipLabel() function to do this. However, for large and/or many trees, this can take an enormous amount of time (an analysis might seem to hang at "Managing tip label ordering across trees..."). I've reimplemented the function and (especially when multiple cores are used) it speeds things up considerably. If you are analyzing multiple trees, make sure to use version 0.93-4.17 or higher.
-
 Issues
 --------------
 MEDUSA installation seems to have some problems with some flavour(s?) of Windows. While I have not yet found the source of the problem, the following seems to help. First, download the most recent version of MEDUSA from the 'Stable' directory. Double-click on the *.tar.gz file you downloaded. This should expand to a directory called simply 'MEDUSA'; this contains all of the code in uncompressed form. Using your Windows command prompt, navigate to the directory containing 'MEDUSA', and type the following:
 
 	R CMD build MEDUSA
 
-This should remake the *.tar.gz file "MEDUSA_0.93-4-26.tar.gz" (or whatever version you have). Now, type:
+This should remake the *.tar.gz file "MEDUSA_0.93-4-27.tar.gz" (or whatever version you have). Now, type:
 
-	R CMD check MEDUSA_0.93-4-26.tar.gz
+	R CMD check MEDUSA_0.93-4-27.tar.gz
 
 This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
 
-	R CMD install MEDUSA_0.93-4-26.tar.gz
+	R CMD install MEDUSA_0.93-4-27.tar.gz
 
-Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-26.tar.gz command.
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-27.tar.gz command.

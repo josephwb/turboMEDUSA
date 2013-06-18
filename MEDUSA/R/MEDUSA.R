@@ -15,7 +15,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	
 	# Determine correct AICc threshold from tree size (based on simulations)
 	 # Should be used for interpreting model-fit
-	threshold <- getThreshold(phy, fixThreshold=fixThreshold, stop=stop);
+	threshold <- getThreshold(phy, fixThreshold=fixThreshold, richness=richness, stop=stop);
 		
 	# Limit on number of piecewise models fitted; based on tree size, aicc correction factor, 
 	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
