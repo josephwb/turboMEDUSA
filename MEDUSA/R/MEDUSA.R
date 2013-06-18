@@ -21,6 +21,11 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	# and flavour of model fitted (i.e. # parameters estimated; birth-death or pure-birth)
 	modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
 	
+	# temporary work-around hack
+	if (mc && is.null(numCores)) {
+		numCores <- parallel:::detectCores();
+	}
+	
 	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) { # wtf is multiTree?!?
 		
 		phyData <- prepareData(phy=phy, richness=richness, verbose=verbose, resolveTree);
