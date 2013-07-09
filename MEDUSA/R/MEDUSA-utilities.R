@@ -55,14 +55,17 @@ medusaSplit <- function (node, z, desc, shiftCut) {
 
 ## Pre-fit values for pendant edges; DON'T recalculate later; should account for ~25% of all calculations
 ## Also cache values for virgin nodes; useful until subsetted, especially for large trees.
+## Tips with richness of 1 have not undergone anything along edge. r = 0, lik = 1.
 prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCores) {
+	# for case where all tips have richness of 1 i.e. a fully sampled tree.
 	if (all(z[z[,"dec"] %in% pend.nodes,"n.t"] == 1) && (model == "yule" || model == "mixed")) {
 		fit <- list(list(par=c(0, NA), lnLik=0, model="yule"));
 		fit <- rep(fit, length(pend.nodes));
 		return(fit);
 	}
 	
-	if (model == "mixed") { # yule will always have a better AIC for tip, regardless of richness
+	# yule will always have a better AIC for tip, regardless of richness
+	if (model == "mixed" || model == "yule") {
 		if (mc) {
 			tips <- mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
 				model="yule", fixPar=fixPar, criterion=criterion, mc.cores=numCores);
@@ -85,35 +88,72 @@ prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCore
 medusaMLPrefitTip <- function (node, z, sp, model, fixPar, criterion) {
 	z.tip <- z[z[,"dec"] == node,,drop=FALSE];
 	
-	if (all(z.tip[,"n.t"] == 1) && (model == "yule" || model == "mixed")) {
+	if ((z.tip[,"n.t"] == 1) && (model == "yule" || model == "mixed")) {
 		return(list(par=c(0, NA), lnLik=0, model="yule"));
 	}
 	
-	fit <- getOptimalModelFlavour(z=z.tip, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
-	return(fit);
+	# tips are always better fit by yule. don't bother with BD.
+	if (model == "yule" || model == "mixed") {
+		if (z.tip[,"n.t"] == 1) { # single tip. nothing has happened along edge, so r = 0
+			return(list(par=c(0, NA), lnLik=0, model="yule"));
+		} else { # unresolved clade
+			# no t.len information available, only depth
+			# MLE birth rate is: log(n.t) / depth
+			r <- as.numeric(log(z.tip[,"n.t"]) / z.tip[,"t.len"]);
+			lik <- as.numeric(-z.tip[,"t.len"] * r + (z.tip[,"n.t"] - 1) * log(1 - exp(-z.tip[,"t.len"] * r)));
+			return(list(par=c(r, NA), lnLik=lik, model="yule"));
+		}
+	} else {
+		fit <- getOptimalModelFlavour(z=z.tip, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+		return(fit);
+	}
 }
 
 medusaMLPrefitNode <- function (node, z, desc, sp, model, fixPar, criterion) {
 	z.node <- medusaSplitNode(node=node, z=z, desc=desc, extract=TRUE)$z;
-	fit <- getOptimalModelFlavour(z=z.node, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+	if (all(z.node[,"n.t"] == 1, na.rm=T)) {
+		fit <- getOptimalModelFlavour(z=z.node, sp=sp, model=model, fixPar=fixPar, criterion=criterion, simple=TRUE);
+	} else {
+		fit <- getOptimalModelFlavour(z=z.node, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+	}
 	return(fit);
 }
 
 medusaMLPrefitStem <- function (node, z, desc, sp, model, fixPar, criterion) {
 	z.stem <- medusaSplitStem(node=node, z=z, desc=desc, extract=TRUE)$z;
-	fit <- getOptimalModelFlavour(z=z.stem, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+	if (all(z.stem[,"n.t"] == 1, na.rm=T)) {
+		fit <- getOptimalModelFlavour(z=z.stem, sp=sp, model=model, fixPar=fixPar, criterion=criterion, simple=TRUE);
+	} else {
+		fit <- getOptimalModelFlavour(z=z.stem, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
+	}
 	return(fit);
 }
 
+# solution known when subtree is completely sampled
+simpleYule <- function (z) {
+	n.int <- sum(is.na(z[,"n.t"])); # the number of speciation events
+	if (n.int == 0) {
+		return(list(par=c(0, NA), lnLik=0));
+	}
+	sum.t <- sum(z[,"t.len"]);
+	r <- (n.int) / sum.t;
+	lik <- n.int * log(r) - r * sum.t;
+	par <- c(r, NA);
+	return(list(par=c(r, NA), lnLik=lik));
+}
 
 ## When model == mixed, fit both and find optimal flavour
-getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion) {
+getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion, simple=FALSE) {
 	fit.bd <- NULL;
 	fit.yule <- NULL;
 	fit <- NULL;
 	
 	if (model == "yule" | model == "mixed") {
-		fit.yule <- medusaMLFitPartition(z=z, sp=sp, model="yule");
+		if (simple) {
+			fit.yule <- simpleYule(z = z);
+		} else {
+			fit.yule <- medusaMLFitPartition(z=z, sp=sp, model="yule");
+		}
 		fit.yule$model <- "yule";
 	}
 	if (model == "bd" | model == "mixed") {
@@ -135,12 +175,6 @@ getOptimalModelFlavour <- function (z, sp, model, fixPar, criterion) {
 	} else {
 ## Considering both models
 		fit <- getBestPartialModel(fit1=fit.yule, fit2=fit.bd, z=z, criterion=criterion);
-		
-		# fit.bd.val <- calculateModelFit(fit=fit.bd, z=z); ## NOT valid here, as sample size is NOT z
-		# fit.yule.val <- calculateModelFit(fit=fit.yule, z=z);
-		
-## The length condition below deals with single edges, where AICc correction becomes undefined (n-k-1)
-  # Undefined
 	}
 	return(fit);
 }
@@ -518,36 +552,26 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL) {
 # use different intervals based on model flavour
 	if (model == "yule") {
 		
-		if (all(new.part[,"n.t"] == 1, na.rm = TRUE)) { # solution known; don't bother optimizing
-			n.int <- sum(is.na(new.part[,"n.t"]));
-			
-			if (n.int <= 1) {
-				return(list(par=c(0, NA), lnLik=-Inf));
-			}
-			
-			sum.t <- sum(new.part[,"t.len"]);
-			r <- (n.int - 1) / sum.t;
-			lik <- n.int * (log(r) - 1) + 1;
-			par <- c(r, NA);
-			#cat("r =", r, "; lik =", lik, "\n");
-
-			return(list(par=par, lnLik=lik));
-			
-		} else {
-			maxVal <- (log(node.richness) / depth) * 5;
-			if (node.richness <= 1) {maxVal <- 1e-5;}
-			
-			suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
-			par <- c(exp(fit$minimum), NA);
-			
-			while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
-				maxVal <- par[1] * 3;
-#				cat("Hit boundary\n")
-				suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
-				par <- c(exp(fit$minimum), NA);
-			}
-			return(list(par=par, lnLik=-fit$objective));
+		n.int <- sum(is.na(new.part[,"n.t"]));
+		
+		if ((n.int == 0) && all(new.part[,"n.t"] == 1, na.rm = TRUE)) {
+			return(list(par=c(0, NA), lnLik=-Inf));
 		}
+		
+		maxVal <- (log(node.richness) / depth) * 5;
+		if (node.richness <= 1) {maxVal <- 1e-5;}
+		
+		suppressWarnings(fit <- optimize(f=foo, interval=c(-25, log(maxVal))));
+		par <- c(exp(fit$minimum), NA);
+		
+		while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
+			maxVal <- par[1] * 3;
+#				cat("Hit boundary\n")
+			suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
+			par <- c(exp(fit$minimum), NA);
+		}
+		return(list(par=par, lnLik=-fit$objective));
+
 		
 	} else if (model == "fixedD") {
 ## this is the messiest model flavour; reasonable range depends on magnitude of fixD

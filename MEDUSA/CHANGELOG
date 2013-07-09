@@ -1,4 +1,7 @@
 2013-05-23
+  * improvement to prefitting, taking advantage of when MLE solution is known.
+
+2013-05-23
   * make byte-compilation default
 
 2013-04-12
