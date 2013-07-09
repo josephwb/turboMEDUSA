@@ -13,7 +13,7 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 # Prune tree down to lineages with assigned richnesses
 	temp <- richness[, "n.taxa"];
 	names(temp) <- richness[, "taxon"];
-	pruned <- treedata(phy, temp, warnings=verbose)  # geiger function calling ape (namecheck)
+	pruned <- treedata(phy, temp, warnings=FALSE)  # geiger function calling ape (namecheck)
 	
 # checking for typos
 	if (length(pruned$phy$tip.label) == 0) {

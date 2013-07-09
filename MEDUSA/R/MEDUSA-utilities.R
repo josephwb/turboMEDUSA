@@ -566,7 +566,7 @@ medusaMLFitPartition <- function (z, sp=c(0.05, 0.5), model, fixPar=NULL) {
 		
 		while (par[1]/maxVal > 0.95) { # crash against boundary; doesn't seem to get used...
 			maxVal <- par[1] * 3;
-#				cat("Hit boundary\n")
+#			cat("Hit boundary\n")
 			suppressWarnings(fit <- optimize(f=foo, interval=c(log(par[1]/2), log(maxVal))));
 			par <- c(exp(fit$minimum), NA);
 		}

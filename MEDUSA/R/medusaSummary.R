@@ -166,40 +166,6 @@ optModelSummary <- function (optModel) {
 }
 
 
-# calculateModelFitSummary <- function (models, threshold, ...) {
-	# tmp <- matrix(nrow=(length(models)), ncol=6);
-	# colnames(tmp) <- c("N.Models", "Shift.Node", "N.Param", "Ln.Lik", "aic", "aicc");
-	
-	# w.aic <- numeric(length(models));
-	# w.aicc <- numeric(length(models));
-	# cut.at <- character(length(models));
-	# model <- character(length(models));
-	
-	# for (i in 1:length(tmp[,1])) {
-		# tmp[i,] <- c(length(models[[i]]$split.at), tail(models[[i]]$split.at,1), models[[i]]$num.par, models[[i]]$lnLik,
-			# models[[i]]$aic, models[[i]]$aicc);
-		# cut.at[i] <- tail(models[[i]]$cut.at,1);
-		# model[i] <- tail(models[[i]]$model,1);
-	# }
-	# cut.at[1] <- "NA";
-	
-	# all.res <- as.data.frame(tmp);
-	
-	# if (threshold == 0) {
-		# w.aic <- round(calculateModelWeights(all.res$aic), digits=5);
-		# w.aicc <- round(calculateModelWeights(all.res$aicc), digits=5);
-		# all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:5)], w.aic=w.aic$w,
-			# aicc=all.res$aicc, w.aicc=w.aicc$w);
-	# } else {
-		# all.res <- cbind(all.res[,c(1:2)], Cut.at=cut.at, Model=model, all.res[,c(3:6)]);
-	# }
-	
-	# all.res[1,2] <- NA # root node for base model
-
-	# return(all.res);
-# }
-
-
 ## 'fit' is a single vector of AIC scores across all models
 ## These are meaningless when using a threshold criterion
 calculateModelWeights <- function (fit) {
