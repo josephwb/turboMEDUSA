@@ -2,6 +2,8 @@ MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
 Recent Changes To Note
 --------------
+**16 August 2013:** Fixed an error with the summary statistics for shift magnitudes. This is now fixed in version 0.93-4-31.
+
 **18 June 2013:** For incompletely-sampled trees (i.e. those requiring a 'richness' file), the AIC-threshold was set incorrectly (i.e. based on the size of the initial tree, and not the tree pruned with the richness information). This error will result in overly conservative models. This is now fixed in version 0.93-4-27.
 
 **19 March 2013:** Replaced apparently corrupted code from last push.
