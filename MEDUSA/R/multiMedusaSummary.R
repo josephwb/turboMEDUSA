@@ -6,13 +6,6 @@
 # returns: labelled tree, table with split frequencies, etc.
 # cutOff pertains to displaying shift positions i.e. ignore those below cutOff
 
-# TODO:
-# 1. ladderize tree prior to summary - DONE
-# 2. rate legend - DONE
-# 3. shift proportion legend - DONE
-
-# get rid of all stem vs. node stuff
-
 multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	plotTree=TRUE, cex=0.5, resolveConTree=FALSE, ...) {
 	richness <- res$richness;
@@ -141,7 +134,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 			# check above is always true. should be, even if deletion occurs
 					} else { # node cut
 						parent.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
-						descendant.class <- k; # + 1; # the +1 is because the initial 'shift' at the root is removed
+						descendant.class <- k + 1; # the +1 is because the initial 'shift' at the root is removed
 					}
 				# got partition classes. store differences.
 					if (mappable.magnitude) {
@@ -160,12 +153,11 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 		}
 	}
 	
-# summarize edge-specific rates across trees
+# summarize edge-specific rates across trees. these look okay, but shift magnitudes are wrong.
 	rates <- matrix(ncol=7, nrow=num.edges);
 	colnames(rates) <- c("r.mean", "r.median", "r.sd", "eps.mean", "eps.median", "eps.sd", "freq");
 	
 	# vectorize?
-	# hmm. means etc. should not include NAs in sample counts. check! okay, they're fine
 	for (i in 1:num.edges) {
 		i.r <- as.numeric(est.pars[i, seq(from=1, to=(num.trees * 2), by=2)]);
 		idx.valid <- !is.na(i.r);

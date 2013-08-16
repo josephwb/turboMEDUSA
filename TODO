@@ -73,3 +73,7 @@
 
 22. fix problem in threshold setting. using initial tree rather than pruned tree - DONE
   - will result in overly conservative models
+
+23. fix error with shift magnitudes - DONE
+  - rates are correct, but magnitudes are wrong
+  - identified by James Horn
