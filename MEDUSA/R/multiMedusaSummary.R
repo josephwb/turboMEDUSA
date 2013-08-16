@@ -18,7 +18,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	richness <- res$richness;
 	results <- res$results;
 	medusaVersion <- res$medusaVersion;
-	if (is.null(medusaVersion)) medusaVersion <- "< 0.93.4.19"; # tage MEDUSA version
+	if (is.null(medusaVersion)) medusaVersion <- "< 0.93.4.19"; # tag MEDUSA version
 	
 	richness <- formatRichness(richness); # for older data sets that may have used different colnames
 	
@@ -27,6 +27,9 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	
 # reorder tip.labels in conTree to correspond to those in the multiMedusa analyses
 	conTree <- manageTipLabels(c(results[[1]]$phy, conTree))[[2]];
+	
+# ladderize for plotting purposes
+	conTree <- ladderize(conTree);
 	
 	num.trees <- length(results);
 	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
@@ -45,10 +48,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	}
 	
 	#rm(tipLabels);
-	
-# ladderize for plotting purposes
-	conTree <- ladderize(conTree);
-	
+		
 # number of tips/edges should be same for all trees
 	n.tips <- length(conTree$tip.label);
 	num.edges <- length(conTree$edge[,1]);
@@ -76,13 +76,16 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 # for each edge in conTree, store associated estimated parameters from replicate MEDUSA results
 	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges); # important to preallocate size
 	colnames(est.pars) <- rep(c("r", "epsilon"), num.trees);
-	#est.splits <- NULL; # possible for some not to map to consensus tree (i.e. incompatible)
-	#est.cuts <- NULL; # i.e. stem vs. node
-	#est.shift.magnitudes <- NULL; # store magnitude of shift changes
 	
-	est.splits <- rep(NA, sum(model.sizes)); # possible for some not to map to consensus tree (i.e. incompatible)
-	est.cuts <- rep(NA, sum(model.sizes)); # i.e. stem vs. node
-	est.shift.magnitudes <- rep(NA, sum(model.sizes)); # store magnitude of shift changes
+	
+# hmm. for each model size, there will be n-1 shifts. fix below.
+	#est.splits <- rep(NA, sum(model.sizes)); # possible for some not to map to consensus tree (i.e. incompatible)
+	#est.cuts <- rep(NA, sum(model.sizes)); # i.e. stem vs. node
+	#est.shift.magnitudes <- rep(NA, sum(model.sizes)); # store magnitude of shift changes
+	n.shifts <- sum(model.sizes) - num.trees;
+	est.splits <- rep(NA, n.shifts); # possible for some not to map to consensus tree (i.e. incompatible)
+	est.cuts <- rep(NA, n.shifts); # i.e. stem vs. node
+	est.shift.magnitudes <- rep(NA, n.shifts); # store magnitude of shift changes
 	
 	indx.pos <- 1;
 	
@@ -91,8 +94,9 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 # get tips descended from each edge in i.z
 		i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips);
 		i.par <- results[[i]]$optModel$par;
+	# -1 gets rid of root 'shift'
 		i.splits <- results[[i]]$optModel$split.at[-1]; # need to map these
-		i.cuts <- results[[i]]$optModel$cut.at[-1]; # -1 gets rid of root 'shift'
+		i.cuts <- results[[i]]$optModel$cut.at[-1];
 		
 # use this to map edges (rows) between consensus tree and replicate trees. some will be NA.
 		idx.conToRep <- match(con.edge.tip.desc, i.edge.tip.desc);
@@ -120,12 +124,13 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 			}
 			
 			shift.magnitudes <- rep(NA, length(i.splits));
+			mappable.magnitude <- TRUE;
 			for (k in 1:length(i.splits)) {
 				if (!is.na(mapped.splits[k])) {
 					parent.class <- NULL;
 					descendant.class <- NULL;
 					mappable.magnitude <- TRUE;
-					if (i.cuts[k] == "stem" && mapped.splits[k] != root.node) { # grab rate one node up
+					if (i.cuts[k] == "stem" && mapped.splits[k] != root.node) { # grab rate one edge up
 						parent.node <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "anc"]);
 						if (parent.node != root.node) {
 							parent.class <- as.integer(i.z[which(i.z[,"dec"] == parent.node), "partition"]);
@@ -214,7 +219,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	sd.shift <- rep(NA, num.unique.shifts);
 	
 	for (i in 1:length(unique.shifts)) { # first will always be the root, which is not a shift. this is removed (i think...)
-		idx.shift <- which(est.splits == unique.shifts[i])
+		idx.shift <- which(est.splits == unique.shifts[i]);
 		cur.shift.mag <- est.shift.magnitudes[idx.shift];
 		
 		mean.shift[i] <- mean(cur.shift.mag, na.rm=TRUE);
@@ -340,7 +345,11 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		axisPlacement <- mean(plotAt);
 		
 		axis(1, at=plotAt, labels=prettyVals, cex.axis=0.75);
-		mtext("ln(species count + 1)", at=axisPlacement, side = 1, line = 2, cex=0.75);
+		if (richPlot == "log") {
+			mtext("ln(species count + 1)", at=axisPlacement, side = 1, line = 2, cex=0.75);
+		} else {
+			mtext("species count", at=axisPlacement, side = 1, line = 2, cex=0.75);
+		}
 	}
 	
 	if (annotateShift && (length(shift.summary) > 0)) {
