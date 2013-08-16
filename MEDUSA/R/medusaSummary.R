@@ -430,7 +430,7 @@ print.multiMedusaSummary <- function(x, ...) {
 	cat("multiMEDUSA summary results for ", x$num.trees, " trees.\n", sep="")
 	cat("\n");
 	
-	cat("\tmedusaVersion: ", x$medusaVersion, sep="", "\n");
+	cat("\tmedusaVersion: ", as.character(x$medusaVersion), sep="", "\n");
 	cat("\tmodel.sizes: vector of optimal model sizes across all ", x$num.trees, " trees.\n", sep="");
 	cat("\tsummary.tree: tree annotated with average rates across all ", x$num.trees, " trees.\n", sep="");
 	cat("\tshift.summary: summary statistics for most frequent shift positions (below).\n");
