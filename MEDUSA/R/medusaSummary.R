@@ -397,7 +397,7 @@ BD <- function (par1, par2=NULL) {
 ## Get b and d values from r (b-d) and epsilson (d/b)
 ## Used in previous version of program; now in terms of r and epsilon
 ## Possibly of use to users wishing to translate results
-getBD <- function (r, epsilon) {
+getBD <- function (r, epsilon = NA) {
 	if (is.na(epsilon)) {epsilon <- 0;}
 	
 	b <- r/(1-epsilon);
