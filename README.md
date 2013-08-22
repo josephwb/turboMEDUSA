@@ -2,7 +2,7 @@ MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
 Recent Changes To Note
 --------------
-**16 August 2013:** Fixed an error with the summary statistics for shift magnitudes. This is now fixed in version 0.93-4-31.
+**16 August 2013:** Fixed an error with the summary statistics for shift magnitudes. This is now fixed in version 0.93-4-33.
 
 **18 June 2013:** For incompletely-sampled trees (i.e. those requiring a 'richness' file), the AIC-threshold was set incorrectly (i.e. based on the size of the initial tree, and not the tree pruned with the richness information). This error will result in overly conservative models. This is now fixed in version 0.93-4-27.
 
@@ -47,11 +47,11 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
-	install.packages("MEDUSA_0.93-4-31.tar.gz", repos=NULL, type="source");
+	install.packages("MEDUSA_0.93-4-33.tar.gz", repos=NULL, type="source");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
 
-	R CMD install MEDUSA_0.93-4-31.tar.gz
+	R CMD install MEDUSA_0.93-4-33.tar.gz
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
@@ -115,12 +115,12 @@ MEDUSA installation seems to have some problems with some flavour(s?) of Windows
 
 	R CMD build MEDUSA
 
-This should remake the *.tar.gz file "MEDUSA_0.93-4-31.tar.gz" (or whatever version you have). Now, type:
+This should remake the *.tar.gz file "MEDUSA_0.93-4-33.tar.gz" (or whatever version you have). Now, type:
 
-	R CMD check MEDUSA_0.93-4-31.tar.gz
+	R CMD check MEDUSA_0.93-4-33.tar.gz
 
 This will give semi-detailed error reports (if present). The hope is that something on your system doesn't like how my system compresses things; from previous cases, doing it yourself may ensure that everything will work. Now, assuming no errors (or, even if there are, we'll plod ahead anyway), type:
 
-	R CMD install MEDUSA_0.93-4-31.tar.gz
+	R CMD install MEDUSA_0.93-4-33.tar.gz
 
-Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-31.tar.gz command.
+Does it work? If not, please send me the output of the R CMD check MEDUSA_0.93-4-33.tar.gz command.
