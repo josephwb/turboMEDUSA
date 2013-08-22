@@ -28,19 +28,12 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	cat("Summarizing MEDUSA results across ", num.trees, " trees.\n\n", sep="");
 	
 # check if all tip labels are in the same order (including consensus tree); makes everything easier.
-# tree distribution. This should be checked earlier i.e. prior to analysis.
-# *** can i do this without storing the data separately (possible memory problem if lots of trees)
-	#tipLabels <- lapply(lapply(results, FUN="[[", "phy"), FUN="[[", "tip.label");
-	
-	#if (length(unique(tipLabels)) == 1 && identical(tipLabels[[1]], conTree$tip.label)) {
 	if (length(unique(lapply(lapply(results, FUN="[[", "phy"), FUN="[[", "tip.label"))) == 1 &&
 		identical(results[[1]]$phy$tip.label, conTree$tip.label)) {
 		cat("All translation tables identical. Summary straightforward.\n\n");
 	} else {
 		stop("Not all translation tables identical. Functionality not yet implemented.\n\n");
 	}
-	
-	#rm(tipLabels);
 		
 # number of tips/edges should be same for all trees
 	n.tips <- length(conTree$tip.label);
@@ -59,26 +52,31 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 		model.sizes[i] <- length(results[[i]]$optModel$split.at);
 	}
 	
-# not terribly useful, but perhaps interesultsting (maybe)
+# not terribly useful, but perhaps interesting (maybe)
 	mean.n.models <- mean(model.sizes);
 	sd.n.models   <- sd(model.sizes);
 	min.n.models  <- min(model.sizes);
 	max.n.models  <- max(model.sizes);
-	if (plotModelSizes) hist(model.sizes, main=NULL, xlab="Number of Piecewise Models");
+	if (plotModelSizes) {
+		hist(model.sizes, main = NULL, xlab = "Number of Piecewise Models", prob = TRUE);
+		lines(density(model.sizes, adjust = 2), lty = "longdash", col = "red");
+	}
 	
 # for each edge in conTree, store associated estimated parameters from replicate MEDUSA results
 	est.pars <- matrix(ncol=(2 * num.trees), nrow=num.edges); # important to preallocate size
 	colnames(est.pars) <- rep(c("r", "epsilon"), num.trees);
 	
 	
-# hmm. for each model size, there will be n-1 shifts. fix below.
-	#est.splits <- rep(NA, sum(model.sizes)); # possible for some not to map to consensus tree (i.e. incompatible)
-	#est.cuts <- rep(NA, sum(model.sizes)); # i.e. stem vs. node
-	#est.shift.magnitudes <- rep(NA, sum(model.sizes)); # store magnitude of shift changes
+# for each model size, there will be n-1 shifts.
 	n.shifts <- sum(model.sizes) - num.trees;
 	est.splits <- rep(NA, n.shifts); # possible for some not to map to consensus tree (i.e. incompatible)
 	est.cuts <- rep(NA, n.shifts); # i.e. stem vs. node
-	est.shift.magnitudes <- rep(NA, n.shifts); # store magnitude of shift changes
+	
+# store magnitude of shift changes. consider r, b, d, and epsilon. should this be a data.frame instead?
+	est.shift.magnitudes.r <- rep(NA, n.shifts);
+	est.shift.magnitudes.b <- rep(NA, n.shifts);
+	est.shift.magnitudes.d <- rep(NA, n.shifts);
+	est.shift.magnitudes.eps <- rep(NA, n.shifts);
 	
 	indx.pos <- 1;
 	
@@ -101,14 +99,8 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 # map shifted node to node in consensus tree using tip complements
 		if (length(i.splits) > 0) {
 			mapped.splits <- rep(NA, length(i.splits));
-			
 # all tips (i.e. < root.node) will match identical rows. could make this more concise...
 			for (d in 1:length(i.splits)) {
-				# shiftNode <- i.splits[d]; # good.
-				# shiftNodePosition <- which(i.z[,"dec"] == i.splits[d]); # good.
-				# mappedShiftEdge <- idx.repToCon[shiftNodePosition]; # now, good.
-				# mappedShiftNode <- con.z[mappedShiftEdge,]; # got it.
-				
 				if (i.cuts[d] == "node") {
 					mapped.splits[d] <- as.integer(con.z[idx.repToCon[which(i.z[,"dec"] == i.splits[d])],"dec"]);
 				} else { # stem shift
@@ -116,7 +108,11 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 				}
 			}
 			
-			shift.magnitudes <- rep(NA, length(i.splits));
+			shift.magnitudes.r <- rep(NA, length(i.splits));
+			shift.magnitudes.b <- rep(NA, length(i.splits));
+			shift.magnitudes.d <- rep(NA, length(i.splits));
+			shift.magnitudes.eps <- rep(NA, length(i.splits));
+			
 			mappable.magnitude <- TRUE;
 			for (k in 1:length(i.splits)) {
 				if (!is.na(mapped.splits[k])) {
@@ -136,23 +132,40 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 						parent.class <- as.integer(i.z[which(i.z[,"dec"] == i.splits[k]), "partition"]);
 						descendant.class <- k + 1; # the +1 is because the initial 'shift' at the root is removed
 					}
-				# got partition classes. store differences.
+				# got partition classes. store differences. r is easy, as always present. eps may not be.
 					if (mappable.magnitude) {
-						shift.magnitudes[k] <- as.numeric(i.par[descendant.class, "r"] - i.par[parent.class, "r"]);
+						parms <- i.par[c(parent.class, descendant.class),]; # parent is first!
+						#shift.magnitudes.r[k] <- as.numeric(i.par[descendant.class, "r"] - i.par[parent.class, "r"]);
+						shift.magnitudes.r[k] <- as.numeric(parms[2, "r"] - parms[1, "r"]);
+						#if (any(!is.na(i.par[c(descendant.class, parent.class), "epsilon"]))) {
+						if (any(!is.na(parms[, "epsilon"]))) { # only enter if extinction is involved somewhere. otherwise, NAs.
+							parms[which(is.na(parms[,2])), 2] <- 0;
+							shift.magnitudes.eps[k] <- as.numeric(parms[2, "epsilon"] - parms[1, "epsilon"]);
+							parent.bd <- getBD(as.numeric(i.par[parent.class, 1]), as.numeric(i.par[parent.class, 2]));
+							descendant.db <- getBD(as.numeric(i.par[descendant.class, 1]), as.numeric(i.par[descendant.class, 2]));
+							
+							shift.magnitudes.b[k] <- as.numeric(descendant.db$b - parent.bd$b);
+							shift.magnitudes.d[k] <- as.numeric(descendant.db$d - parent.bd$d);
+						}
 					}
 				}
 			}
 			
 			# preallocate all of these vectors! done.
 			for (j in 1:length(i.splits)) {
-				est.shift.magnitudes[indx.pos] <- shift.magnitudes[j];
+				est.shift.magnitudes.r[indx.pos] <- shift.magnitudes.r[j];
+				
+				est.shift.magnitudes.eps[indx.pos] <- shift.magnitudes.eps[j];
+				est.shift.magnitudes.b[indx.pos] <- shift.magnitudes.b[j];
+				est.shift.magnitudes.d[indx.pos] <- shift.magnitudes.d[j];
+				
 				est.splits[indx.pos] <- mapped.splits[j]; # maybe preallocate est.splits vector? probably faster!
 				est.cuts[indx.pos] <- i.cuts[j];
 				indx.pos <- indx.pos + 1;
 			}
 		}
 	}
-	
+		
 # summarize edge-specific rates across trees. these look okay, but shift magnitudes are wrong.
 	rates <- matrix(ncol=7, nrow=num.edges);
 	colnames(rates) <- c("r.mean", "r.median", "r.sd", "eps.mean", "eps.median", "eps.sd", "freq");
@@ -176,18 +189,16 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	}
 	
 # map con.z edges to conTree edges, annotate tree with edge-specific rates
-	mapping <- match(conTree$edge[, 2], con.z[, 2]); # hmm. is this correct?!? yes, should be.
-	#all(conTree$edge[,] == as.integer(con.z[mapping, c(1:2)])); # check
+	mapping <- match(conTree$edge[, 2], con.z[, 2]);
 	conTree$rates <- rates[mapping,];
 	
 # summarize shift positions, mapped to consensus tree
 # get rid of stem vs. node shifts
-# seems to have a problem if the are zero 'node' shifts (same for the opposite?)
 	idx.valid <- which(!is.na(est.splits));
 	shift.pos <- as.data.frame(cbind(est.splits[idx.valid], est.cuts[idx.valid])); # get rid of shifts that cannot map to consensus tree
 	shift.summary <- data.frame(cbind(shift.node=as.integer(rownames(table(shift.pos))), table(shift.pos)/num.trees));
 	
-# problem here when either stem or node is never observed
+	
 	if (length(shift.summary[1,]) < 3) {
 		if (is.null(shift.summary$node)) {
 			shift.summary <- cbind(shift.node=shift.summary[,1], node=rep(0, length(shift.summary[,1])),
@@ -210,9 +221,9 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	max.shift <- rep(NA, num.unique.shifts);
 	sd.shift <- rep(NA, num.unique.shifts);
 	
-	for (i in 1:length(unique.shifts)) { # first will always be the root, which is not a shift. this is removed (i think...)
+	for (i in 1:length(unique.shifts)) {
 		idx.shift <- which(est.splits == unique.shifts[i]);
-		cur.shift.mag <- est.shift.magnitudes[idx.shift];
+		cur.shift.mag <- est.shift.magnitudes.r[idx.shift];
 		
 		mean.shift[i] <- mean(cur.shift.mag, na.rm=TRUE);
 		median.shift[i] <- median(cur.shift.mag, na.rm=TRUE);
@@ -226,8 +237,41 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	shift.summary  <- shift.summary[order(shift.summary[,"sum.prop"], decreasing=TRUE),]; # reorder by frequency
 	
 # if desired, only keep shifts presultsent above cutOff threshold
+	# update this to include shift magnitudes too
 	shift.summary <- shift.summary[which(shift.summary[,"sum.prop"] >= cutOff),,drop=FALSE];
 	rownames(shift.summary) <- NULL;
+	
+	
+	
+	## TEMP STUFF!!!! ##
+	
+	# this is ugly, but for the moment just want something that works
+	
+# make a dataframe containing all shifts; enables plotting densities
+	# maybe some other format is better than a data.frame (as nodes will have different number of shifts)
+		# list?
+	shifts <- as.data.frame(cbind(node=est.splits, shift.r=est.shift.magnitudes.r, shift.eps=est.shift.magnitudes.eps,
+		shift.b=est.shift.magnitudes.b, shift.d=est.shift.magnitudes.d));
+	shifts <- shifts[-which(is.na(shifts$node)),];
+	
+	idx <- shift.summary[,1];
+	
+	foo <- function (id) {
+		tmp <- shifts[which(shifts$node == id),];
+		r   <- tmp$shift.r;
+		eps <- tmp$shift.eps;
+		b   <- tmp$shift.b;
+		d   <- tmp$shift.d;
+		node <- id;
+		return(list(node=node, r=r, eps=eps, b=b, d=d));
+	}
+	
+	shifts <- lapply(idx, foo);
+	
+	
+	
+	
+	
 	
 	if (length(shift.summary) == 0) {
 		cat("WARNING: no node shifts occur above cutoff of ", cutOff, ". Try setting lower cutoff.\n", sep="");
@@ -242,12 +286,52 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	print(shift.summary);
 	
 	summary <- list(model.sizes=model.sizes, num.trees=num.trees, shift.summary=shift.summary,
-		summary.tree=conTree, richness=richness, medusaVersion=medusaVersion);
+		summary.tree=conTree, richness=richness, shift.magnitudes=shifts, medusaVersion=medusaVersion);
 	class(summary) <- "multiMedusaSummary";
 	
 	if (plotTree) plotMultiMedusa(summary, ...);
 	
 	invisible(summary);
+}
+
+## Plot shift magnitude
+plotShiftMagnitude <- function (summary, nodeID, par="r") {
+	# map from nodeID from shift.summary
+	idx <- which(summary$shift.summary[,1] == nodeID); # ooh, do NOT like the [,1] at all
+	tmp <- summary$shift.magnitudes[[idx]];
+	
+	rr <- c("r", "eps", "b", "d");
+	rl <- c("Net Diversification", "Relative Extinction", "Birth", "Death");
+	
+	if (length(par) == 1) {
+		plot(density(tmp[[par]], na.rm=TRUE), type = "n", main="", xlab = paste("Magnitude of ", 
+			rl[which(rr == par)], " Rate Shifts (Node #", nodeID, ")", sep=""));
+		polygon(density(tmp[[par]], na.rm=TRUE), col = "snow3");
+		rug(tmp[[par]]);
+	} else { # plot multiple densities
+		dd <- NULL;
+		xRange <- NULL;
+		yRange <- NULL;
+		for (i in 1:length(par)) {
+			di <- density(tmp[[par[i]]], bw="sj", na.rm=TRUE);
+			dd <- c(dd, list(di));
+			xRange <- c(xRange, di$x);
+			yRange <- c(yRange, di$y);
+		}
+		
+		xlim <- range(xRange, na.rm=TRUE);
+		ylim <- range(0, yRange, na.rm=T);
+		
+		#colours <- c(rgb(0,1,0,0.5), rgb(1,0,0,0.5), rgb(0,0,1,0.5), rgb(1,0,1,0.5));
+		colours <- c(rgb(0,0,1,0.5), rgb(1,0,0,0.5), rgb(0,1,0,0.5), rgb(1,0,1,0.5));
+		
+		plot(dd[[1]], xlim = xlim, ylim = ylim, xlab = paste("Rate Shift Magnitudes (node #", nodeID, ")", sep=""), main = "", type= "n");
+		
+		for (i in 1:length(par)) {
+			polygon(dd[[i]], col = colours[i]);
+		}
+		legend('topleft', par, fill=colours[1:length(par)], bty="n");
+	}
 }
 
 
@@ -366,4 +450,17 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 getTips <- function (node, z, desc, n.tips) {
 	x <- as.integer(z[desc[[node]], "dec"]); # gives descendant node(s) of a given node
 	return(x[x <= n.tips]); # only return tip indices
+}
+
+print.multiMedusaSummary <- function(x, ...) {
+	cat("\n");
+	cat("multiMEDUSA summary results for ", x$num.trees, " trees.\n", sep="")
+	cat("\n");
+	
+	cat("\tmedusaVersion: ", as.character(x$medusaVersion), sep="", "\n");
+	cat("\tmodel.sizes: vector of optimal model sizes across all ", x$num.trees, " trees.\n", sep="");
+	cat("\tsummary.tree: tree annotated with average rates across all ", x$num.trees, " trees.\n", sep="");
+	cat("\tshift.summary: summary statistics for most frequent shift positions (below).\n");
+	cat("\n");
+	print(x$shift.summary);
 }
