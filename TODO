@@ -77,3 +77,6 @@
 23. fix error with shift magnitudes - DONE
   - rates are correct, but magnitudes are wrong
   - identified by James Horn
+
+24. plot shift densities
+  - need to make sure keep track of r vs. b
