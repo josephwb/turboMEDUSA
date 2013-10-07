@@ -1,6 +1,7 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
-![multiMEDUSA BD example](MM-BDsum.png)
+![](MM-BDsum.png)
+An example summary of MEDUSA results over a distribution of trees.
 
 Recent Changes To Note
 --------------
