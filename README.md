@@ -1,5 +1,7 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
+![multiMEDUSA BD example](MM-BDsum.png)
+
 Recent Changes To Note
 --------------
 **16 August 2013:** Fixed an error with the summary statistics for shift magnitudes. This is now fixed in version 0.93-4-33.
