@@ -200,7 +200,7 @@ getMaxModelLimit <- function (richness, modelLimit, model, stop) {
 ## x-shifted power function
 getThreshold <- function (phy, fixThreshold, richness, stop) {
 	if (class(phy) == "multiPhylo") phy <- phy[[1]];
-	phy <- prepareData(phy=phy, richness=richness, verbose=FALSE, resolveTree=FALSE)$phy;
+	phy <- prepareData(phy=phy, richness=richness, verbose=FALSE, resolveTree=TRUE)$phy;
 	treeSize <- length(phy$tip.label);
 	
 	a = -3.5941052380332650E+01;
