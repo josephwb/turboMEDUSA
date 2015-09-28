@@ -40,7 +40,15 @@ Besides being faster and more efficient, the current version of MEDUSA does a nu
 
 Installation
 ---------------
-At the moment, MEDUSA itself is not available on CRAN, although it will be a component of the forthcoming [GEIGER version 2.0](http://cran.r-project.org/web/packages/geiger/). For now, to install, put the non-decompressed *.tar.gz file (from the 'Stable' directory) in your R working directory. You will need to install some R dependencies first.
+MEDUSA, in simplified form, is available in [GEIGER version 2.0](http://cran.r-project.org/web/packages/geiger/). The code here will shortly be mover over to GEIGER.
+
+For now, it is easiest to install this version of MEDUSA by:
+
+	install.packages("devtools");
+	library(devtools);
+	install_github("josephwb/turboMEDUSA/MEDUSA", dependencies=TRUE);
+
+Alternatively, to install from source, put the non-decompressed *.tar.gz file (from the 'Stable' directory) in your R working directory. You will need to install some R dependencies first.
 
 In R, type:
 
