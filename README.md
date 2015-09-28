@@ -40,7 +40,7 @@ Besides being faster and more efficient, the current version of MEDUSA does a nu
 
 Installation
 ---------------
-MEDUSA, in simplified form, is available in [GEIGER version 2.0](http://cran.r-project.org/web/packages/geiger/). The code here will shortly be mover over to GEIGER.
+MEDUSA, in simplified form, is available in [GEIGER version 2.0](http://cran.r-project.org/web/packages/geiger/). The code here will shortly be moved over to GEIGER.
 
 For now, it is easiest to install this version of MEDUSA by:
 
