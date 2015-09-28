@@ -289,33 +289,15 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	desc.node <- NULL;
 	
 	if (verbose) cat("  Gathering descendant node information...");
+	root <- min(z[,"anc"]);
 	if (mc) {
-		if (shiftCut == "both" || shiftCut == "stem") {
-			desc.stem <- mclapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges, mc.cores=numCores);
-		}
-		if (shiftCut == "both" || shiftCut == "node") {
-			if (!is.null(desc.stem)) {
-				root <- min(z[,"anc"]);
-				desc.node <- mclapply(desc.stem, stripStem, mc.cores=numCores);
-				desc.node[root] <- desc.stem[root];
-			} else {
-				desc.node <- mclapply(seq_len(max(all.edges)), descendantsCutAtNode.idx, all.edges=all.edges, mc.cores=numCores);
-			}
-		}
+		desc.stem <- mclapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges, mc.cores=numCores);
+		desc.node <- mclapply(desc.stem, stripStem, mc.cores=numCores);
 	} else {
-		if (shiftCut == "both" || shiftCut == "stem") {
-			desc.stem <- lapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges);
-		}
-		if (shiftCut == "both" || shiftCut == "node") {
-			if (!is.null(desc.stem)) { # Ugh. Even if empty, will not be null as initialized as list(). Fixed above.
-				root <- min(z[,"anc"]);
-				desc.node <- lapply(desc.stem, stripStem);
-				desc.node[root] <- desc.stem[root];
-			} else {
-				desc.node <- lapply(seq_len(max(all.edges)), descendantsCutAtNode.idx, all.edges=all.edges);
-			}
-		}
+		desc.stem <- lapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges);
+		desc.node <- lapply(desc.stem, stripStem);
 	}
+	desc.node[root] <- desc.stem[root];
 	if (verbose) cat(" done.\n");
 	
 ## Needed downstream; don't recalculate

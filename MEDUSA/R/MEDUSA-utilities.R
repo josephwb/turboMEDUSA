@@ -1007,3 +1007,7 @@ printRemovedShifts <- function (remove) {
 		cat("  Removing shift at node #", remove[i], "\n", sep="");
 	}
 }
+
+
+# temporary while debugging, so geiger does not have to be loaded:
+treedata <- geiger:::treedata;

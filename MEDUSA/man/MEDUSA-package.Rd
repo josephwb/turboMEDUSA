@@ -5,7 +5,7 @@
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 }
 \description{
-Fits piecewise birth-death models to ultrametric phylogenetic tree(s) according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. A reimplementation of the original \pkg{\link{geiger}} MEDUSA method, meant especially for the analysis of large trees. Optimal model size is determined via a stepwise AIC approach. Run with \code{\link{MEDUSA}}. For a single tree,  summarize results with \code{\link{medusaSummary}}. Publication-quality trees with coloured branches (reflecting piecewise model membership) can be plotted using \code{\link{plotPrettyTree}} For a distrbution of trees, summarize results with \code{\link{multiMedusaSummary}}, and plot fancy figures with \code{\link{plotMultiMedusa}}.
+Fits piecewise birth-death models to ultrametric phylogenetic tree(s) according to phylogenetic (edge-length) and taxonomic (richness) likelihoods. A reimplementation of the original "geiger" MEDUSA method, meant especially for the analysis of large trees. Optimal model size is determined via a stepwise AIC approach. Run with \code{\link{MEDUSA}}. For a single tree,  summarize results with \code{\link{medusaSummary}}. Publication-quality trees with coloured branches (reflecting piecewise model membership) can be plotted using \code{\link{plotPrettyTree}} For a distrbution of trees, summarize results with \code{\link{multiMedusaSummary}}, and plot fancy figures with \code{\link{plotMultiMedusa}}.
 }
 \details{
 \tabular{ll}{

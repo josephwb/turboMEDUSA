@@ -22,8 +22,11 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	modelLimit <- getMaxModelLimit(richness=richness, modelLimit=modelLimit, model=model, stop=stop);
 	
 	# temporary work-around hack
-	if (mc && is.null(numCores)) {
-		numCores <- parallel:::detectCores();
+	if (mc) {
+		if (is.null(numCores)) {
+			numCores <- parallel::detectCores();
+		}
+		cat("Running a multicore analysis with", numCores, "cores.\n\n");
 	}
 	
 	runMEDUSA <- function (phy, richness, multiTree=FALSE, verbose, ...) { # wtf is multiTree?!?
@@ -54,51 +57,48 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 		baseFit <- medusaMLFitBase(z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion);
 		if (baseFit$lnLik == -Inf && !is.null(fixPar))
 		{stop("\n\nConstrained model cannot be fit to data with current fixed parameter value. Stopping analysis.\n\n");}
-		
-	# If only one model is desired (i.e. base model), don't bother with all of the precalculations.
-		if (modelLimit != 1) {
+	
 	# Pre-fit pendant edges so these values need not be re(re(re))calculated; amounts to ~25% of all calculations
 	# Will show particular performance gain for edges with many fossil observations
-			cat("Optimizing parameters for pendant edges... ");
-			tips <- NULL;
+		cat("Optimizing parameters for pendant edges... ");
+		tips <- NULL;
 	# Will always be shiftCut="stem"; if mixed model, keep only best fit and throw out other in medusaMLPrefit
-			tips <- prefitTips(pend.nodes=pend.nodes, z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion,
-				mc=mc, numCores=numCores);
-			cat("done.\n");
+		tips <- prefitTips(pend.nodes=pend.nodes, z=z, sp=sp, model=model, fixPar=fixPar, criterion=criterion,
+			mc=mc, numCores=numCores);
+		cat("done.\n");
 			
 	# Pre-fit virgin internal nodes; should deliver performance gain for early models, and especially for large trees
 	 # Remain useful until a spilt is accepted within the clade
-			if (length(int.nodes) > 0) { # hmm, when would this be false?
-				cat("Pre-calculating parameters for internal nodes... ");
-				virgin.stem <- list(); virgin.node <- list();
-				if (mc) {
-					if (shiftCut == "stem" || shiftCut == "both") {
-						virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-							fixPar=fixPar, criterion=criterion, mc.cores=numCores);
-					}
-					if (shiftCut == "node" || shiftCut == "both") {
-						virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-							fixPar=fixPar, criterion=criterion, mc.cores=numCores);
-					}
-				} else {
-					if (shiftCut == "stem" || shiftCut == "both") {
-						virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
-							fixPar=fixPar, criterion=criterion);
-					}
-					if (shiftCut == "node" || shiftCut == "both") {
-						virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
-							fixPar=fixPar, criterion=criterion);
-					}
+		if (length(int.nodes) > 0) { # hmm, when would this be false?
+			cat("Pre-calculating parameters for internal nodes... ");
+			virgin.stem <- list(); virgin.node <- list();
+			if (mc) {
+				if (shiftCut == "stem" || shiftCut == "both") {
+					virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
 				}
-				virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
+				if (shiftCut == "node" || shiftCut == "both") {
+					virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
+				}
 			} else {
-				virgin.nodes <- NULL;
+				if (shiftCut == "stem" || shiftCut == "both") {
+					virgin.stem <- lapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion);
+				}
+				if (shiftCut == "node" || shiftCut == "both") {
+					virgin.node <- lapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+						fixPar=fixPar, criterion=criterion);
+				}
 			}
-			
-			cat("done.\n\n");
-			
-			prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
+			virgin.nodes <- list(stem=virgin.stem, node=virgin.node);
+		} else {
+			virgin.nodes <- NULL;
 		}
+		
+		cat("done.\n\n");
+		
+		prefit <- list(tips=tips, virgin.nodes=virgin.nodes, num.tips=num.tips);
 		
 		stopOnLimit <- function(fit) { # not likely to be used. get rid of it?
 			optModel <- fit;
@@ -231,7 +231,8 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 	} else {
 		results <- runMEDUSA(phy=phy, richness=richness, verbose=verbose, ...);
 		results$richness <- richness;
-		results$medusaVersion <- packageVersion("MEDUSA");
+		# probably get rid of the following line
+		#results$medusaVersion <- packageVersion("MEDUSA");
 	}
 	
 	invisible(results);

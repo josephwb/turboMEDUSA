@@ -9,7 +9,7 @@ Plot a consensus tree annotated with results from a \code{\link{MEDUSA}} analysi
 \usage{
 plotMultiMedusa(summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
 	plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5, font=3,
-	shift.leg.pos="left", power=1.5, ...)
+	shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, ...)
 }
 
 \arguments{
@@ -51,6 +51,12 @@ Specifies the position of the shift legend. Default is \code{shift.leg.pos="bott
 }
   \item{power}{
 Alters the colour scheme for annotating rates.
+}
+  \item{pal}{
+Choose amongst a bunch of colour palettes. Takes numeric value.
+}
+  \item{revColours}{
+Boolean value that reverses spectrum of colours for plotting edge rates. Default is \code{fasle}.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.

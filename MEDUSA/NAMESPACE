@@ -1,3 +1,7 @@
+import(ape)
+import(colorspace)
+import(shape)
+
 export(getBD)
 export(plotPrettyTree)
 export(MEDUSA)

@@ -268,11 +268,6 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	
 	shifts <- lapply(idx, foo);
 	
-	
-	
-	
-	
-	
 	if (length(shift.summary) == 0) {
 		cat("WARNING: no node shifts occur above cutoff of ", cutOff, ". Try setting lower cutoff.\n", sep="");
 	}
@@ -347,9 +342,9 @@ plotShiftMagnitude <- function (summary, nodeID, par="r") {
 
 plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
 	plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5,
-	font=3, shift.leg.pos="left", power=1.5, ...) {
+	font=3, shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, ...) {
 	
-	dev.new(); # make a new plotting window
+	#dev.new(); # make a new plotting window
 	conTree <- summary$summary.tree;
 	shift.summary <- summary$shift.summary;
 	rates <- summary$summary.tree$rates;
@@ -359,18 +354,36 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	rates <- rates[,annotateRate];
 	rates[which(is.nan(rates))] <- NA; # this occurs if edge in conTree occurs in no other tree
 	
-	rateColours <- diverge_hcl(20, power=power); # might change number of colours here
-	rateSeq <- seq(min(rates, na.rm=T), max(rates, na.rm=T), length=20);
+	#rateSeq <- seq(min(rates, na.rm=T), max(rates, na.rm=T), length=nColours);
+	rateSeq <- sort(unique(rates));
+	
+	nColours = length(rateSeq);
+	#rates <- exp(rates);
+	if (pal == 1) {
+		rateColours <- diverge_hcl(n=nColours, power=power);
+	} else if (pal == 2) {
+		rateColours <- diverge_hsv(n=nColours, power=power);
+	} else if (pal == 3) {
+		rateColours <- terrain_hcl(n=nColours, power=c(1/10, 1));
+	} else if (pal == 4) {
+		rateColours <- rainbow_hcl(n=nColours);
+	} else if (pal == 5) {
+		rateColours <- heat_hcl(n=nColours, power=power);
+	} else if (pal == 6) {
+		rateColours <- sequential_hcl(n=nColours, power=power);
+	}
+	
+	if (revColours) {
+		rateColours <- rev(rateColours); 
+	}
 	
 # suppressWarnings is used in case some edges have no rate estimates
-	edgeColours <- suppressWarnings(rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))), na.rm=T)))]);
+	edgeColours <- suppressWarnings(rateColours[unname(sapply(rates, function(x) min(which(abs(rateSeq-x) == min(abs(rateSeq-x))), na.rm=TRUE)))]);
 	edgeColours[which(is.na(edgeColours))] <- "#000000"; # set to black those without estimates. shouldn't happen with a decent tree.
-	
 	minMax <- c(min(rateSeq), max(rateSeq));
 	
 # shift positions (with label size proportional to frequency)
 	margin <- FALSE; if (time) margin <- TRUE;
-	
 	plot.phylo(conTree, edge.color=edgeColours, no.margin=!margin, cex=tip.cex, label.offset=label.offset, font=font, ...);
 	
 # store parameters from tree plotting
@@ -386,7 +399,6 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 # plot barplot of extant tip richnesses. need to fix the mapping here.
 	if (plotRichnesses) {
 		richness2Plot <- NULL;
-		
 	# reorder richnesses according to tip.labels
 		richness <- richness[match(conTree$tip.label, richness$taxon),];
 		
@@ -398,18 +410,14 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 		names(richness2Plot) <- richness$taxon;
 		maxVal <- max(as.numeric(richness2Plot[conTree$tip.label]));
 		fontSize <- lastPP$cex;
-		
 		longestName <- max(nchar(conTree$tip.label));
-		
 		nTips <- length(conTree$tip.label);
 		
 	# reorder (again) according to edge ordering. results from laddering conTree.
 		richness2Plot <- as.numeric(richness2Plot[conTree$edge[which(conTree$edge[,2] <= length(conTree$tip.label)),2]]);
-		
 	# seems to work for large and small trees
 		startPos <- max(lastPP$xx) + (longestName * fontSize) + lastPP$label.offset + max(lastPP$xx)/20;
-		
-	# adjest segment lengths
+	# adjust segment lengths
 		richMultiplier <- ((maxX - startPos) / maxVal) * 0.75;
 		
 		segments(rep(startPos, nTips), 1:nTips, rep(startPos, nTips) + richMultiplier * richness2Plot,
@@ -429,20 +437,19 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 	}
 	
 	if (annotateShift && (length(shift.summary) > 0)) {
-		plotcolor <- rgb(red=255, green=0, blue=0, alpha=150, maxColorValue=255);
+		plotcolor <- rgb(red=0, green=0, blue=255, alpha=150, maxColorValue=255);
 		for (i in  1:length(shift.summary[,"shift.node"])) {
 			nodelabels(node=shift.summary[,"shift.node"][i], pch=21, cex=(shift.summary[,"sum.prop"][i]) * shiftScale,
 				bg=plotcolor);
 		}
-		
-		legend(x=shift.leg.pos, c("1.00", "0.75", "0.50", "0.25"), pch=21, pt.bg=plotcolor,
-			pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
+		#legend(x=shift.leg.pos, c("1.00", "0.75", "0.50", "0.25"), pch=21, pt.bg=plotcolor,
+		#	pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
 	}
 	
 # the weird position information used here fucks up subsequent positioning
 	colorlegend(posy=c(0.30, 0.55), posx=c(0.05, 0.075), col=rateColours, zlim=minMax,
-		zval=seq(min(rateSeq), max(rateSeq), length=10), dz=0.5, digit=3, cex=0.5, zlevels=NULL,
-		main.cex=0.5, main="Rate");
+		zval=rateSeq, dz=0.5, digit=3, cex=0.25, zlevels=NULL,
+		main.cex=0.5, main=paste0("Rate (", annotateRate, ")"));
 }
 
 # this function returns the phy$tip.label indices of tips descended from each edge in z
