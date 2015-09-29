@@ -442,8 +442,8 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
 			nodelabels(node=shift.summary[,"shift.node"][i], pch=21, cex=(shift.summary[,"sum.prop"][i]) * shiftScale,
 				bg=plotcolor);
 		}
-		#legend(x=shift.leg.pos, c("1.00", "0.75", "0.50", "0.25"), pch=21, pt.bg=plotcolor,
-		#	pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
+		legend(x=shift.leg.pos, c("1.00", "0.75", "0.50", "0.25"), pch=21, pt.bg=plotcolor,
+			pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
 	}
 	
 # the weird position information used here fucks up subsequent positioning
