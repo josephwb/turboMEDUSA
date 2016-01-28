@@ -289,10 +289,10 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	invisible(summary);
 }
 
-## Plot shift magnitude
+## Plot shift magnitude. hmm, expects summaries for all parameters. currently only exports 1 above
 plotShiftMagnitude <- function (summary, nodeID, par="r") {
 	# map from nodeID from shift.summary
-	idx <- which(summary$shift.summary[,1] == nodeID); # ooh, do NOT like the [,1] at all
+	idx <- which(summary$shift.summary[,"shift.node"] == nodeID);
 	tmp <- summary$shift.magnitudes[[idx]];
 	
 	rr <- c("r", "eps", "b", "d");
