@@ -202,8 +202,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 	inc <- 0.05;
 	
 	for (i in 1:length(parm[,1])) {
-#		cat("Model",i,"\n")
-		model <- models[i]
+#		cat("Model",i,"\n");
+		model <- models[i];
 		sp <- as.numeric(parm[i,]);
 		new.part <- z[z[,"partition"] == i,,drop=FALSE];
 		lik <- makePartitionLikelihood(partition=new.part, model=model, fixPar=fixPar);
@@ -225,7 +225,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 			
 			if (low.bound != 0) {
 				while (threshold(low.bound) > 0) {
-					low.bound <- low.bound - inc;
+					#low.bound <- low.bound - inc;
+					low.bound <- low.bound * 0.95;
 				}
 			}
 			while (threshold(up.bound) > 0) {
@@ -251,7 +252,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 			up.bound <- par1 + par1/2;
 			
 			while (thresholdR(low.bound) > 0) {
-				low.bound <- low.bound - inc;
+				#low.bound <- low.bound - inc;
+				low.bound <- low.bound * 0.95;
 			}
 			while (thresholdR(up.bound) > 0) {
 				up.bound <- up.bound + inc;
@@ -268,7 +270,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 			up.bound <- par2 + par2/2;
 			
 			while (thresholdE(low.bound) > 0) {
-				low.bound <- low.bound - inc;
+				#low.bound <- low.bound - inc;
+				low.bound <- low.bound * 0.95;
 			}
 			while (thresholdE(up.bound) > 0) {
 				up.bound <- up.bound + inc;
@@ -303,7 +306,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 			up.bound <- par + par/2;
 			
 			while (threshold(low.bound) > 0) {
-				low.bound <- low.bound - inc;
+				#low.bound <- low.bound - inc;
+				low.bound <- low.bound * 0.95;
 			}
 			while (threshold(up.bound) > 0) {
 				up.bound <- up.bound + inc;
@@ -342,7 +346,8 @@ getProfileLikelihoods <- function (z, parm, models, fixPar, crit=1.92) {
 			up.bound <- par + par/2;
 			
 			while (threshold(low.bound) > 0) {
-				low.bound <- low.bound - inc;
+				#low.bound <- low.bound - inc;
+				low.bound <- low.bound * 0.95;
 			}
 			while (threshold(up.bound) > 0) {
 				up.bound <- up.bound + inc;
