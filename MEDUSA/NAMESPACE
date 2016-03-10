@@ -13,3 +13,5 @@ export(print.sisterFit)
 export(multiMedusaSummary)
 export(plotMultiMedusa)
 export(print.multiMedusaSummary)
+
+export(write.figtree)
