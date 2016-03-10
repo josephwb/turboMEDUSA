@@ -289,7 +289,12 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	invisible(summary);
 }
 
+
+
+
+
 ## Plot shift magnitude. hmm, expects summaries for all parameters. currently only exports 1 above
+## not currently exported
 plotShiftMagnitude <- function (summary, nodeID, par="r") {
 	# map from nodeID from shift.summary
 	idx <- which(summary$shift.summary[,"shift.node"] == nodeID);
@@ -328,6 +333,184 @@ plotShiftMagnitude <- function (summary, nodeID, par="r") {
 		legend('topleft', par, fill=colours[1:length(par)], bty="n");
 	}
 }
+
+
+write.figtree <- function (summary, file="", append=FALSE, digits=10) {
+    if (!(inherits(summary, "multiMedusaSummary"))) {
+        stop("object \"summary\" must be of class \"multiMedusaSummary\"");
+    }
+    phy <- createAnnotatedTree(summary);
+    
+    res <- .write.tree3(phy, digits=digits);
+    
+    if (file == "") {
+        return(res);
+    } else {
+    		cat(res, file=file, append=append, sep = "\n");
+    }
+}
+
+
+
+
+# straight-up copy of ape's .write.tree2
+# added bits to make Nexus. otherwise figtree chokes on Nexus annottaions in a newick tree
+.write.tree3 <- function(phy, digits=10, tree.prefix="")  {
+    brl <- !is.null(phy$edge.length);
+    nodelab <- !is.null(phy$node.label);
+    edgelab <- !is.null(phy$edge.label);
+    phy$tip.label <- checkLabel(phy$tip.label); # this should be okay
+    #if (nodelab) {
+    #    # this is to get newick-compliant labels. not appropriate for Nexus annotation
+    #    phy$node.label <- checkLabel(phy$node.label);
+    #}
+    f.d <- paste("%.", digits, "g", sep="");
+    cp <- function(x) {
+        STRING[k] <<- x;
+        k <<- k + 1;
+    }
+    add.internal <- function (i) {
+        cp("(");
+        desc <- kids[[i]];
+        for (j in desc) {
+            if (j > n) {
+                add.internal(j);
+            } else {
+            		add.terminal(ind[j]);
+            }
+            if (j != desc[length(desc)]) {
+                cp(",");
+            }
+        }
+        cp(")");
+        if (nodelab && i > n) {
+            cp(phy$node.label[i - n]);
+        }
+        ## *** add edge annotations here ***
+        if (brl) {
+            cp(":");
+            cp(sprintf(f.d, phy$edge.length[ind[i]])); # what is this 'ind' thing?
+            cp(phy$edge.label[ind[i]]);
+        }
+    }
+    add.terminal <- function (i) {
+        cp(phy$tip.label[phy$edge[i, 2]])
+        ## *** add edge annotations here ***
+        if (brl) {
+            cp(":"); # why separate this?
+            cp(sprintf(f.d, phy$edge.length[i]));
+            cp(phy$edge.label[i]);
+        }
+    }
+    n <- length(phy$tip.label);
+    parent <- phy$edge[, 1];
+    children <- phy$edge[, 2];
+    kids <- vector("list", n + phy$Nnode);
+    for (i in 1:length(parent)) {
+    		kids[[parent[i]]] <- c(kids[[parent[i]]], children[i]);
+    }
+    ind <- match(1:max(phy$edge), phy$edge[, 2]);
+    LS <- 4 * n + 5;
+    if (brl) {
+        LS <- LS + 4 * n;
+    }
+    if (nodelab) {
+        LS <- LS + n;
+    }
+    if (edgelab) {
+        LS <- LS + length(phy$edge.label);
+    }
+    
+    STRING <- character(LS);
+    k <- 1;
+    cp(tree.prefix);
+    cp("(");
+    getRoot <- function(phy) phy$edge[, 1][!match(phy$edge[, 1], phy$edge[, 2], 0)][1];
+    root <- getRoot(phy);
+    desc <- kids[[root]];
+    for (j in desc) {
+        if (j > n) {
+            add.internal(j);
+        } else {
+        		add.terminal(ind[j]);
+        }
+        if (j != desc[length(desc)]) 
+            cp(",")
+    }
+    if (is.null(phy$root.edge)) {
+        cp(")");
+        if (nodelab) {
+            cp(phy$node.label[1]);
+        }
+        cp(";");
+    } else {
+        cp(")");
+        if (nodelab) {
+            cp(phy$node.label[1])
+        }
+        cp(":");
+        cp(sprintf(f.d, phy$root.edge));
+        cp(";");
+    }
+    tstring <- paste(STRING, collapse="");
+    tstring <- paste0("#NEXUS\nBegin trees;\ntree MEDUSA_TREE = [&R] ", tstring, "\nEnd;");
+    return(tstring);
+}
+
+
+
+
+createAnnotatedTree <- function (medusa.summary) {
+	phy <- medusa.summary$summary.tree;
+	phy$node.label <- createNodeLabels(medusa.summary);
+	phy$edge.label <- createEdgeLabels(medusa.summary);
+	return (phy);
+}
+
+# combine these
+createNodeLabels <- function (medusa.summary) {
+	shift.summary <- medusa.summary$shift.summary;
+	nodelabs <- character(medusa.summary$summary.tree$Nnode);
+	ntips <- length(medusa.summary$summary.tree$tip.label);
+	cols <- colnames(shift.summary);
+	pos <- NULL;
+	lab <- NULL;
+	for (i in 1:length(shift.summary[,1])) {
+		pos <- as.numeric(shift.summary[i,1]) - ntips;
+		lab <- paste0("[&node_id=", shift.summary[i,1]);
+		for (j in 2:length(shift.summary[i,])) {
+			lab <- paste0(lab, ",", cols[j], "=", shift.summary[i,j]);
+		}
+		lab <- paste0(lab, "]");
+		nodelabs[pos] <- lab;
+	}
+	return (nodelabs);
+}
+
+createEdgeLabels <- function (medusa.summary) {
+	rates <- medusa.summary$summary.tree$rates;
+	edgelabs <- character(length(rates[,1]));
+	ntips <- length(medusa.summary$summary.tree$tip.label);
+	cols <- colnames(rates);
+	lab <- NULL;
+	for (i in 1:length(rates[,1])) {
+		lab <- "[&";
+		first <- TRUE;
+		for (j in 1:length(rates[i,])) {
+			if (!first) {
+				lab <- paste0(lab, ",", cols[j], "=", rates[i,j]);
+			} else {
+				lab <- paste0(lab, cols[j], "=", rates[i,j]);
+				first <- FALSE;
+			}
+		}
+		lab <- paste0(lab, "]");
+		edgelabs[i] <- lab;
+	}
+	return (edgelabs);
+}
+
+
 
 
 
