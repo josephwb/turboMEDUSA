@@ -335,7 +335,8 @@ plotShiftMagnitude <- function (summary, nodeID, par="r") {
 }
 
 
-write.figtree <- function (summary, file="", append=FALSE, digits=10) {
+## TODO: use digits for rates/shifts
+writeFigtree <- function (summary, file="", digits=10) {
     if (!(inherits(summary, "multiMedusaSummary"))) {
         stop("object \"summary\" must be of class \"multiMedusaSummary\"");
     }
@@ -346,7 +347,7 @@ write.figtree <- function (summary, file="", append=FALSE, digits=10) {
     if (file == "") {
         return(res);
     } else {
-    		cat(res, file=file, append=append, sep = "\n");
+    		cat(res, file=file, sep="\n");
     }
 }
 

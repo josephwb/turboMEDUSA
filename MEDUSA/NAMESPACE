@@ -14,4 +14,4 @@ export(multiMedusaSummary)
 export(plotMultiMedusa)
 export(print.multiMedusaSummary)
 
-export(write.figtree)
+export(writeFigtree)
