@@ -11,4 +11,5 @@ LazyLoad: yes
 ByteCompile: yes
 Depends: ape (>= 3.0-3), colorspace, shape
 Suggests: parallel
+Imports:geiger
 Packaged: 2016-03-10; josephwb

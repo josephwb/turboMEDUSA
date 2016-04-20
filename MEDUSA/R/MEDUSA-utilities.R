@@ -1010,4 +1010,4 @@ printRemovedShifts <- function (remove) {
 
 
 # temporary while debugging, so geiger does not have to be loaded:
-treedata <- geiger:::treedata;
+#treedata <- geiger:::treedata;

@@ -1,6 +1,7 @@
 import(ape)
 import(colorspace)
 import(shape)
+importFrom(geiger,treedata)
 
 export(getBD)
 export(plotPrettyTree)
