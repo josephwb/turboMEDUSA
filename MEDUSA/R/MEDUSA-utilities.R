@@ -67,7 +67,7 @@ prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCore
 	# yule will always have a better AIC for tip, regardless of richness
 	if (model == "mixed" || model == "yule") {
 		if (mc) {
-			tips <- mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
+			tips <- parallel::mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
 				model="yule", fixPar=fixPar, criterion=criterion, mc.cores=numCores);
 		} else {
 			tips <- lapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
@@ -75,7 +75,7 @@ prefitTips <- function (pend.nodes, z, sp, model, fixPar, criterion, mc, numCore
 		}
 	} else {
 		if (mc) {
-			tips <- mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
+			tips <- parallel::mclapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,
 				model=model, fixPar=fixPar, criterion=criterion, mc.cores=numCores);
 		} else {
 			tips <- lapply(pend.nodes, medusaMLPrefitTip, z=z, sp=sp,

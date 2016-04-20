@@ -43,7 +43,7 @@ fitSisters <- function (phy, richness=NULL, node=NULL, tips=NULL, model="mixed",
 	} else if (class(phy) == "multiPhylo") {
 		if (mc)
 		{
-			res <- mclapply(phy, runFitSisters, richness);
+			res <- parallel::mclapply(phy, runFitSisters, richness);
 		} else {
 			res <- lapply(phy, runFitSisters, richness);
 		}

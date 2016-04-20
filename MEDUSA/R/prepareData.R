@@ -109,7 +109,7 @@ manageTipLabels <- function (phy, refTree=NULL, mc=F, numCores=NULL) {
 	}
 	
 	if (mc) {
-		phy <- mclapply(phy, relabel, mc.cores=numCores);
+		phy <- parallel::mclapply(phy, relabel, mc.cores=numCores);
 	} else {
 		phy <- lapply(phy, relabel);
 	}
@@ -291,8 +291,8 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	if (verbose) cat("  Gathering descendant node information...");
 	root <- min(z[,"anc"]);
 	if (mc) {
-		desc.stem <- mclapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges, mc.cores=numCores);
-		desc.node <- mclapply(desc.stem, stripStem, mc.cores=numCores);
+		desc.stem <- parallel::mclapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges, mc.cores=numCores);
+		desc.node <- parallel::mclapply(desc.stem, stripStem, mc.cores=numCores);
 	} else {
 		desc.stem <- lapply(seq_len(max(all.edges)), descendantsCutAtStem.idx, all.edges=all.edges);
 		desc.node <- lapply(desc.stem, stripStem);
@@ -305,7 +305,7 @@ makeCacheMedusa <- function (phy, richness, all.nodes, shiftCut, mc, numCores, v
 	num.tips <- list()
 	if (verbose) cat("  Gathering tip richness information...");
 	if (mc) {
-		num.tips <- mclapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips, mc.cores=numCores);
+		num.tips <- parallel::mclapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips, mc.cores=numCores);
 	} else {
 		num.tips <- lapply(all.nodes, getNumTips, phy=phy, totalTips=n.tips);
 	}
@@ -392,7 +392,8 @@ descendantsCutAtNode.idx <- function (node.list, all.edges) {
 check.parallel <- function ()  {
     tmp = rownames(installed.packages());
     if ("parallel" %in% tmp) {
-        require(parallel);
+        #require(parallel);
+        requireNamespace("parallel", quietly=TRUE);
         return(TRUE);
     } else {
         return(FALSE);

@@ -74,11 +74,11 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 			virgin.stem <- list(); virgin.node <- list();
 			if (mc) {
 				if (shiftCut == "stem" || shiftCut == "both") {
-					virgin.stem <- mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
+					virgin.stem <- parallel::mclapply(int.nodes, medusaMLPrefitStem, z=z, desc=desc$stem, sp=sp, model=model,
 						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
 				}
 				if (shiftCut == "node" || shiftCut == "both") {
-					virgin.node <- mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
+					virgin.node <- parallel::mclapply(int.nodes, medusaMLPrefitNode, z=z, desc=desc$node, sp=sp, model=model,
 						fixPar=fixPar, criterion=criterion, mc.cores=numCores);
 				}
 			} else {
@@ -111,7 +111,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 				
 				if (mc) { # parallel (i.e. multithreaded) processing. No GUI, and not at all on Windows
 					
-					res <- mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
+					res <- parallel::mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour, mc.cores=numCores);
 						
 				} else {
@@ -162,7 +162,7 @@ MEDUSA <- function(phy, richness=NULL, model="mixed", modelLimit=20, stop="thres
 				node.list <- all.nodes[-fit$split.at];
 				if (mc)  # parallel (i.e. multithreaded) processing. No GUI, and not at all on Windows
 				{
-					res <- mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
+					res <- parallel::mclapply(node.list, medusaMLUpdate, z=z, desc=desc, fit=fit, prefit=prefit, root.node=root.node,
 						model=model, fixPar=fixPar, criterion=criterion, shiftCut=shiftCut, preserveModelFlavour=preserveModelFlavour,
 						mc.cores=numCores);
 				} else {
