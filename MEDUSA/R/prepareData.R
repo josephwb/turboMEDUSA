@@ -39,7 +39,7 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 	}
 	if (any(phy$edge.length == 0)) {
 		cat("\nWARNING: input tree contains ", length(which(phy$edge.length == 0)), " zero-length branches.\n", sep="");
-		stop("Stopping analysis.\n");
+		if (!resolveTree) stop("Stopping analysis.\n");
 	}
 	
 	return(list(phy=phy, richness=richness));
