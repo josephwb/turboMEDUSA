@@ -39,7 +39,9 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
 	}
 	if (any(phy$edge.length == 0)) {
 		cat("\nWARNING: input tree contains ", length(which(phy$edge.length == 0)), " zero-length branches.\n", sep="");
-		if (!resolveTree) stop("Stopping analysis.\n");
+		if (!resolveTree) {
+			stop("Stopping analysis.\n");
+		}
 	}
 	
 	return(list(phy=phy, richness=richness));
@@ -198,9 +200,9 @@ getMaxModelLimit <- function (richness, modelLimit, model, stop) {
 ## Fitted curve from random b-d simulations
 ## Value corresponds to 95th percentile of AICc(split) - AICc(no-split) for no-split simulations
 ## x-shifted power function
-getThreshold <- function (phy, fixThreshold, richness, stop) {
+getThreshold <- function (phy, fixThreshold, richness, stop, resolveTree) {
 	if (class(phy) == "multiPhylo") phy <- phy[[1]];
-	phy <- prepareData(phy=phy, richness=richness, verbose=FALSE, resolveTree=FALSE)$phy;
+	phy <- prepareData(phy=phy, richness=richness, verbose=FALSE, resolveTree= resolveTree)$phy;
 	treeSize <- length(phy$tip.label);
 	
 	a = -3.5941052380332650E+01;
