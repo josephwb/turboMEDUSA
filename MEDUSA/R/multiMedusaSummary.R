@@ -7,10 +7,18 @@
 # cutOff pertains to displaying shift positions i.e. ignore those below cutOff
 
 multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
-	plotTree=TRUE, cex=0.5, resolveConTree=FALSE, ...) {
+	plotTree=TRUE, cex=0.5, resolveConTree=FALSE, mc=FALSE, numCores=NULL, ...) {
 	richness <- res$richness;
 	results <- res$results;
 	medusaVersion <- res$medusaVersion;
+	
+	if (mc) {
+		if (is.null(numCores)) {
+			numCores <- parallel::detectCores();
+		}
+		cat("Using", numCores, "cores.\n\n");
+	}
+	
 	if (is.null(medusaVersion)) medusaVersion <- "< 0.93.4.19"; # tag MEDUSA version
 	
 	richness <- formatRichness(richness); # for older data sets that may have used different colnames
@@ -40,7 +48,8 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	num.edges <- length(conTree$edge[,1]);
 	root.node <- n.tips + 1;
 	
-	obj <- makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both", verbose=FALSE, mc=F);
+	obj <- makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both",
+	                       verbose=FALSE, mc=mc, numCores=numCores);
 	con.desc <- list(stem=obj$desc.stem, node=obj$desc.node);
 	con.z <- obj$z;
 	
