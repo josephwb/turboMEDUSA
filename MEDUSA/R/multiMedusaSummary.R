@@ -60,7 +60,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	cat("Storing tip sets... ");
 	con.edge.tip.desc <- NULL;
 	if (mc) {
-		con.edge.tip.desc <- mclapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips,
+		con.edge.tip.desc <- parallel::mclapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips,
 		                              mc.cores=numCores);
 	} else {
 		con.edge.tip.desc <- lapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips);
@@ -107,7 +107,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 		i.edge.tip.desc <- NULL;
 		
 		if (mc) {
-			i.edge.tip.desc <- mclapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips,
+			i.edge.tip.desc <- parallel::mclapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips,
 		                              mc.cores=numCores);
 		} else {
 			i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips);
