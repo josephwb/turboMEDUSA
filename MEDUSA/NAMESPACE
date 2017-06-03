@@ -14,5 +14,11 @@ export(print.sisterFit)
 export(multiMedusaSummary)
 export(plotMultiMedusa)
 export(print.multiMedusaSummary)
-
 export(writeFigtree)
+
+importFrom("grDevices", "dev.new", "rgb")
+importFrom("graphics", "axis", "contour", "hist", "legend", "lines",
+             "mtext", "points", "polygon", "rug", "segments", "title")
+importFrom("stats", "density", "median", "optim", "optimize", "sd",
+             "uniroot", "weighted.mean")
+importFrom("utils", "installed.packages", "packageVersion", "tail")

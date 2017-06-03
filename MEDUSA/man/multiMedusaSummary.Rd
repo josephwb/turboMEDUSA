@@ -9,7 +9,7 @@ Summarize results from \code{\link{MEDUSA}} analysis across a distribution of tr
 }
 \usage{
 multiMedusaSummary(res, conTree, cutOff=0.05, plotModelSizes=TRUE, plotTree=TRUE,
-	cex=0.5, resolveConTree=FALSE, ...)
+	cex=0.5, resolveConTree=FALSE, mc=FALSE, numCores=NULL, ...)
 }
 
 \arguments{
@@ -33,6 +33,12 @@ Specifies the font size for printing tip labels. Default is \code{cex=0.5}; may 
 }
   \item{resolveConTree}{
 Boolean value specifying whether the \code{conTree} passed in should be randomly resolved (as a fully-resolved tree is required for \code{\link{MEDUSA}} summary). Only relevant if \code{conTree} passed in is not fully bifurcating.
+}
+  \item{mc}{
+Indicate whether multiple cores should be used (\code{mc=TRUE}). Works only on unix-like machines (i.e. not Windows), and only in non-GUI instantiations of R.
+}
+  \item{numCores}{
+The number of cores to use if \code{mc=TRUE}. By default all cores detected will be used. This option is only useful if one wishes to limit the number of cares devoted to \code{MEDUSA} analysis.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.
