@@ -59,11 +59,11 @@ You may need to specify a download location if you have not previously set up a 
 
 To install MEDUSA proper, type in R:
 
-	install.packages("MEDUSA_0.93-4-33.tar.gz", repos=NULL, type="source");
+	install.packages("MEDUSA_0.951.tar.gz", repos=NULL, type="source");
 
 If you instead prefer the command line (Windows prompt, or Mac/Unix Terminal), navigate to the directory containing the MEDUSA *.tar.gz file and type in the prompt:
 
-	R CMD install MEDUSA_0.93-4-33.tar.gz
+	R CMD install MEDUSA_0.951.tar.gz
 
 If you are having problems, please look at [Issues](https://github.com/josephwb/turboMEDUSA#issues) below. Also, please provide me with detailed information (operating system, R version, APE version, etc.) so that the process can be made painless for future users.
 
