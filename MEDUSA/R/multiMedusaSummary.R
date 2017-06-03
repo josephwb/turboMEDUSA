@@ -27,7 +27,7 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	conTree <- prepareData(phy=conTree, richness=richness, verbose=FALSE, resolveTree=resolveConTree)$phy;
 	
 # reorder tip.labels in conTree to correspond to those in the multiMedusa analyses
-	conTree <- manageTipLabels(c(results[[1]]$phy, conTree))[[2]];
+	conTree <- manageTipLabels(c(results[[1]]$phy, conTree), mc=mc, numCores=numCores)[[2]];
 	
 # ladderize for plotting purposes
 	conTree <- ladderize(conTree);
@@ -48,13 +48,24 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	num.edges <- length(conTree$edge[,1]);
 	root.node <- n.tips + 1;
 	
+	cat("Processing conTree... ");
 	obj <- makeCacheMedusa(phy=conTree, richness=richness, all.nodes=seq_len((2 * n.tips) -1), shiftCut="both",
 	                       verbose=FALSE, mc=mc, numCores=numCores);
 	con.desc <- list(stem=obj$desc.stem, node=obj$desc.node);
 	con.z <- obj$z;
+	cat("done.\n");
 	
 # store tip descedants for each edge of conTree, ordered as in con.z
-	con.edge.tip.desc <- lapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips);
+	
+	cat("Storing tip sets... ");
+	con.edge.tip.desc <- NULL;
+	if (mc) {
+		con.edge.tip.desc <- mclapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips,
+		                              mc.cores=numCores);
+	} else {
+		con.edge.tip.desc <- lapply(con.z[,"dec"], FUN=getTips, z=con.z, desc=con.desc$stem, n.tips=n.tips);
+	}
+	cat("done");
 	
 	model.sizes <- numeric(num.trees);
 	for (i in 1:length(results)) { # fasdt, but inelegant
@@ -92,7 +103,16 @@ multiMedusaSummary <- function (res, conTree, cutOff=0.05, plotModelSizes=TRUE,
 	for (i in 1:num.trees) {
 		i.z <- results[[i]]$optModel$z;
 # get tips descended from each edge in i.z
-		i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips);
+		
+		i.edge.tip.desc <- NULL;
+		
+		if (mc) {
+			i.edge.tip.desc <- mclapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips,
+		                              mc.cores=numCores);
+		} else {
+			i.edge.tip.desc <- lapply(i.z[,"dec"], FUN=getTips, z=i.z, desc=results[[i]]$desc$stem, n.tips=n.tips);
+		}
+		
 		i.par <- results[[i]]$optModel$par;
 	# -1 gets rid of root 'shift'
 		i.splits <- results[[i]]$optModel$split.at[-1]; # need to map these
