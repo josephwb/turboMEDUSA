@@ -1,7 +1,6 @@
 import(ape)
 import(colorspace)
 import(shape)
-importFrom(geiger,treedata)
 
 export(getBD)
 export(plotPrettyTree)
@@ -22,3 +21,4 @@ importFrom("graphics", "axis", "contour", "hist", "legend", "lines",
 importFrom("stats", "density", "median", "optim", "optimize", "sd",
              "uniroot", "weighted.mean")
 importFrom("utils", "installed.packages", "packageVersion", "tail")
+importFrom("stats", "reorder")
