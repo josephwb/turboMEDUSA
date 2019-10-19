@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/josephwb/turboMEDUSA.svg?branch=master)](https://travis-ci.org/josephwb/turboMEDUSA)
+[![Build Status](https://travis-ci.com/josephwb/turboMEDUSA.svg?branch=master)](https://travis-ci.com/josephwb/turboMEDUSA)
+
 MEDUSA: Modeling Evolutionary Diversification Using Stepwise AIC
 ---------------
 ![](MM-BDsum.png)
