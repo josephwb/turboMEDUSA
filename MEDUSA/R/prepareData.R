@@ -47,7 +47,7 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
     return(list(phy=phy, richness=richness));
 }
 
-# make sure things are in the correct order and of correct format
+# make sure column names are correct, and get rid of any factor nonsense
 formatRichness <- function (richness, phy=NULL) {
     if (is.null(richness)) {
         richness <- getRichness(phy);
@@ -55,28 +55,39 @@ formatRichness <- function (richness, phy=NULL) {
     }
     
     if (length(richness[1,]) == 2) {
-        if (all(c("taxon", "n.taxa") %in% colnames(richness))) { # already formatted correctly
-            return(richness);
+        if (all(c("taxon", "n.taxa") %in% colnames(richness))) {
+          # check if n.taxa class is factor. if so, fix it. summary commands barf on that
+          if (class(richness$n.taxa) == "factor") {
+            richness$n.taxa <- as.numeric(as.character(richness$n.taxa));
+          }
+          # do same for taxon
+          if (class(richness$taxon) == "factor") {
+            richness$taxon <- as.character(richness$taxon);
+          }
+          return(richness);
+        } else {
+          stop("\nRichness column names must be 'taxon' and 'n.taxa'. See ?MEDUSA.\n");
         }
-        
-        if (colnames(richness)[1] != "taxon" || colnames(richness)[2] != "n.taxa") {
-            if (class(richness[,1]) == "factor" & class(richness[,2]) == "integer") {
-                colnames(richness) = c("taxon", "n.taxa");
-            } else if (class(richness[,1]) == "integer" & class(richness[,2]) == "factor") {
-                colnames(richness) = c("n.taxa", "taxon");
-            } else {
-                stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
-            }
-        }
-        return(richness);
     } else if (length(richness[1,]) == 3) { # make this more general later
         if (all(c("taxon", "n.taxa", "exemplar") %in% colnames(richness))) {
-            return(richness);
+          # check if n.taxa class is factor. if so, fix it. summary commands barf on that
+          if (class(richness$n.taxa) == "factor") {
+            richness$n.taxa <- as.numeric(as.character(richness$n.taxa));
+          }
+          # do same for taxon
+          if (class(richness$taxon) == "factor") {
+            richness$taxon <- as.character(richness$taxon);
+          }
+          # and exemplar why not
+          if (class(richness$exemplar) == "factor") {
+            richness$exemplar <- as.character(richness$exemplar);
+          }
+          return(richness);
         } else {
-            stop("\nMEDUSA thinks your richness data is in an incorrect format. See ?MEDUSA.\n");
+          stop("\nMEDUSA thinks your richness data are in an incorrect format. See ?MEDUSA.\n");
         }
     } else {
-        stop("\nMEDUSA thinks your richness data is in an incorrect format (too many columns). See ?MEDUSA.\n");
+      stop("\nMEDUSA thinks your richness data are in an incorrect format (too many columns). See ?MEDUSA.\n");
     }
 }
 
