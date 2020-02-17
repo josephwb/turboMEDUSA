@@ -9,7 +9,7 @@ Plot a consensus tree annotated with results from a \code{\link{MEDUSA}} analysi
 \usage{
 plotMultiMedusa(summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
 	plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5, font=3,
-	shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, ...)
+	shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, rate.posy=c(0.30, 0.55), rate.posx=c(0.05, 0.075), ...)
 }
 
 \arguments{
@@ -57,6 +57,12 @@ Choose amongst a bunch of colour palettes. Takes numeric value.
 }
   \item{revColours}{
 Boolean value that reverses spectrum of colours for plotting edge rates. Default is \code{false}.
+}
+\item{rate.posx}{
+Control the x dimensions of the rate legend. Default is c(0.05, 0.075).
+}
+\item{rate.posy}{
+Control the y dimensions of the rate legend. Default is c(0.30, 0.55),.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.

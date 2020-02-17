@@ -555,7 +555,7 @@ createEdgeLabels <- function (medusa.summary) {
 
 plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, annotateRate="r.median",
     plotRichnesses=TRUE, richPlot="log", time=TRUE, tip.cex=0.3, shiftScale=1, label.offset=0.5,
-    font=3, shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, ...) {
+    font=3, shift.leg.pos="left", power=1.5, pal=1, revColours=FALSE, rate.posy=c(0.30, 0.55), rate.posx=c(0.05, 0.075), ...) {
     
     #dev.new(); # make a new plotting window
     conTree <- summary$summary.tree;
@@ -659,10 +659,14 @@ plotMultiMedusa <- function (summary, treeRearrange="down", annotateShift=TRUE, 
             pt.cex=(shiftScale * c(1, 0.75, 0.5, 0.25)), inset=0.05, cex=0.5, bty="n", title="Shift Frequency");
     }
     
-# the weird position information used here fucks up subsequent positioning
+    # controll how many labels are on the rate legend
+    n.rate.labels <- 5;
+    rate.labs <- seq(from=minMax[1], to=minMax[2], length.out=5);
+    
+# the weird position information used here fucks up subsequent positioning. make this available to user
     colorlegend(posy=c(0.30, 0.55), posx=c(0.05, 0.075), col=rateColours, zlim=minMax,
-        zval=rateSeq, dz=0.5, digit=3, cex=0.25, zlevels=NULL,
-        main.cex=0.5, main=paste0("Rate (", annotateRate, ")"));
+        zval=rate.labs, dz=0.5, digit=3, cex=0.4, zlevels=NULL,
+        main.cex=0.6, main=paste0("Rate (", annotateRate, ")"));
 }
 
 # this function returns the phy$tip.label indices of tips descended from each edge in z
