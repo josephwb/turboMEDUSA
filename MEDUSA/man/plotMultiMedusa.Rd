@@ -56,7 +56,7 @@ Alters the colour scheme for annotating rates.
 Choose amongst a bunch of colour palettes. Takes numeric value.
 }
   \item{revColours}{
-Boolean value that reverses spectrum of colours for plotting edge rates. Default is \code{fasle}.
+Boolean value that reverses spectrum of colours for plotting edge rates. Default is \code{false}.
 }
   \item{\dots}{
 Potential additional arguments for plotting etc.
