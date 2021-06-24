@@ -29,7 +29,7 @@ prepareData <- function (phy, richness, verbose, resolveTree) {
     
 # Check the tree
     if (!is.ultrametric(phy, option=2)) {stop("\n\nWARNING: input tree is not ultrametric. Stopping analysis.\n");}
-    if (!is.binary.tree(phy)) {
+    if (!is.binary(phy)) {
         if (!resolveTree) {
             stop("\nWARNING: input tree is not binary (i.e. contains one or more polytomies).\nIf you wish to randomly resolve the tree, re-run MEDUSA with option \"resolveTree=TRUE\".\n\nStopping analysis.\n");
         } else {
