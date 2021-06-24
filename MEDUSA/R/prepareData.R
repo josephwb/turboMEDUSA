@@ -68,6 +68,9 @@ formatRichness <- function (richness, phy=NULL) {
         } else {
           stop("\nRichness column names must be 'taxon' and 'n.taxa'. See ?MEDUSA.\n");
         }
+        if (any(richness$n.taxa < 1)) {
+          stop("\nRichness (n.taxa) must be positive. Exiting.\n");
+        }
     } else if (length(richness[1,]) == 3) { # make this more general later
         if (all(c("taxon", "n.taxa", "exemplar") %in% colnames(richness))) {
           # check if n.taxa class is factor. if so, fix it. summary commands barf on that
@@ -85,6 +88,9 @@ formatRichness <- function (richness, phy=NULL) {
           return(richness);
         } else {
           stop("\nMEDUSA thinks your richness data are in an incorrect format. See ?MEDUSA.\n");
+        }
+        if (any(richness$n.taxa < 1)) {
+          stop("\nRichness (n.taxa) must be positive. Exiting.\n");
         }
     } else {
       stop("\nMEDUSA thinks your richness data are in an incorrect format (too many columns). See ?MEDUSA.\n");
