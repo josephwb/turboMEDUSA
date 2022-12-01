@@ -47,7 +47,7 @@ Specifies how far tip labels are offset rightward from the default \code{plot.ph
 Specifies the font to display for tip labels. The default \code{font=3} plots labels in italic. Options are \code{font=1} (plain text), \code{font=2} (bold), \code{font=3} (italic, the default), and \code{font=4} (bold italic).
 }
   \item{shift.leg.pos}{
-Specifies the position of the shift legend. Default is \code{shift.leg.pos="bottomleft"}.
+Specifies the position of the shift legend. Default is \code{shift.leg.pos="bottomleft"}. If \code{shift.leg.pos="none"} the legend is not plotted; this is useful when summarizing a single tree.
 }
   \item{power}{
 Alters the colour scheme for annotating rates.
